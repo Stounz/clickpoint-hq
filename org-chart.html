@@ -6156,7 +6156,7 @@ function cmdResolveEsc(id, optIdx) {
 }
 
 // ── Agent Live Chat ──
-const AGC_API = 'https://clickpoint-api.up.railway.app'; // ← update with your Railway URL
+const AGC_API = 'https://web-production-c959ce.up.railway.app';
 let agcHistory = []; // {role, content} for current conversation
 let agcPanelOpen = false;
 let agcApiKey = localStorage.getItem('agcApiKey') || '';
@@ -6222,7 +6222,7 @@ let agcAgents = [
 async function agcLoadAgents() {
   // Pull any custom/edited agents from server (which merged DB on startup)
   try {
-    const res = await fetch('https://clickpoint-api.up.railway.app/api/agents');
+    const res = await fetch('https://web-production-c959ce.up.railway.app/api/agents');
     if (!res.ok) return;
     const data = await res.json();
     (data.agents || []).forEach(a => {
@@ -6431,7 +6431,7 @@ async function staffSave() {
   btn.disabled = true; btn.textContent = 'Saving…';
 
   try {
-    const res = await fetch('https://clickpoint-api.up.railway.app/api/agents/save', {
+    const res = await fetch('https://web-production-c959ce.up.railway.app/api/agents/save', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ key, name, role, skills: staffEditSkills, extraContext: extra, systemPrompt: customPrompt }),
@@ -7268,7 +7268,7 @@ async function anlSync() {
 
 async function anlFetch(platform, days) {
   try {
-    const res = await fetch('https://clickpoint-api.up.railway.app/api/metrics/fetch', {
+    const res = await fetch('https://web-production-c959ce.up.railway.app/api/metrics/fetch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ client: anlClient, platform, days, budget: anlBudget }),
@@ -7815,7 +7815,7 @@ async function intgSave() {
   btn.disabled = true; btn.textContent = 'Saving…';
 
   try {
-    const res = await fetch('https://clickpoint-api.up.railway.app/api/integrations/connect', {
+    const res = await fetch('https://web-production-c959ce.up.railway.app/api/integrations/connect', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ client: clientVal, platform: p.id, accountId, token }),
@@ -7878,7 +7878,7 @@ async function pacGenerate() {
   btn.disabled = true; btn.textContent = '⏳ Generating…';
 
   try {
-    const res = await fetch('https://clickpoint-api.up.railway.app/api/portal/access', {
+    const res = await fetch('https://web-production-c959ce.up.railway.app/api/portal/access', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ client: pacCurrentClient, email, send_email: sendEmail }),
@@ -7935,7 +7935,7 @@ async function wsLoadWorkspaces() {
 
   let workspaces = [];
   try {
-    const res = await fetch(`${window.AGENT_API || 'https://clickpoint-api.up.railway.app'}/api/workspaces`);
+    const res = await fetch(`${window.AGENT_API || 'https://web-production-c959ce.up.railway.app'}/api/workspaces`);
     const data = await res.json();
     workspaces = data.workspaces || [];
   } catch(e) {}
@@ -8024,7 +8024,7 @@ async function wsCreateSubmit() {
 
   result.style.display = 'none';
   try {
-    const res = await fetch('https://clickpoint-api.up.railway.app/api/workspace/create', {
+    const res = await fetch('https://web-production-c959ce.up.railway.app/api/workspace/create', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ companyName: name, email })
     });
@@ -8086,7 +8086,7 @@ async function ntfTest(channel) {
   const webhook = document.getElementById('ntfSlackUrl').value.trim();
   const email   = document.getElementById('ntfEmail').value.trim();
   try {
-    const res = await fetch('https://clickpoint-api.up.railway.app/api/notify/test', {
+    const res = await fetch('https://web-production-c959ce.up.railway.app/api/notify/test', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ channel, webhook, email }),
@@ -8106,7 +8106,7 @@ function ntfSave() {
   };
   localStorage.setItem(NTF_KEY, JSON.stringify(settings));
   // Tell server to update its in-memory config
-  fetch('https://clickpoint-api.up.railway.app/api/notify', {
+  fetch('https://web-production-c959ce.up.railway.app/api/notify', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ event:'custom', detail:'Settings updated ✓', webhook: settings.slack, email: settings.email }),
@@ -8122,7 +8122,7 @@ async function notifyEvent(event, client = '', detail = '') {
     const webhook  = saved.slack  || '';
     const email    = saved.email  || '';
     if (!webhook && !email) return; // nothing configured
-    await fetch('https://clickpoint-api.up.railway.app/api/notify', {
+    await fetch('https://web-production-c959ce.up.railway.app/api/notify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ event, client, detail, webhook, email }),
@@ -8133,7 +8133,7 @@ async function notifyEvent(event, client = '', detail = '') {
 // ══════════════════════════════════════════════════════════════════════════════
 // REPORTS — monthly agent-chain report generation
 // ══════════════════════════════════════════════════════════════════════════════
-const RPT_API = 'https://clickpoint-api.up.railway.app';
+const RPT_API = 'https://web-production-c959ce.up.railway.app';
 let rptReports = [];         // loaded from Supabase
 let rptCurrentReport = null; // report currently viewed
 
