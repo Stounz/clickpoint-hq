@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClickPoint — Client Portal</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal:    #1C3A2E;
+    --teal-md: #2A5240;
+    --orange:  #D4622A;
+    --bg:      #F4F3EE;
+    --card:    #FFFFFF;
+    --border:  #E2E1DB;
+    --text:    #1A1A1A;
+    --muted:   #999990;
+    --green:   #30D158;
+    --amber:   #FF9F0A;
+    --red:     #FF453A;
+    --blue:    #4285F4;
+    --radius:  14px;
+    --shadow:  0 2px 16px rgba(0,0,0,0.07);
+    --shadow-lg: 0 12px 48px rgba(0,0,0,0.14);
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── Login ──────────────────────────────────────────────────────────────── */
+  #loginScreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, #1C3A2E 0%, #2A5240 60%, #1C3A2E 100%);
+    padding: 20px;
+  }
+  .login-card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 44px 40px 40px;
+    width: 400px;
+    max-width: 100%;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.25);
+  }
+  .login-logo { font-size: 22px; font-weight: 800; color: var(--teal); letter-spacing: -0.5px; margin-bottom: 28px; }
+  .login-logo span { color: var(--orange); }
+  .login-title { font-size: 26px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+  .login-sub { font-size: 14px; color: var(--muted); margin-bottom: 32px; line-height: 1.5; }
+  .login-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #555; margin-bottom: 6px; display: block; }
+  .login-input {
+    width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 11px;
+    font-size: 14px; font-family: inherit; color: var(--text); outline: none;
+    margin-bottom: 16px; transition: border-color 0.15s;
+  }
+  .login-input:focus { border-color: var(--teal); }
+  .login-input.code { font-size: 22px; font-weight: 700; letter-spacing: 6px; text-align: center; }
+  .login-btn {
+    width: 100%; padding: 13px; background: var(--teal); color: #fff; border: none;
+    border-radius: 11px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit;
+    transition: background 0.15s; margin-top: 4px;
+  }
+  .login-btn:hover { background: var(--teal-md); }
+  .login-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+  .login-error {
+    background: #FFF0EE; border: 1px solid #FFCDC5; border-radius: 10px; padding: 10px 14px;
+    font-size: 13px; color: #C0392B; margin-bottom: 16px; display: none;
+  }
+  .login-footer { margin-top: 28px; text-align: center; font-size: 12px; color: #bbb; }
+
+  /* ── Portal header ──────────────────────────────────────────────────────── */
+  #portalDash { display: none; min-height: 100vh; }
+  .portal-header {
+    background: var(--teal); color: #fff; padding: 0 32px;
+    display: flex; align-items: center; gap: 20px; height: 60px;
+    position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+  }
+  .portal-logo { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; flex-shrink: 0; }
+  .portal-logo span { color: var(--orange); }
+  .portal-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.2); }
+  .portal-client-name { font-size: 15px; font-weight: 700; flex: 1; }
+  .portal-period { font-size: 12px; opacity: 0.6; }
+  .portal-signout {
+    background: rgba(255,255,255,0.12); border: none; color: rgba(255,255,255,0.8);
+    padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+  }
+  .portal-signout:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+  /* ── Portal body ────────────────────────────────────────────────────────── */
+  .portal-body { max-width: 1100px; margin: 0 auto; padding: 32px 24px 60px; }
+  .portal-welcome { margin-bottom: 28px; }
+  .portal-welcome h1 { font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+  .portal-welcome p { font-size: 14px; color: var(--muted); }
+
+  /* Range selector */
+  .portal-controls { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+  .portal-range {
+    padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 13px; font-family: inherit; color: var(--text); background: #fff; outline: none; cursor: pointer;
+  }
+  .portal-range:focus { border-color: var(--teal); }
+  .portal-sync-btn {
+    padding: 8px 16px; background: var(--teal); color: #fff; border: none; border-radius: 10px;
+    font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+  .portal-sync-btn:hover { background: var(--teal-md); }
+
+  /* Section headers */
+  .portal-section { margin-bottom: 32px; }
+  .portal-section-title {
+    font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+  }
+  .portal-section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* KPI strip */
+  .portal-kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 32px; }
+  .portal-kpi { background: #fff; border-radius: var(--radius); padding: 18px 20px; border: 1px solid var(--border); }
+  .portal-kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 6px; }
+  .portal-kpi-val { font-size: 26px; font-weight: 800; color: var(--text); line-height: 1; }
+  .portal-kpi-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .portal-kpi-trend { font-size: 11px; font-weight: 700; margin-top: 4px; }
+  .portal-kpi-trend.up { color: var(--green); }
+  .portal-kpi-trend.warn { color: var(--amber); }
+
+  /* Platform cards */
+  .portal-plat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .portal-plat-card { background: #fff; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+  .portal-plat-hdr { display: flex; align-items: center; gap: 10px; padding: 14px 18px 12px; border-bottom: 1px solid #F5F4F0; }
+  .portal-plat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #fff; flex-shrink: 0; }
+  .portal-plat-name { font-size: 14px; font-weight: 700; flex: 1; }
+  .portal-plat-badge { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 100px; }
+  .portal-plat-badge.live { background: #E8FFF1; color: #27AE60; }
+  .portal-plat-badge.demo { background: #FFF8E6; color: #856404; }
+  .portal-plat-badge.nc   { background: #F4F3EE; color: var(--muted); }
+  .portal-plat-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #F5F4F0; }
+  .portal-plat-metric { background: #fff; padding: 14px 16px; }
+  .portal-plat-metric-val { font-size: 18px; font-weight: 800; color: var(--text); }
+  .portal-plat-metric-val.green { color: var(--green); }
+  .portal-plat-metric-val.blue  { color: var(--blue); }
+  .portal-plat-metric-label { font-size: 10px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+  .portal-plat-foot { padding: 10px 18px; display: flex; justify-content: space-between; align-items: center; }
+  .portal-plat-foot-meta { font-size: 11px; color: #bbb; }
+  .portal-plat-empty { padding: 32px 18px; text-align: center; }
+  .portal-plat-empty-txt { font-size: 13px; color: #ccc; margin-top: 8px; }
+
+  /* Sparkline */
+  .portal-spark { display: flex; align-items: flex-end; gap: 2px; height: 28px; padding: 0 18px 10px; }
+  .portal-spark-bar { flex: 1; border-radius: 2px 2px 0 0; min-height: 3px; opacity: 0.6; }
+
+  /* Report card */
+  .portal-report-card {
+    background: #fff; border-radius: var(--radius); border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .portal-report-hdr {
+    background: var(--teal); color: #fff; padding: 20px 24px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .portal-report-score { font-size: 36px; font-weight: 800; line-height: 1; }
+  .portal-report-score-denom { font-size: 16px; opacity: 0.6; }
+  .portal-report-info { flex: 1; }
+  .portal-report-title { font-size: 15px; font-weight: 700; }
+  .portal-report-sub { font-size: 12px; opacity: 0.65; margin-top: 2px; }
+  .portal-report-track { height: 4px; background: rgba(255,255,255,0.2); border-radius: 99px; margin-top: 10px; overflow: hidden; }
+  .portal-report-fill { height: 100%; border-radius: 99px; }
+  .portal-report-body { padding: 22px 24px; }
+  .portal-report-exec { font-size: 14px; line-height: 1.7; color: #444; margin-bottom: 20px; }
+  .portal-report-recs-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 12px; }
+  .portal-rec-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid #F4F3EE; }
+  .portal-rec-item:last-child { border-bottom: none; }
+  .portal-rec-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .portal-rec-text { font-size: 13px; color: #444; line-height: 1.5; }
+  .portal-report-empty { padding: 40px 24px; text-align: center; color: #bbb; font-size: 14px; }
+  .portal-report-sign-off { margin-top: 18px; padding: 14px 16px; background: #F9F8F4; border-radius: 10px; border-left: 3px solid var(--teal); font-size: 13px; font-style: italic; color: #555; line-height: 1.6; }
+  .portal-report-sign-name { font-size: 11px; font-weight: 700; color: var(--teal); margin-top: 8px; font-style: normal; display: block; }
+
+  /* Footer */
+  .portal-footer { text-align: center; padding: 28px 0 0; font-size: 12px; color: #bbb; }
+  .portal-footer a { color: #bbb; text-decoration: none; }
+
+  /* Loading skeleton */
+  .skel { background: linear-gradient(90deg, #F0EFE9 25%, #E8E7E0 50%, #F0EFE9 75%); background-size: 200% 100%; animation: skel 1.4s infinite; border-radius: 8px; }
+  @keyframes skel { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  @media (max-width: 700px) {
+    .portal-kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .portal-plat-grid { grid-template-columns: 1fr; }
+    .portal-header { padding: 0 16px; }
+    .portal-body { padding: 20px 14px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Login ────────────────────────────────────────────────────────────────── -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">✦ Click<span>Point</span></div>
+    <div class="login-title">Client Portal</div>
+    <div class="login-sub">Enter your email address and the access code your account manager provided.</div>
+    <div class="login-error" id="loginError"></div>
+    <label class="login-label" for="loginEmail">Email address</label>
+    <input class="login-input" type="email" id="loginEmail" placeholder="you@company.com" autocomplete="email">
+    <label class="login-label" for="loginCode">Access code</label>
+    <input class="login-input code" type="text" id="loginCode" placeholder="······" maxlength="6" autocomplete="one-time-code">
+    <button class="login-btn" id="loginBtn" onclick="portalLogin()">Sign In →</button>
+    <div class="login-footer">Need help? Contact your ClickPoint account manager.</div>
+  </div>
+</div>
+
+<!-- ── Dashboard ─────────────────────────────────────────────────────────────── -->
+<div id="portalDash">
+  <header class="portal-header">
+    <div class="portal-logo">✦ Click<span style="color:#D4622A;">Point</span></div>
+    <div class="portal-divider"></div>
+    <div class="portal-client-name" id="portalClientName">—</div>
+    <div class="portal-period" id="portalPeriodLabel">April 2026</div>
+    <button class="portal-signout" onclick="portalSignOut()">Sign out</button>
+  </header>
+
+  <div class="portal-body">
+    <div class="portal-welcome">
+      <h1 id="portalWelcome">Welcome back 👋</h1>
+      <p>Here's your marketing performance overview.</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="portal-controls">
+      <select class="portal-range" id="portalRange" onchange="portalLoad()">
+        <option value="7">Last 7 days</option>
+        <option value="30" selected>Last 30 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+      <button class="portal-sync-btn" onclick="portalLoad()">🔄 Refresh</button>
+    </div>
+
+    <!-- KPI Summary -->
+    <div class="portal-kpi-row" id="portalKpis">
+      <div class="portal-kpi"><div class="portal-kpi-label">Total Ad Spend</div><div class="skel" style="height:32px;margin-top:6px;"></div></div>
+      <div class="portal-kpi"><div class="portal-kpi-label">Total Revenue</div><div class="skel" style="height:32px;margin-top:6px;"></div></div>
+      <div class="portal-kpi"><div class="portal-kpi-label">Blended ROAS</div><div class="skel" style="height:32px;margin-top:6px;"></div></div>
+      <div class="portal-kpi"><div class="portal-kpi-label">Organic Sessions</div><div class="skel" style="height:32px;margin-top:6px;"></div></div>
+    </div>
+
+    <!-- Platform Performance -->
+    <div class="portal-section">
+      <div class="portal-section-title">Platform Performance</div>
+      <div class="portal-plat-grid" id="portalPlatGrid">
+        <div class="portal-plat-card" style="padding:32px;text-align:center;color:#ccc;">Loading…</div>
+      </div>
+    </div>
+
+    <!-- Latest Report -->
+    <div class="portal-section">
+      <div class="portal-section-title">Latest Monthly Report</div>
+      <div class="portal-report-card" id="portalReportCard">
+        <div class="portal-report-empty">Loading report…</div>
+      </div>
+    </div>
+
+    <div class="portal-footer">
+      Powered by <strong>ClickPoint Marketing</strong> &nbsp;·&nbsp; Confidential — for authorised recipients only
+    </div>
+  </div>
+</div>
+
+<script>
+const PORTAL_API  = 'http://localhost:3001';
+const SUPA_URL    = 'https://banelvzjttdqkwmbvybm.supabase.co';
+const SUPA_KEY    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhbmVsdnpqdHRkcWt3bWJ2eWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4NjM2NzQsImV4cCI6MjA5MjQzOTY3NH0.zPqWFy8-Rw4c_t-i-RRWh-CNMUD0PCGE4HOeh-g7pQE';
+const db          = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+let portalClient  = null;
+let portalMetrics = {};
+
+const PLAT_DEFS = {
+  google_ads:     { name:'Google Ads',         color:'#4285F4', abbr:'GA' },
+  meta_ads:       { name:'Meta Ads',           color:'#1877F2', abbr:'M'  },
+  ga4:            { name:'Google Analytics 4', color:'#E37400', abbr:'G4' },
+  search_console: { name:'Search Console',     color:'#34A853', abbr:'SC' },
+};
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+async function portalLogin() {
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const code  = document.getElementById('loginCode').value.trim();
+  const errEl = document.getElementById('loginError');
+  const btn   = document.getElementById('loginBtn');
+  errEl.style.display = 'none';
+
+  if (!email || !code) { showLoginError('Please enter both your email and access code.'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+
+  try {
+    const res = await fetch(`${PORTAL_API}/api/portal/auth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code }),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      showLoginError(d.error || 'Invalid email or access code. Please try again.');
+      btn.disabled = false; btn.textContent = 'Sign In →';
+      return;
+    }
+    const data = await res.json();
+    portalClient = data.client;
+    sessionStorage.setItem('portal_client', portalClient);
+    sessionStorage.setItem('portal_email', email);
+    showPortalDash();
+  } catch(e) {
+    // Server offline — try demo mode with email as client hint
+    const fallbackClient = email.split('@')[1]?.split('.')[0] || 'Demo Client';
+    portalClient = sessionStorage.getItem('portal_client') || 'Apex Dynamics';
+    showPortalDash();
+  }
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function portalSignOut() {
+  sessionStorage.removeItem('portal_client');
+  sessionStorage.removeItem('portal_email');
+  portalClient = null;
+  document.getElementById('portalDash').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginCode').value = '';
+}
+
+function showPortalDash() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('portalDash').style.display = 'block';
+  document.getElementById('portalClientName').textContent = portalClient;
+  document.getElementById('portalWelcome').textContent = `Welcome, ${portalClient} 👋`;
+  portalLoad();
+}
+
+// ── Data loading ──────────────────────────────────────────────────────────────
+async function portalLoad() {
+  if (!portalClient) return;
+  const days = parseInt(document.getElementById('portalRange').value) || 30;
+  const now  = new Date();
+  document.getElementById('portalPeriodLabel').textContent =
+    now.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' });
+
+  // Reset KPIs to skeleton
+  const kpiWrap = document.getElementById('portalKpis');
+  kpiWrap.innerHTML = ['Total Ad Spend','Total Revenue','Blended ROAS','Organic Sessions'].map(l =>
+    `<div class="portal-kpi"><div class="portal-kpi-label">${l}</div><div class="skel" style="height:32px;margin-top:6px;width:80%;"></div></div>`
+  ).join('');
+
+  document.getElementById('portalPlatGrid').innerHTML =
+    '<div style="padding:32px;text-align:center;color:#ccc;grid-column:1/-1;">Fetching metrics…</div>';
+
+  // Fetch all 4 platforms in parallel
+  portalMetrics = {};
+  const platforms = ['google_ads','meta_ads','ga4','search_console'];
+  await Promise.all(platforms.map(async p => {
+    try {
+      const r = await fetch(`${PORTAL_API}/api/metrics/fetch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client: portalClient, platform: p, days }),
+      });
+      if (r.ok) portalMetrics[p] = await r.json();
+      else portalMetrics[p] = portalDemoFallback(p, days);
+    } catch {
+      portalMetrics[p] = portalDemoFallback(p, days);
+    }
+  }));
+
+  renderPortalKpis(days);
+  renderPortalPlatforms();
+  await loadPortalReport();
+}
+
+// ── KPI row ───────────────────────────────────────────────────────────────────
+function renderPortalKpis(days) {
+  const ga   = portalMetrics.google_ads || {};
+  const meta = portalMetrics.meta_ads   || {};
+  const g4   = portalMetrics.ga4        || {};
+  const totalSpend = (ga.spend||0) + (meta.spend||0);
+  const totalRev   = (ga.conv_value||0) + (meta.conv_value||0);
+  const blendROAS  = totalRev > 0 ? (totalRev / Math.max(0.01, totalSpend)).toFixed(1) : '—';
+
+  const kpis = [
+    { label:'Total Ad Spend',    val: fmtCur(totalSpend),   sub: `${days}-day window`, trend: '' },
+    { label:'Total Revenue',     val: fmtCur(totalRev),     sub: blendROAS !== '—' ? `${blendROAS}x ROAS` : 'Connect platforms', trend: blendROAS >= 3 ? 'up' : '' },
+    { label:'Blended ROAS',      val: blendROAS !== '—' ? `${blendROAS}x` : '—', sub: totalSpend > 0 ? 'Across paid channels' : '', trend: '' },
+    { label:'Organic Sessions',  val: fmtNum(g4.sessions||0), sub: g4.conv_rate ? `${g4.conv_rate}% conv rate` : '', trend: '' },
+  ];
+  document.getElementById('portalKpis').innerHTML = kpis.map(k => `
+    <div class="portal-kpi">
+      <div class="portal-kpi-label">${k.label}</div>
+      <div class="portal-kpi-val">${k.val}</div>
+      ${k.sub ? `<div class="portal-kpi-sub ${k.trend}">${k.sub}</div>` : ''}
+    </div>`).join('');
+}
+
+// ── Platform cards ────────────────────────────────────────────────────────────
+function renderPortalPlatforms() {
+  const grid = document.getElementById('portalPlatGrid');
+  const platforms = ['google_ads','meta_ads','ga4','search_console'];
+  grid.innerHTML = platforms.map(p => portalPlatCard(p)).join('');
+}
+
+function portalPlatCard(platform) {
+  const def = PLAT_DEFS[platform] || { name: platform, color:'#999', abbr:'?' };
+  const m   = portalMetrics[platform];
+  const iconHTML = `<div class="portal-plat-icon" style="background:${def.color};">${def.abbr}</div>`;
+
+  if (!m) {
+    return `<div class="portal-plat-card">
+      <div class="portal-plat-hdr">${iconHTML}<span class="portal-plat-name">${def.name}</span><span class="portal-plat-badge nc">Not connected</span></div>
+      <div class="portal-plat-empty"><div style="font-size:24px;opacity:0.3;">${platform.includes('ga')? '📊':'💳'}</div><div class="portal-plat-empty-txt">Not yet connected</div></div>
+    </div>`;
+  }
+
+  const badge   = m.is_demo ? 'demo' : 'live';
+  const badgeTxt= m.is_demo ? 'Demo data' : 'Live';
+
+  let m1, m2, m3, sparkColor;
+  if (platform === 'google_ads') {
+    m1 = { val: fmtCur(m.spend),            lbl:'Spend',       cls:'' };
+    m2 = { val: `${(m.roas||0).toFixed(1)}x`,lbl:'ROAS',       cls:'green' };
+    m3 = { val: fmtNum(m.conversions||0),    lbl:'Conversions', cls:'' };
+    sparkColor = def.color;
+  } else if (platform === 'meta_ads') {
+    m1 = { val: fmtCur(m.spend),             lbl:'Spend',  cls:'' };
+    m2 = { val: `${(m.roas||0).toFixed(1)}x`, lbl:'ROAS',  cls:'green' };
+    m3 = { val: fmtNum(m.reach||0),           lbl:'Reach', cls:'' };
+    sparkColor = def.color;
+  } else if (platform === 'ga4') {
+    m1 = { val: fmtNum(m.sessions||0),  lbl:'Sessions', cls:'' };
+    m2 = { val: fmtNum(m.users||0),      lbl:'Users',   cls:'blue' };
+    m3 = { val: `${m.conv_rate||0}%`,    lbl:'Conv Rate',cls:'green' };
+    sparkColor = def.color;
+  } else {
+    m1 = { val: fmtNum(m.impressions||0), lbl:'Impressions', cls:'' };
+    m2 = { val: fmtNum(m.clicks||0),       lbl:'Clicks',     cls:'blue' };
+    m3 = { val: `${m.ctr||0}%`,            lbl:'CTR',        cls:'green' };
+    sparkColor = def.color;
+  }
+
+  const sparkHTML = m.trend ? portalSparkline(m.trend, sparkColor) : '';
+
+  return `
+    <div class="portal-plat-card">
+      <div class="portal-plat-hdr">
+        ${iconHTML}
+        <span class="portal-plat-name">${def.name}</span>
+        <span class="portal-plat-badge ${badge}">${badgeTxt}</span>
+      </div>
+      <div class="portal-plat-metrics">
+        <div class="portal-plat-metric"><div class="portal-plat-metric-val ${m1.cls}">${m1.val}</div><div class="portal-plat-metric-label">${m1.lbl}</div></div>
+        <div class="portal-plat-metric"><div class="portal-plat-metric-val ${m2.cls}">${m2.val}</div><div class="portal-plat-metric-label">${m2.lbl}</div></div>
+        <div class="portal-plat-metric"><div class="portal-plat-metric-val ${m3.cls}">${m3.val}</div><div class="portal-plat-metric-label">${m3.lbl}</div></div>
+      </div>
+      ${sparkHTML}
+      <div class="portal-plat-foot">
+        <span class="portal-plat-foot-meta">${m.is_demo ? '🔮 Demo' : '🟢 Live'} · ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span>
+      </div>
+    </div>`;
+}
+
+function portalSparkline(trend, color) {
+  if (!trend || !trend.length) return '';
+  const max = Math.max(...trend, 1);
+  const bars = trend.map(v => {
+    const pct = Math.max(4, Math.round((v / max) * 100));
+    return `<div class="portal-spark-bar" style="height:${pct}%;background:${color};"></div>`;
+  }).join('');
+  return `<div class="portal-spark">${bars}</div>`;
+}
+
+// ── Latest report ─────────────────────────────────────────────────────────────
+async function loadPortalReport() {
+  const card = document.getElementById('portalReportCard');
+  try {
+    const { data, error } = await db
+      .from('client_reports')
+      .select('*')
+      .eq('client', portalClient)
+      .order('generated_at', { ascending: false })
+      .limit(1);
+    if (error || !data || !data.length) throw new Error('no report');
+    renderPortalReport(data[0]);
+  } catch {
+    card.innerHTML = `
+      <div class="portal-report-empty">
+        📋<br><br>No report generated yet.<br>
+        <span style="font-size:12px;">Your account manager will publish your monthly report here.</span>
+      </div>`;
+  }
+}
+
+function renderPortalReport(r) {
+  const card   = document.getElementById('portalReportCard');
+  const score  = r.health_score || 0;
+  const scCol  = score >= 8 ? '#30D158' : score >= 6 ? '#FF9F0A' : '#FF453A';
+  const sarah  = (typeof r.sarah_json === 'object' ? r.sarah_json : JSON.parse(r.sarah_json || '{}')) || {};
+  const recs   = sarah.recommendations || [];
+  const signOff= sarah.sarah_sign_off || '';
+
+  card.innerHTML = `
+    <div class="portal-report-hdr">
+      <div>
+        <span class="portal-report-score" style="color:${scCol};">${score}</span>
+        <span class="portal-report-score-denom">/10</span>
+      </div>
+      <div class="portal-report-info">
+        <div class="portal-report-title">${r.period} Monthly Report</div>
+        <div class="portal-report-sub">${r.health_label || 'Campaign Health'} · Generated ${new Date(r.generated_at).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})}</div>
+        <div class="portal-report-track">
+          <div class="portal-report-fill" style="width:${score*10}%;background:${scCol};"></div>
+        </div>
+      </div>
+    </div>
+    <div class="portal-report-body">
+      ${r.exec_summary ? `<div class="portal-report-exec">${r.exec_summary}</div>` : ''}
+      ${recs.length ? `
+        <div class="portal-report-recs-title">This Month's Focus Areas</div>
+        ${recs.slice(0,3).map(rec => {
+          const dotColor = rec.priority === 'HIGH' ? '#D4622A' : rec.priority === 'MED' ? '#FF9F0A' : '#30D158';
+          return `<div class="portal-rec-item">
+            <div class="portal-rec-dot" style="background:${dotColor};"></div>
+            <div class="portal-rec-text">${rec.action}</div>
+          </div>`;
+        }).join('')}` : ''}
+      ${signOff ? `<div class="portal-report-sign-off">"${signOff}"<span class="portal-report-sign-name">— Sarah Lin, CMO · ClickPoint Marketing</span></div>` : ''}
+    </div>`;
+}
+
+// ── Demo fallback ─────────────────────────────────────────────────────────────
+function portalDemoFallback(platform, days) {
+  const s   = (portalClient + platform).split('').reduce((a,c,i) => a + c.charCodeAt(0)*(i+1), 0) % 1000;
+  const bud = 10000;
+  const trend = Array.from({length:7},(_,i) => Math.round(bud*(0.05+i*0.008+(s%5)*0.002)));
+  if (platform === 'google_ads') {
+    const spend = Math.round(bud*(0.38+s*0.0003)*(days/30));
+    const clicks = Math.round(spend/0.82); const impr = Math.round(clicks/0.036);
+    const conv = Math.round(clicks*0.024); const cv = conv*72;
+    return { platform, is_demo:true, days, spend, impressions:impr, clicks, ctr:+(clicks/Math.max(1,impr)*100).toFixed(2), cpc:+(spend/Math.max(1,clicks)).toFixed(2), conversions:conv, conv_value:cv, roas:+(cv/Math.max(0.01,spend)).toFixed(2), trend: trend.map(v=>+(v*3.8).toFixed(0)) };
+  } else if (platform === 'meta_ads') {
+    const spend = Math.round(bud*(0.22+s*0.0002)*(days/30)); const reach = Math.round(spend*(38+s*0.04)); const clicks = Math.round(spend/1.2); const cv = clicks*15;
+    return { platform, is_demo:true, days, spend, reach, impressions:Math.round(reach*1.4), clicks, ctr:+(clicks/Math.max(1,Math.round(reach*1.4))*100).toFixed(2), cpm:+(spend/Math.max(1,Math.round(reach*1.4))*1000).toFixed(2), roas:+(cv/Math.max(0.01,spend)).toFixed(2), conv_value:cv, trend };
+  } else if (platform === 'ga4') {
+    const sessions = Math.round(bud*(1.8+s*0.002)*(days/30));
+    return { platform, is_demo:true, days, sessions, users:Math.round(sessions*0.76), new_users:Math.round(sessions*0.48), bounce_rate:+(38+s*0.012).toFixed(1), avg_session_duration:`${2+s%3}m ${10+s%50}s`, conv_rate:+(2.4+s*0.002).toFixed(2), revenue:Math.round(sessions*0.028*82), trend: trend.map(v=>v*12) };
+  } else if (platform === 'search_console') {
+    const impr = Math.round(bud*(7+s*0.01)*(days/30)); const clicks = Math.round(impr*0.02);
+    return { platform, is_demo:true, days, impressions:impr, clicks, ctr:+(clicks/Math.max(1,impr)*100).toFixed(2), avg_position:+(6.2+s*0.006).toFixed(1), trend: trend.map(v=>v*70) };
+  }
+  return null;
+}
+
+// ── Formatters ────────────────────────────────────────────────────────────────
+function fmtCur(n) {
+  if (!n || isNaN(n)) return '$0';
+  if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000)    return '$' + (n/1000).toFixed(1) + 'K';
+  return '$' + Math.round(n).toLocaleString();
+}
+function fmtNum(n) {
+  if (!n || isNaN(n)) return '0';
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000)    return (n/1000).toFixed(1) + 'K';
+  return Math.round(n).toLocaleString();
+}
+
+// ── Auto-restore session ──────────────────────────────────────────────────────
+(function init() {
+  const saved = sessionStorage.getItem('portal_client');
+  if (saved) {
+    portalClient = saved;
+    showPortalDash();
+  }
+  // Enter key on code input
+  document.getElementById('loginCode').addEventListener('keydown', e => {
+    if (e.key === 'Enter') portalLogin();
+  });
+})();
+</script>
+</body>
+</html>

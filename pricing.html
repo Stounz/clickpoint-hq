@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing — ClickPoint Marketing Platform</title>
+<link rel="icon" type="image/png" href="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/cropped-clickpoint-logo-header-2x.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --teal:   #1C3A2E;
+  --teal2:  #2A5240;
+  --orange: #D4622A;
+  --bg:     #F4F3EE;
+  --white:  #FFFFFF;
+  --border: #E2E1DB;
+  --text:   #1A1A1A;
+  --muted:  #666;
+  --radius: 20px;
+}
+
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── Nav ── */
+nav {
+  display: flex;
+  align-items: center;
+  padding: 0 48px;
+  height: 68px;
+  background: var(--teal);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.nav-logo-mark { width: 32px; height: 32px; background: var(--orange); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: #fff; }
+.nav-logo-text { font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+.nav-links { display: flex; gap: 28px; margin-left: 40px; }
+.nav-links a { color: rgba(255,255,255,0.65); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+.nav-links a:hover { color: #fff; }
+.nav-cta { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+.btn-ghost { padding: 8px 18px; border: 1.5px solid rgba(255,255,255,0.25); border-radius: 9px; color: rgba(255,255,255,0.8); font-size: 13px; font-weight: 600; cursor: pointer; background: none; text-decoration: none; transition: all 0.2s; }
+.btn-ghost:hover { border-color: rgba(255,255,255,0.6); color: #fff; }
+.btn-orange { padding: 9px 20px; background: var(--orange); border: none; border-radius: 9px; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none; transition: opacity 0.2s; }
+.btn-orange:hover { opacity: 0.88; }
+
+/* ── Hero ── */
+.hero {
+  text-align: center;
+  padding: 80px 24px 60px;
+  max-width: 780px;
+  margin: 0 auto;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(28,58,46,0.08);
+  border: 1px solid rgba(28,58,46,0.15);
+  border-radius: 100px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--teal);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 24px;
+}
+.hero h1 {
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 900;
+  color: var(--teal);
+  line-height: 1.08;
+  letter-spacing: -1.5px;
+  margin-bottom: 20px;
+}
+.hero h1 em { color: var(--orange); font-style: normal; }
+.hero p {
+  font-size: 18px;
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 560px;
+  margin: 0 auto 36px;
+}
+.hero-toggle {
+  display: inline-flex;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.toggle-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: none;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+.toggle-btn.active { background: var(--teal); color: #fff; }
+.hero-sub { font-size: 12px; color: #aaa; }
+.hero-sub strong { color: var(--orange); }
+
+/* ── Section label ── */
+.section-label {
+  text-align: center;
+  padding: 16px 24px 0;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+.section-title {
+  text-align: center;
+  padding: 8px 24px 40px;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--teal);
+  letter-spacing: -0.5px;
+}
+
+/* ── Pricing grid ── */
+.pricing-wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px 80px; }
+.pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+.plan-card {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: box-shadow 0.25s, transform 0.25s;
+}
+.plan-card:hover { box-shadow: 0 16px 48px rgba(0,0,0,0.1); transform: translateY(-2px); }
+.plan-card.featured {
+  background: var(--teal);
+  border-color: var(--teal);
+  transform: scale(1.03);
+}
+.plan-card.featured:hover { transform: scale(1.03) translateY(-2px); box-shadow: 0 24px 60px rgba(28,58,46,0.25); }
+
+.plan-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: var(--orange);
+  color: #fff;
+  margin-bottom: 16px;
+  align-self: flex-start;
+}
+.plan-name { font-size: 20px; font-weight: 800; color: var(--teal); margin-bottom: 6px; }
+.plan-card.featured .plan-name { color: #fff; }
+.plan-desc { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 24px; }
+.plan-card.featured .plan-desc { color: rgba(255,255,255,0.6); }
+
+.plan-price { margin-bottom: 28px; }
+.price-amount { font-size: 42px; font-weight: 900; color: var(--teal); letter-spacing: -1px; line-height: 1; }
+.plan-card.featured .price-amount { color: #fff; }
+.price-per { font-size: 14px; color: var(--muted); margin-top: 4px; }
+.plan-card.featured .price-per { color: rgba(255,255,255,0.5); }
+.price-amount sup { font-size: 22px; font-weight: 800; vertical-align: top; margin-top: 8px; display: inline-block; }
+
+.plan-cta {
+  display: block;
+  width: 100%;
+  padding: 13px;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  margin-bottom: 28px;
+  transition: all 0.2s;
+}
+.plan-cta.dark { background: var(--teal); color: #fff; }
+.plan-cta.dark:hover { background: var(--teal2); }
+.plan-cta.light { background: rgba(255,255,255,0.15); color: #fff; border: 1.5px solid rgba(255,255,255,0.3); }
+.plan-cta.light:hover { background: rgba(255,255,255,0.25); }
+.plan-cta.outline { background: none; color: var(--teal); border: 1.5px solid var(--border); }
+.plan-cta.outline:hover { border-color: var(--teal); }
+
+.plan-divider { height: 1px; background: var(--border); margin-bottom: 24px; }
+.plan-card.featured .plan-divider { background: rgba(255,255,255,0.15); }
+
+.plan-features-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 14px; }
+.plan-card.featured .plan-features-label { color: rgba(255,255,255,0.45); }
+
+.plan-features { list-style: none; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.plan-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--text);
+  line-height: 1.4;
+}
+.plan-card.featured .plan-features li { color: rgba(255,255,255,0.85); }
+.plan-features li .check { flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%; background: rgba(48,209,88,0.12); display: flex; align-items: center; justify-content: center; font-size: 10px; margin-top: 1px; }
+.plan-features li .check.orange { background: rgba(212,98,42,0.12); }
+.plan-card.featured .plan-features li .check { background: rgba(255,255,255,0.15); }
+.plan-features li.muted { color: #bbb; }
+.plan-card.featured .plan-features li.muted { color: rgba(255,255,255,0.3); }
+
+/* ── Divider ── */
+.divider-wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+.section-divider {
+  border: none;
+  border-top: 2px dashed var(--border);
+  margin: 0 0 60px;
+}
+
+/* ── Client plans ── */
+.client-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+/* ── Addon callout ── */
+.addon-callout {
+  max-width: 1160px;
+  margin: 0 auto 60px;
+  padding: 0 24px;
+}
+.addon-inner {
+  background: var(--teal);
+  border-radius: var(--radius);
+  padding: 32px 40px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.addon-icon { font-size: 40px; flex-shrink: 0; }
+.addon-text h3 { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+.addon-text p { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.5; max-width: 560px; }
+.addon-cta { margin-left: auto; flex-shrink: 0; }
+
+/* ── Compare table ── */
+.compare-wrap {
+  max-width: 1160px;
+  margin: 0 auto 80px;
+  padding: 0 24px;
+}
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+}
+.compare-table th {
+  padding: 18px 20px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  text-align: left;
+  border-bottom: 1.5px solid var(--border);
+  background: #FAFAF7;
+}
+.compare-table th:first-child { color: var(--teal); font-size: 13px; }
+.compare-table td { padding: 14px 20px; font-size: 13.5px; color: var(--text); border-bottom: 1px solid var(--border); }
+.compare-table tr:last-child td { border-bottom: none; }
+.compare-table td:not(:first-child) { text-align: center; color: var(--muted); font-size: 13px; }
+.check-yes { color: #30D158; font-weight: 700; }
+.check-no  { color: #ddd; }
+
+/* ── FAQ ── */
+.faq-wrap { max-width: 760px; margin: 0 auto 80px; padding: 0 24px; }
+.faq-item { border-bottom: 1px solid var(--border); }
+.faq-q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--teal);
+  cursor: pointer;
+  gap: 12px;
+}
+.faq-q:hover { color: var(--orange); }
+.faq-a { font-size: 14px; color: var(--muted); line-height: 1.7; padding-bottom: 20px; display: none; }
+.faq-a.open { display: block; }
+
+/* ── Footer ── */
+footer {
+  background: var(--teal);
+  padding: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.footer-logo { font-size: 16px; font-weight: 800; color: #fff; }
+.footer-links { display: flex; gap: 24px; }
+.footer-links a { color: rgba(255,255,255,0.5); font-size: 13px; text-decoration: none; }
+.footer-links a:hover { color: #fff; }
+.footer-copy { font-size: 12px; color: rgba(255,255,255,0.3); }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <a class="nav-logo" href="#">
+    <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" alt="ClickPoint" style="height:32px;width:auto;display:block;">
+  </a>
+  <div class="nav-links">
+    <a href="#">Platform</a>
+    <a href="#">Agencies</a>
+    <a href="#">Clients</a>
+    <a href="#">Integrations</a>
+  </div>
+  <div class="nav-cta">
+    <a class="btn-ghost" href="#">Sign in</a>
+    <a class="btn-orange" href="#">Start free trial</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-badge">💳 Simple, transparent pricing</div>
+  <h1>One platform.<br><em>Two revenue streams.</em></h1>
+  <p>Run your agency on ClickPoint HQ. Sell your clients a branded self-service workspace. You make money on both.</p>
+  <div class="hero-toggle">
+    <button class="toggle-btn active" onclick="setBilling('monthly',this)">Monthly</button>
+    <button class="toggle-btn" onclick="setBilling('annual',this)">Annual <span style="color:var(--orange);font-size:11px;font-weight:800;">−20%</span></button>
+  </div>
+  <div class="hero-sub" id="billingNote">Billed monthly. Cancel anytime.</div>
+</div>
+
+<!-- Agency Plans -->
+<div class="pricing-wrap">
+  <div class="section-label">For Agencies</div>
+  <div class="section-title">Run your whole agency on ClickPoint HQ</div>
+
+  <div class="pricing-grid">
+
+    <!-- Starter -->
+    <div class="plan-card">
+      <div class="plan-name">Starter</div>
+      <div class="plan-desc">For small agencies getting started with AI-powered client management.</div>
+      <div class="plan-price">
+        <div class="price-amount"><span style="font-size:22px;font-weight:800;vertical-align:top;margin-top:8px;display:inline-block;">A$</span><span class="price-val" data-m="499" data-a="399">499</span></div>
+        <div class="price-per">per month · up to 10 client workspaces</div>
+      </div>
+      <a class="plan-cta outline" href="#">Start free trial</a>
+      <div class="plan-divider"></div>
+      <div class="plan-features-label">What's included</div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span>ClickPoint HQ dashboard</li>
+        <li><span class="check">✓</span>Up to 10 client workspaces</li>
+        <li><span class="check">✓</span>3 AI agents (CMO, Content, SEO)</li>
+        <li><span class="check">✓</span>Campaign management</li>
+        <li><span class="check">✓</span>Monthly reporting</li>
+        <li><span class="check">✓</span>Client activity feed</li>
+        <li class="muted"><span class="check">—</span>Custom AI agents</li>
+        <li class="muted"><span class="check">—</span>White-label branding</li>
+        <li class="muted"><span class="check">—</span>Integrations (Google, Meta)</li>
+      </ul>
+    </div>
+
+    <!-- Pro (featured) -->
+    <div class="plan-card featured">
+      <div class="plan-badge">Most popular</div>
+      <div class="plan-name">Agency Pro</div>
+      <div class="plan-desc" style="color:rgba(255,255,255,0.6);">For growing agencies that want to scale client delivery without scaling headcount.</div>
+      <div class="plan-price">
+        <div class="price-amount"><span style="font-size:22px;font-weight:800;vertical-align:top;margin-top:8px;display:inline-block;">A$</span><span class="price-val" data-m="1299" data-a="1039">1299</span></div>
+        <div class="price-per">per month · unlimited client workspaces</div>
+      </div>
+      <a class="plan-cta light" href="#">Start free trial</a>
+      <div class="plan-divider"></div>
+      <div class="plan-features-label">Everything in Starter, plus</div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span>Unlimited client workspaces</li>
+        <li><span class="check">✓</span>Full AI agent team (5 agents)</li>
+        <li><span class="check">✓</span>Custom AI agents via Supabase</li>
+        <li><span class="check">✓</span>Platform integrations (Google, Meta, LinkedIn)</li>
+        <li><span class="check">✓</span>AI chain campaigns & multi-agent briefs</li>
+        <li><span class="check">✓</span>Deliverables hub + file management</li>
+        <li><span class="check">✓</span>Analytics across all clients</li>
+        <li><span class="check">✓</span>Slack + email notifications</li>
+        <li class="muted"><span class="check">—</span>White-label branding</li>
+      </ul>
+    </div>
+
+    <!-- Enterprise -->
+    <div class="plan-card">
+      <div class="plan-name">Enterprise</div>
+      <div class="plan-desc">For large agencies wanting full white-label, custom deployment, and dedicated support.</div>
+      <div class="plan-price">
+        <div class="price-amount" style="font-size:32px;padding-top:8px;">Custom</div>
+        <div class="price-per">tailored to your agency's size</div>
+      </div>
+      <a class="plan-cta dark" href="#">Book a demo</a>
+      <div class="plan-divider"></div>
+      <div class="plan-features-label">Everything in Pro, plus</div>
+      <ul class="plan-features">
+        <li><span class="check orange">✓</span>Full white-label (your logo, your domain)</li>
+        <li><span class="check orange">✓</span>Custom AI agent personas & voices</li>
+        <li><span class="check orange">✓</span>SSO / SAML authentication</li>
+        <li><span class="check orange">✓</span>Dedicated Supabase instance</li>
+        <li><span class="check orange">✓</span>SLA & priority support</li>
+        <li><span class="check orange">✓</span>Onboarding & training sessions</li>
+        <li><span class="check orange">✓</span>Custom integrations</li>
+        <li><span class="check orange">✓</span>Reseller agreement available</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- Divider -->
+<div class="divider-wrap"><hr class="section-divider"></div>
+
+<!-- Client Workspace Plans -->
+<div class="pricing-wrap">
+  <div class="section-label">For Your Clients</div>
+  <div class="section-title">Sell your clients a self-service workspace</div>
+
+  <div class="client-grid">
+
+    <!-- Client Starter -->
+    <div class="plan-card">
+      <div class="plan-name">Workspace Starter</div>
+      <div class="plan-desc">Clients can view their campaign data and reports. Read-only access, fully branded.</div>
+      <div class="plan-price">
+        <div class="price-amount"><span style="font-size:22px;font-weight:800;vertical-align:top;margin-top:8px;display:inline-block;">A$</span><span class="price-val" data-m="149" data-a="119">149</span></div>
+        <div class="price-per">per client / month</div>
+      </div>
+      <a class="plan-cta outline" href="#">Add to agency plan</a>
+      <div class="plan-divider"></div>
+      <div class="plan-features-label">Client gets access to</div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span>Campaign overview dashboard</li>
+        <li><span class="check">✓</span>Live campaign status</li>
+        <li><span class="check">✓</span>Monthly reports</li>
+        <li><span class="check">✓</span>Account health score</li>
+        <li class="muted"><span class="check">—</span>Analytics deep-dive</li>
+        <li class="muted"><span class="check">—</span>Campaign creation</li>
+        <li class="muted"><span class="check">—</span>CMO direct access</li>
+      </ul>
+    </div>
+
+    <!-- Client Growth (featured) -->
+    <div class="plan-card featured">
+      <div class="plan-badge">Best value</div>
+      <div class="plan-name">Workspace Growth</div>
+      <div class="plan-desc" style="color:rgba(255,255,255,0.6);">Full self-service access. Clients can explore analytics and request new campaigns.</div>
+      <div class="plan-price">
+        <div class="price-amount"><span style="font-size:22px;font-weight:800;vertical-align:top;margin-top:8px;display:inline-block;">A$</span><span class="price-val" data-m="399" data-a="319">399</span></div>
+        <div class="price-per">per client / month</div>
+      </div>
+      <a class="plan-cta light" href="#">Add to agency plan</a>
+      <div class="plan-divider"></div>
+      <div class="plan-features-label">Everything in Starter, plus</div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span>Full analytics dashboard</li>
+        <li><span class="check">✓</span>Channel-by-channel breakdown</li>
+        <li><span class="check">✓</span>Campaign creation requests</li>
+        <li><span class="check">✓</span>Budget visibility</li>
+        <li><span class="check">✓</span>Activity feed from agency</li>
+        <li class="muted"><span class="check">—</span>Direct CMO access</li>
+        <li class="muted"><span class="check">—</span>Priority campaign review</li>
+      </ul>
+    </div>
+
+    <!-- Client Pro -->
+    <div class="plan-card">
+      <div class="plan-name">Workspace Pro</div>
+      <div class="plan-desc">The full experience. Direct line to the agency CMO with priority turnaround.</div>
+      <div class="plan-price">
+        <div class="price-amount"><span style="font-size:22px;font-weight:800;vertical-align:top;margin-top:8px;display:inline-block;">A$</span><span class="price-val" data-m="799" data-a="639">799</span></div>
+        <div class="price-per">per client / month</div>
+      </div>
+      <a class="plan-cta dark" href="#">Add to agency plan</a>
+      <div class="plan-divider"></div>
+      <div class="plan-features-label">Everything in Growth, plus</div>
+      <ul class="plan-features">
+        <li><span class="check orange">✓</span>Direct CMO AI access (Sarah Lin)</li>
+        <li><span class="check orange">✓</span>Priority campaign review (24hr)</li>
+        <li><span class="check orange">✓</span>Strategic monthly briefing</li>
+        <li><span class="check orange">✓</span>Unlimited AI queries</li>
+        <li><span class="check orange">✓</span>Performance alerts</li>
+        <li><span class="check orange">✓</span>Dedicated account notes</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- Addon callout -->
+<div class="addon-callout">
+  <div class="addon-inner">
+    <div class="addon-icon">💰</div>
+    <div class="addon-text">
+      <h3>Your margin, your call</h3>
+      <p>You set the price your clients pay. Buy the Growth workspace at A$399/mo, sell it at A$800/mo — keep the margin. ClickPoint never touches your client billing.</p>
+    </div>
+    <div class="addon-cta">
+      <a class="btn-orange" href="#" style="font-size:14px;padding:12px 24px;">Calculate your margin →</a>
+    </div>
+  </div>
+</div>
+
+<!-- Compare table -->
+<div class="compare-wrap">
+  <div class="section-label" style="text-align:left;padding:0 0 8px;">Feature comparison</div>
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Starter</th>
+        <th>Growth</th>
+        <th>Pro</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Campaign overview dashboard</td><td class="check-yes">✓</td><td class="check-yes">✓</td><td class="check-yes">✓</td></tr>
+      <tr><td>Live campaign status</td><td class="check-yes">✓</td><td class="check-yes">✓</td><td class="check-yes">✓</td></tr>
+      <tr><td>Monthly reports</td><td class="check-yes">✓</td><td class="check-yes">✓</td><td class="check-yes">✓</td></tr>
+      <tr><td>Channel analytics deep-dive</td><td class="check-no">—</td><td class="check-yes">✓</td><td class="check-yes">✓</td></tr>
+      <tr><td>Campaign creation requests</td><td class="check-no">—</td><td class="check-yes">✓</td><td class="check-yes">✓</td></tr>
+      <tr><td>Budget & spend visibility</td><td class="check-no">—</td><td class="check-yes">✓</td><td class="check-yes">✓</td></tr>
+      <tr><td>Direct CMO AI access</td><td class="check-no">—</td><td class="check-no">—</td><td class="check-yes">✓</td></tr>
+      <tr><td>Priority campaign review (24hr)</td><td class="check-no">—</td><td class="check-no">—</td><td class="check-yes">✓</td></tr>
+      <tr><td>Unlimited AI queries</td><td class="check-no">—</td><td class="check-no">—</td><td class="check-yes">✓</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- FAQ -->
+<div class="faq-wrap">
+  <div class="section-title" style="text-align:left;padding-bottom:24px;">Common questions</div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Do I need to pay per workspace or per seat? <span>+</span></div>
+    <div class="faq-a">You pay per client workspace. There's no per-seat pricing within your agency — your whole team shares access to ClickPoint HQ under one subscription.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Can I white-label the client workspace with my own branding? <span>+</span></div>
+    <div class="faq-a">Yes — on the Enterprise agency plan, you can fully white-label ClickPoint HQ and client workspaces with your own logo, domain, and colour scheme. Clients see your brand, not ClickPoint's.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Do my clients know they're using ClickPoint? <span>+</span></div>
+    <div class="faq-a">On Starter and Pro plans, the platform is co-branded. On Enterprise, it's fully white-labelled — your clients see only your agency brand. The "CMO" persona can be renamed to match your team too.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Can I charge clients more than the listed workspace price? <span>+</span></div>
+    <div class="faq-a">Absolutely. The client workspace prices listed are what you pay ClickPoint. You set your own retail price to clients — keeping the margin as part of your retainer or as an add-on. We never get involved in your client billing.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">What happens when I upgrade or downgrade a client's plan? <span>+</span></div>
+    <div class="faq-a">Feature access adjusts immediately. When upgrading, new features unlock right away. When downgrading, the client retains access until their next billing cycle. No disruption to their data.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Is there a free trial? <span>+</span></div>
+    <div class="faq-a">Yes — all agency plans include a 14-day free trial with full feature access. No credit card required. Client workspace subscriptions start when you send the first invite link.</div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" alt="ClickPoint" style="height:36px;width:auto;display:block;margin-bottom:8px;">
+  <div class="footer-links">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Security</a>
+    <a href="#">Contact</a>
+  </div>
+  <div class="footer-copy">© 2026 ClickPoint. All rights reserved.</div>
+</footer>
+
+<script>
+let billing = 'monthly';
+
+function setBilling(mode, btn) {
+  billing = mode;
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('billingNote').innerHTML = mode === 'annual'
+    ? 'Billed annually. <strong style="color:var(--orange)">Save 20% vs monthly.</strong>'
+    : 'Billed monthly. Cancel anytime.';
+  document.querySelectorAll('.price-val').forEach(el => {
+    const val = parseInt(el.dataset[mode === 'annual' ? 'a' : 'm']);
+    if (!isNaN(val)) el.textContent = val.toLocaleString();
+  });
+}
+
+function toggleFaq(el) {
+  const answer = el.nextElementSibling;
+  const isOpen = answer.classList.contains('open');
+  document.querySelectorAll('.faq-a').forEach(a => a.classList.remove('open'));
+  document.querySelectorAll('.faq-q span').forEach(s => s.textContent = '+');
+  if (!isOpen) {
+    answer.classList.add('open');
+    el.querySelector('span').textContent = '−';
+  }
+}
+</script>
+</body>
+</html>

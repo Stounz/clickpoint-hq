@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClickPoint — Workspace</title>
+<link rel="icon" type="image/png" href="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/cropped-clickpoint-logo-header-2x.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal:    #1C3A2E;
+    --teal-md: #2A5240;
+    --orange:  #D4622A;
+    --bg:      #F4F3EE;
+    --card:    #FFFFFF;
+    --border:  #E2E1DB;
+    --text:    #1A1A1A;
+    --muted:   #999990;
+    --green:   #30D158;
+    --amber:   #FF9F0A;
+    --red:     #FF453A;
+    --blue:    #0A84FF;
+    --radius:  14px;
+    --shadow:  0 2px 16px rgba(0,0,0,0.07);
+  }
+  body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── Login ── */
+  #loginScreen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(160deg, #1C3A2E 0%, #2A5240 60%, #1C3A2E 100%); padding: 20px;
+  }
+  .login-card { background:#fff; border-radius:24px; padding:44px 40px 40px; width:440px; max-width:100%; box-shadow:0 32px 80px rgba(0,0,0,0.25); }
+  .login-logo { font-size:22px; font-weight:800; color:var(--teal); letter-spacing:-0.5px; margin-bottom:6px; }
+  .login-logo span { color:var(--orange); }
+  .login-badge { display:inline-block; background:#F4F3EE; color:var(--muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; padding:3px 8px; border-radius:20px; margin-bottom:24px; }
+  .login-title { font-size:24px; font-weight:800; color:var(--text); margin-bottom:6px; }
+  .login-sub { font-size:14px; color:var(--muted); margin-bottom:28px; line-height:1.5; }
+  .login-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#555; margin-bottom:6px; display:block; }
+  .login-input { width:100%; padding:13px 16px; border:1.5px solid var(--border); border-radius:10px; font-size:15px; font-family:inherit; color:var(--text); outline:none; transition:border-color 0.2s; margin-bottom:16px; }
+  .login-input:focus { border-color:var(--teal); }
+  .login-btn { width:100%; padding:14px; background:var(--teal); color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; transition:background 0.2s; margin-top:4px; }
+  .login-btn:hover { background:var(--teal-md); }
+  .login-err { color:var(--red); font-size:13px; margin-top:10px; display:none; }
+  .login-tabs { display:flex; border-bottom:2px solid var(--border); margin-bottom:28px; gap:0; }
+  .login-tab { flex:1; padding:10px; text-align:center; font-size:13px; font-weight:700; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; transition:all 0.2s; }
+  .login-tab.active { color:var(--teal); border-bottom-color:var(--teal); }
+  .login-success { text-align:center; padding:8px 0; }
+  .login-success-icon { width:56px; height:56px; background:rgba(28,58,46,0.08); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:26px; margin:0 auto 16px; }
+  .login-success h3 { font-size:20px; font-weight:800; color:var(--text); margin-bottom:8px; }
+  .login-success p { font-size:14px; color:var(--muted); line-height:1.6; margin-bottom:20px; }
+  .login-creds-box { background:#F4F3EE; border-radius:12px; padding:16px 20px; margin-bottom:20px; text-align:left; }
+  .login-creds-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; }
+  .login-creds-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#999; }
+  .login-creds-val { font-size:13px; font-weight:700; color:var(--text); }
+
+  /* ── App shell ── */
+  #appShell { display:none; min-height:100vh; }
+
+  /* Topbar */
+  .ws-topbar {
+    position:fixed; top:0; left:0; right:0; height:60px; z-index:100;
+    background:var(--teal); display:flex; align-items:center; padding:0 24px; gap:16px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .ws-topbar-logo { font-size:17px; font-weight:800; color:#fff; letter-spacing:-0.5px; flex-shrink:0; }
+  .ws-topbar-logo span { color:var(--orange); }
+  .ws-topbar-divider { width:1px; height:24px; background:rgba(255,255,255,0.15); }
+  .ws-topbar-workspace { font-size:14px; font-weight:600; color:rgba(255,255,255,0.9); }
+  .ws-topbar-spacer { flex:1; }
+  .ws-topbar-sync { display:flex; align-items:center; gap:6px; font-size:12px; color:rgba(255,255,255,0.5); }
+  .ws-sync-dot { width:7px; height:7px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .ws-topbar-signout { padding:6px 14px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.7); border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.15s; }
+  .ws-topbar-signout:hover { background:rgba(255,255,255,0.15); color:#fff; }
+
+  /* Layout */
+  .ws-layout { display:flex; padding-top:60px; min-height:100vh; }
+
+  /* Sidebar */
+  .ws-sidebar {
+    width:220px; flex-shrink:0; background:#fff; border-right:1px solid var(--border);
+    position:fixed; top:60px; bottom:0; left:0; overflow-y:auto; padding:16px 0;
+  }
+  .ws-nav-section { font-size:9px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); padding:12px 20px 4px; }
+  .ws-nav-item { display:flex; align-items:center; gap:10px; padding:9px 20px; font-size:13px; font-weight:500; color:var(--muted); cursor:pointer; transition:all 0.15s; border-left:3px solid transparent; }
+  .ws-nav-item:hover { color:var(--text); background:#F9F8F4; }
+  .ws-nav-item.active { color:var(--teal); background:rgba(28,58,46,0.06); border-left-color:var(--teal); font-weight:600; }
+  .ws-nav-badge { background:var(--orange); color:#fff; font-size:10px; font-weight:700; padding:2px 6px; border-radius:10px; margin-left:auto; }
+
+  /* Main content */
+  .ws-main { margin-left:220px; flex:1; padding:28px; }
+
+  /* Page header */
+  .ws-page-title { font-size:26px; font-weight:800; color:var(--text); letter-spacing:-0.5px; margin-bottom:4px; }
+  .ws-page-sub { font-size:14px; color:var(--muted); margin-bottom:24px; }
+
+  /* KPI tiles */
+  .ws-kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+  .ws-kpi { background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
+  .ws-kpi-val { font-size:30px; font-weight:800; color:var(--text); letter-spacing:-1px; }
+  .ws-kpi-val.green { color:#1C8C44; }
+  .ws-kpi-val.amber { color:#B86E00; }
+  .ws-kpi-label { font-size:12px; color:var(--muted); font-weight:500; margin-top:4px; }
+  .ws-kpi-delta { font-size:11px; font-weight:600; margin-top:8px; }
+  .ws-kpi-delta.up { color:var(--green); }
+  .ws-kpi-delta.down { color:var(--red); }
+
+  /* Two-col layout */
+  .ws-two-col { display:grid; grid-template-columns:1fr 340px; gap:20px; margin-bottom:24px; }
+  @media(max-width:1100px){ .ws-two-col { grid-template-columns:1fr; } }
+
+  /* Cards */
+  .ws-card { background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
+  .ws-card-title { font-size:13px; font-weight:700; color:var(--text); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .ws-card-title span { font-size:11px; font-weight:500; color:var(--muted); margin-left:auto; cursor:pointer; }
+  .ws-card-title span:hover { color:var(--teal); }
+
+  /* Campaign rows */
+  .ws-campaign { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid #F0EFE9; }
+  .ws-campaign:last-child { border-bottom:none; }
+  .ws-campaign-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+  .ws-campaign-name { font-size:13px; font-weight:600; color:var(--text); }
+  .ws-campaign-meta { font-size:11px; color:var(--muted); }
+  .ws-campaign-status { margin-left:auto; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+  .ws-campaign-status.active { background:rgba(48,209,88,0.1); color:#1C8C44; }
+  .ws-campaign-status.paused { background:#F4F3EE; color:var(--muted); }
+  .ws-campaign-status.draft { background:rgba(10,132,255,0.08); color:var(--blue); }
+
+  /* Activity feed */
+  .ws-activity-item { display:flex; gap:10px; padding:10px 0; border-bottom:1px solid #F0EFE9; }
+  .ws-activity-item:last-child { border-bottom:none; }
+  .ws-activity-avatar { width:30px; height:30px; border-radius:50%; background:var(--teal); color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ws-activity-text { font-size:12px; color:var(--text); line-height:1.5; }
+  .ws-activity-time { font-size:10px; color:var(--muted); margin-top:2px; }
+
+  /* Health bar */
+  .ws-health { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .ws-health-score { font-size:40px; font-weight:800; color:var(--teal); letter-spacing:-2px; }
+  .ws-health-label { font-size:13px; font-weight:700; color:var(--teal); }
+  .ws-health-sub { font-size:11px; color:var(--muted); }
+  .ws-health-bar-wrap { flex:1; height:8px; background:#F0EFE9; border-radius:4px; overflow:hidden; }
+  .ws-health-bar { height:100%; border-radius:4px; background:linear-gradient(90deg,#1C8C44,#30D158); transition:width 0.8s cubic-bezier(0.4,0,0.2,1); }
+
+  /* Quick actions */
+  .ws-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
+  .ws-action-btn { padding:14px 16px; background:var(--teal); color:#fff; border:none; border-radius:12px; font-size:13px; font-weight:700; cursor:pointer; text-align:left; transition:background 0.15s; }
+  .ws-action-btn:hover { background:var(--teal-md); }
+  .ws-action-btn.secondary { background:#fff; color:var(--teal); border:1.5px solid var(--border); }
+  .ws-action-btn.secondary:hover { border-color:var(--teal); background:#F9F8F4; }
+  .ws-action-btn .btn-icon { font-size:18px; display:block; margin-bottom:6px; }
+
+  /* AI Chat */
+  .ws-chat-wrap { display:flex; flex-direction:column; height:calc(100vh - 200px); }
+  .ws-chat-agent-bar { display:flex; align-items:center; gap:10px; padding:12px 0; margin-bottom:12px; border-bottom:1px solid var(--border); }
+  .ws-chat-avatar { width:40px; height:40px; border-radius:50%; background:var(--teal); color:#fff; font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+  .ws-chat-agent-name { font-size:14px; font-weight:700; color:var(--text); }
+  .ws-chat-agent-role { font-size:11px; color:var(--muted); }
+  .ws-chat-skills { display:flex; gap:6px; flex-wrap:wrap; margin-left:auto; }
+  .ws-chat-skill { padding:3px 8px; background:#F4F3EE; border-radius:20px; font-size:10px; font-weight:600; color:var(--muted); }
+  .ws-chat-messages { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:12px; padding:4px 0 16px; }
+  .ws-msg { display:flex; gap:10px; max-width:85%; }
+  .ws-msg.user { align-self:flex-end; flex-direction:row-reverse; }
+  .ws-msg-avatar { width:28px; height:28px; border-radius:50%; background:var(--teal); color:#fff; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ws-msg.user .ws-msg-avatar { background:var(--orange); }
+  .ws-msg-bubble { padding:10px 14px; border-radius:14px; font-size:13px; line-height:1.55; background:#fff; border:1px solid var(--border); color:var(--text); }
+  .ws-msg.user .ws-msg-bubble { background:var(--teal); color:#fff; border:none; }
+  .ws-msg-name { font-size:10px; color:var(--muted); margin-bottom:4px; font-weight:600; }
+  .ws-typing { display:flex; gap:4px; align-items:center; padding:10px 14px; background:#fff; border:1px solid var(--border); border-radius:14px; }
+  .ws-typing span { width:6px; height:6px; border-radius:50%; background:var(--muted); animation:typing 1.2s infinite; }
+  .ws-typing span:nth-child(2) { animation-delay:0.2s; }
+  .ws-typing span:nth-child(3) { animation-delay:0.4s; }
+  @keyframes typing { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+  .ws-chat-input-row { display:flex; gap:10px; margin-top:12px; }
+  .ws-chat-input { flex:1; padding:12px 16px; border:1.5px solid var(--border); border-radius:12px; font-size:14px; font-family:inherit; resize:none; outline:none; transition:border-color 0.2s; max-height:120px; }
+  .ws-chat-input:focus { border-color:var(--teal); }
+  .ws-chat-send { padding:12px 20px; background:var(--teal); color:#fff; border:none; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer; transition:background 0.15s; flex-shrink:0; }
+  .ws-chat-send:hover { background:var(--teal-md); }
+  .ws-chat-prompts { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  .ws-chat-prompt { padding:6px 12px; background:#fff; border:1.5px solid var(--border); border-radius:20px; font-size:12px; font-weight:500; color:var(--text); cursor:pointer; transition:all 0.15s; }
+  .ws-chat-prompt:hover { border-color:var(--teal); color:var(--teal); background:#F9F8F4; }
+
+  /* Analytics */
+  .ws-metrics-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:24px; }
+  .ws-metric-card { background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
+  .ws-metric-title { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:12px; }
+  .ws-metric-big { font-size:32px; font-weight:800; color:var(--text); letter-spacing:-1px; margin-bottom:4px; }
+  .ws-metric-sub { font-size:12px; color:var(--muted); }
+  .ws-metric-change { font-size:12px; font-weight:600; margin-top:8px; }
+  .ws-metric-change.up::before { content:'↑ '; }
+  .ws-metric-change.down::before { content:'↓ '; }
+  .ws-metric-change.up { color:#1C8C44; }
+  .ws-metric-change.down { color:var(--red); }
+  .ws-sparkline { height:40px; display:flex; align-items:flex-end; gap:3px; margin-top:12px; }
+  .ws-spark-bar { flex:1; border-radius:3px 3px 0 0; background:rgba(28,58,46,0.15); transition:height 0.4s; }
+  .ws-spark-bar.peak { background:var(--teal); }
+
+  /* Reports */
+  .ws-report-row { display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid #F0EFE9; cursor:pointer; transition:background 0.15s; border-radius:8px; padding:12px 10px; margin:0 -10px; }
+  .ws-report-row:hover { background:#F9F8F4; }
+  .ws-report-icon { width:40px; height:40px; border-radius:10px; background:rgba(28,58,46,0.08); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  .ws-report-name { font-size:13px; font-weight:600; color:var(--text); }
+  .ws-report-meta { font-size:11px; color:var(--muted); margin-top:2px; }
+  .ws-report-score { margin-left:auto; text-align:center; }
+  .ws-report-score-val { font-size:18px; font-weight:800; color:var(--teal); }
+  .ws-report-score-label { font-size:9px; color:var(--muted); font-weight:600; text-transform:uppercase; }
+  .ws-no-reports { text-align:center; padding:40px 20px; color:var(--muted); font-size:14px; }
+
+  /* Settings */
+  .ws-settings-section { margin-bottom:28px; }
+  .ws-settings-title { font-size:13px; font-weight:700; color:var(--text); margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+  .ws-settings-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #F0EFE9; }
+  .ws-settings-row:last-child { border-bottom:none; }
+  .ws-settings-label { font-size:13px; color:var(--text); font-weight:500; flex:1; }
+  .ws-settings-sub { font-size:11px; color:var(--muted); display:block; }
+  .ws-settings-val { font-size:13px; color:var(--muted); }
+  .ws-tag { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; background:rgba(48,209,88,0.1); color:#1C8C44; }
+  .ws-copy-btn { padding:5px 12px; background:var(--teal); color:#fff; border:none; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; transition:background 0.15s; }
+  .ws-copy-btn:hover { background:var(--teal-md); }
+
+  /* Tabs */
+  .ws-tabs { display:flex; gap:2px; background:#F0EFE9; border-radius:10px; padding:3px; margin-bottom:20px; }
+  .ws-tab { flex:1; padding:8px; text-align:center; font-size:12px; font-weight:600; color:var(--muted); border-radius:8px; cursor:pointer; transition:all 0.15s; }
+  .ws-tab.active { background:#fff; color:var(--teal); box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+
+  /* Views */
+  .ws-view { display:none; }
+  .ws-view.active { display:block; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width:5px; }
+  ::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.15); border-radius:3px; }
+
+  /* Admin banner */
+  .ws-admin-banner { background:linear-gradient(90deg,rgba(212,98,42,0.12),rgba(212,98,42,0.06)); border:1.5px solid rgba(212,98,42,0.25); border-radius:12px; padding:12px 16px; margin-bottom:20px; display:flex; align-items:center; gap:12px; font-size:13px; color:var(--orange); font-weight:600; }
+  .ws-admin-banner a { color:var(--orange); text-decoration:underline; margin-left:auto; font-size:12px; }
+</style>
+</head>
+<body>
+
+<!-- ── Login ── -->
+<div id="loginScreen">
+  <div class="login-card">
+    <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/cropped-clickpoint-logo-header-2x.png" alt="ClickPoint" style="height:40px;width:auto;display:block;margin:0 auto 16px;">
+
+    <!-- Tabs -->
+    <div class="login-tabs">
+      <div class="login-tab active" id="tabSignIn" onclick="wsShowTab('signin')">Sign In</div>
+      <div class="login-tab" id="tabSignUp" onclick="wsShowTab('signup')">Create Workspace</div>
+    </div>
+
+    <!-- Sign In Panel -->
+    <div id="panelSignIn">
+      <div class="login-title">Welcome back</div>
+      <div class="login-sub">Enter your workspace ID and the access code sent to you.</div>
+      <label class="login-label">Workspace ID</label>
+      <input class="login-input" id="wsIdInput" type="text" placeholder="e.g. apex-dynamics" autocomplete="off" />
+      <label class="login-label">Email</label>
+      <input class="login-input" id="wsEmailInput" type="email" placeholder="you@company.com" />
+      <label class="login-label">Access Code</label>
+      <input class="login-input" id="wsCodeInput" type="text" placeholder="6-digit code" maxlength="6" style="letter-spacing:0.3em;font-size:20px;" />
+      <button class="login-btn" onclick="wsLogin()">Sign In →</button>
+      <div class="login-err" id="wsLoginErr">Invalid workspace ID or access code. Please try again.</div>
+    </div>
+
+    <!-- Sign Up Panel -->
+    <div id="panelSignUp" style="display:none;">
+      <div id="signupForm">
+        <div class="login-title">Create your workspace</div>
+        <div class="login-sub">Set up your ClickPoint workspace in seconds. No credit card required.</div>
+        <label class="login-label">Company Name</label>
+        <input class="login-input" id="suCompany" type="text" placeholder="e.g. Apex Dynamics" />
+        <label class="login-label">Your Email</label>
+        <input class="login-input" id="suEmail" type="email" placeholder="you@company.com" />
+        <label class="login-label">Your Name</label>
+        <input class="login-input" id="suName" type="text" placeholder="First and last name" />
+        <button class="login-btn" id="suBtn" onclick="wsSignup()">Create my workspace →</button>
+        <div class="login-err" id="wsSignupErr">Something went wrong. Please try again.</div>
+        <div style="margin-top:16px;font-size:11px;color:var(--muted);text-align:center;line-height:1.6;">By creating a workspace you agree to ClickPoint's<br><a href="https://clickpointconsulting.com.au" style="color:var(--teal);">Terms of Service</a> and <a href="https://clickpointconsulting.com.au" style="color:var(--teal);">Privacy Policy</a>.</div>
+      </div>
+
+      <!-- Success State -->
+      <div id="signupSuccess" style="display:none;">
+        <div class="login-success">
+          <div class="login-success-icon">✅</div>
+          <h3>Your workspace is ready!</h3>
+          <p>Save these details — your access code has also been sent to your email.</p>
+          <div class="login-creds-box">
+            <div class="login-creds-row">
+              <span class="login-creds-label">Workspace ID</span>
+              <span class="login-creds-val" id="suCredsId">—</span>
+            </div>
+            <div class="login-creds-row" style="border-top:1px solid #E4E7EC;margin-top:6px;padding-top:6px;">
+              <span class="login-creds-label">Email</span>
+              <span class="login-creds-val" id="suCredsEmail">—</span>
+            </div>
+            <div class="login-creds-row" style="border-top:1px solid #E4E7EC;margin-top:6px;padding-top:6px;">
+              <span class="login-creds-label">Access Code</span>
+              <span class="login-creds-val" id="suCredsCode" style="font-size:20px;letter-spacing:0.2em;color:var(--teal);">——</span>
+            </div>
+          </div>
+          <button class="login-btn" onclick="wsSignupLogin()">Enter my workspace →</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── App Shell ── -->
+<div id="appShell">
+  <!-- Topbar -->
+  <div class="ws-topbar">
+    <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" alt="ClickPoint" style="height:28px;width:auto;display:block;">
+    <div class="ws-topbar-divider"></div>
+    <div class="ws-topbar-workspace" id="wsTopbarName">Workspace</div>
+    <div class="ws-topbar-spacer"></div>
+    <div class="ws-topbar-sync"><div class="ws-sync-dot"></div> <span id="wsSyncStatus">Synced with agency</span></div>
+    <div style="width:16px;"></div>
+    <button class="ws-topbar-signout" onclick="wsSignOut()">Sign out</button>
+  </div>
+
+  <div class="ws-layout">
+    <!-- Sidebar -->
+    <div class="ws-sidebar">
+      <div class="ws-nav-section">Overview</div>
+      <div class="ws-nav-item active" data-view="dashboard" onclick="wsSetView('dashboard')">📊 &nbsp;Dashboard</div>
+      <div class="ws-nav-section">Marketing</div>
+      <div class="ws-nav-item" data-view="campaigns" onclick="wsSetView('campaigns')">🚀 &nbsp;Campaigns <span class="ws-nav-badge" id="wsNavCampaignBadge" style="display:none"></span></div>
+      <div class="ws-nav-item" data-view="analytics" onclick="wsSetView('analytics')">📈 &nbsp;Analytics</div>
+      <div class="ws-nav-item" data-view="reports" onclick="wsSetView('reports')">📋 &nbsp;Reports</div>
+      <div class="ws-nav-section">AI Assistant</div>
+      <div class="ws-nav-item" data-view="ai" onclick="wsSetView('ai')">🎯 &nbsp;Your CMO</div>
+      <div class="ws-nav-section">Account</div>
+      <div class="ws-nav-item" data-view="settings" onclick="wsSetView('settings')">⚙️ &nbsp;Settings</div>
+    </div>
+
+    <!-- Main -->
+    <div class="ws-main">
+
+      <!-- Admin banner (shown when admin is viewing) -->
+      <div class="ws-admin-banner" id="wsAdminBanner" style="display:none;">
+        👁 You are viewing this workspace as admin — clients cannot see this banner.
+        <a href="org-chart.html">← Back to HQ</a>
+      </div>
+
+      <!-- ── Dashboard View ── -->
+      <div class="ws-view active" id="view-dashboard">
+        <div class="ws-page-title" id="wsDashTitle">Good morning</div>
+        <div class="ws-page-sub" id="wsDashSub">Here's what's happening with your marketing this week.</div>
+
+        <!-- KPIs -->
+        <div class="ws-kpi-grid">
+          <div class="ws-kpi">
+            <div class="ws-kpi-val green" id="wsKpiCampaigns">—</div>
+            <div class="ws-kpi-label">Active Campaigns</div>
+            <div class="ws-kpi-delta up" id="wsKpiCampaignsDelta"></div>
+          </div>
+          <div class="ws-kpi">
+            <div class="ws-kpi-val" id="wsKpiSpend">—</div>
+            <div class="ws-kpi-label">Monthly Ad Spend</div>
+            <div class="ws-kpi-delta" id="wsKpiSpendDelta"></div>
+          </div>
+          <div class="ws-kpi">
+            <div class="ws-kpi-val" id="wsKpiLeads">—</div>
+            <div class="ws-kpi-label">Leads This Month</div>
+            <div class="ws-kpi-delta up" id="wsKpiLeadsDelta"></div>
+          </div>
+          <div class="ws-kpi">
+            <div class="ws-kpi-val" id="wsKpiRoas">—</div>
+            <div class="ws-kpi-label">Avg. ROAS</div>
+            <div class="ws-kpi-delta" id="wsKpiRoasDelta"></div>
+          </div>
+        </div>
+
+        <div class="ws-two-col">
+          <!-- Campaigns -->
+          <div class="ws-card">
+            <div class="ws-card-title">🚀 Active Campaigns <span onclick="wsSetView('campaigns')">View all →</span></div>
+            <div id="wsDashCampaigns"></div>
+          </div>
+
+          <!-- Right col -->
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <!-- Health -->
+            <div class="ws-card">
+              <div class="ws-card-title">💚 Account Health</div>
+              <div class="ws-health">
+                <div>
+                  <div class="ws-health-score" id="wsHealthScore">—</div>
+                  <div class="ws-health-label" id="wsHealthLabel">—</div>
+                  <div class="ws-health-sub">out of 10</div>
+                </div>
+                <div style="flex:1;">
+                  <div class="ws-health-bar-wrap"><div class="ws-health-bar" id="wsHealthBar" style="width:0%"></div></div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:8px;" id="wsHealthDesc">—</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="ws-card">
+              <div class="ws-card-title">⚡ Quick Actions</div>
+              <div class="ws-actions">
+                <button class="ws-action-btn" onclick="wsSetView('ai')"><span class="btn-icon">🎯</span>Ask your CMO</button>
+                <button class="ws-action-btn" onclick="wsSetView('campaigns');setTimeout(wsNewCampaignOpen,100)"><span class="btn-icon">➕</span>New Campaign</button>
+                <button class="ws-action-btn secondary" onclick="wsSetView('reports')"><span class="btn-icon">📋</span>View Reports</button>
+                <button class="ws-action-btn secondary" onclick="wsSetView('analytics')"><span class="btn-icon">📈</span>Analytics</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity -->
+        <div class="ws-card">
+          <div class="ws-card-title">📡 Recent Activity from Your Agency Team</div>
+          <div id="wsDashActivity"></div>
+        </div>
+      </div>
+
+      <!-- ── Campaigns View ── -->
+      <div class="ws-view" id="view-campaigns">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div class="ws-page-title" style="margin-bottom:0;">Campaigns</div>
+          <button onclick="wsNewCampaignOpen()" style="padding:10px 20px;background:#1C3A2E;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
+            <span style="font-size:16px;">+</span> New Campaign
+          </button>
+        </div>
+        <div class="ws-page-sub">All your active and draft marketing campaigns.</div>
+
+        <!-- Inline new campaign form -->
+        <div id="wsNewCampaignForm" style="display:none;background:#fff;border:2px solid #1C3A2E;border-radius:16px;padding:28px;margin-bottom:20px;">
+          <div style="font-size:17px;font-weight:800;color:#1C3A2E;margin-bottom:6px;">🚀 Request New Campaign</div>
+          <div style="font-size:13px;color:#888;margin-bottom:22px;">Fill in the details and your CMO will review and confirm within 24 hours.</div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+            <div>
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Campaign Name *</label>
+              <input id="wsCmpName" type="text" placeholder="e.g. Summer Sale Push" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+            </div>
+            <div>
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Campaign Type *</label>
+              <select id="wsCmpType" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
+                <option value="">Select type…</option>
+                <option>Lead Generation</option>
+                <option>Brand Awareness</option>
+                <option>Retargeting</option>
+                <option>Sales / Conversion</option>
+                <option>SEO / Content</option>
+                <option>Email Marketing</option>
+                <option>Event Promotion</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+            <div>
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Primary Channel *</label>
+              <select id="wsCmpChannel" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
+                <option value="">Select channel…</option>
+                <option>Google Ads</option>
+                <option>Meta Ads (Facebook / Instagram)</option>
+                <option>LinkedIn Ads</option>
+                <option>Google Display</option>
+                <option>YouTube Ads</option>
+                <option>TikTok Ads</option>
+                <option>SEO / Organic</option>
+                <option>Email</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Monthly Budget</label>
+              <input id="wsCmpBudget" type="text" placeholder="e.g. £2,000 / month" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+            </div>
+          </div>
+
+          <div style="margin-bottom:16px;">
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Target Audience</label>
+            <input id="wsCmpAudience" type="text" placeholder="e.g. UK homeowners aged 35–55, interested in home improvement" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+          </div>
+
+          <div style="margin-bottom:22px;">
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Goals & Brief <span style="font-weight:400;color:#aaa;">(what do you want to achieve?)</span></label>
+            <textarea id="wsCmpBrief" rows="3" placeholder="e.g. We want to drive leads for our new product launch in May. Target is 50 leads in the first month at under £40 cost per lead…" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;resize:vertical;"></textarea>
+          </div>
+
+          <div id="wsCmpResult" style="display:none;background:#F0F8F4;border:1px solid #D4E8DA;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;"></div>
+
+          <div style="display:flex;gap:10px;">
+            <button onclick="wsNewCampaignSubmit()" style="flex:1;padding:13px;background:#1C3A2E;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">🚀 Submit Campaign Request</button>
+            <button onclick="wsNewCampaignClose()" style="padding:13px 20px;background:#F4F3EE;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;color:#555;">Cancel</button>
+          </div>
+        </div>
+
+        <div class="ws-card" id="wsCampaignsList"></div>
+      </div>
+
+      <!-- ── Analytics View ── -->
+      <div class="ws-view" id="view-analytics">
+        <div class="ws-page-title">Analytics</div>
+        <div class="ws-page-sub">Performance across all your marketing channels.</div>
+        <div class="ws-tabs">
+          <div class="ws-tab active" onclick="wsAnalyticsTab('search',this)">Paid Search</div>
+          <div class="ws-tab" onclick="wsAnalyticsTab('social',this)">Paid Social</div>
+          <div class="ws-tab" onclick="wsAnalyticsTab('organic',this)">Organic SEO</div>
+          <div class="ws-tab" onclick="wsAnalyticsTab('email',this)">Email</div>
+        </div>
+        <div id="wsAnalyticsContent"></div>
+      </div>
+
+      <!-- ── Reports View ── -->
+      <div class="ws-view" id="view-reports">
+        <div class="ws-page-title">Reports</div>
+        <div class="ws-page-sub">Monthly performance reports prepared by your agency team.</div>
+        <div class="ws-card" id="wsReportsList"></div>
+      </div>
+
+      <!-- ── AI View ── -->
+      <div class="ws-view" id="view-ai">
+        <div class="ws-page-title">Your CMO</div>
+        <div class="ws-page-sub">Direct line to Sarah Lin, your Chief Marketing Officer at ClickPoint.</div>
+        <div class="ws-chat-wrap">
+          <div class="ws-chat-agent-bar" style="background:linear-gradient(135deg,#1C3A2E 0%,#2A5240 100%);">
+            <div class="ws-chat-avatar" style="background:#D4622A;font-size:15px;font-weight:900;letter-spacing:-0.5px;">SL</div>
+            <div style="flex:1;">
+              <div class="ws-chat-agent-name" style="color:#fff;">Sarah Lin</div>
+              <div class="ws-chat-agent-role" style="color:rgba(255,255,255,0.6);">Chief Marketing Officer · ClickPoint</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:8px;height:8px;border-radius:50%;background:#30D158;box-shadow:0 0 6px rgba(48,209,88,0.6);"></div>
+              <span style="font-size:11px;color:rgba(255,255,255,0.5);">Available now</span>
+            </div>
+            <div class="ws-chat-skills" style="margin-left:12px;">
+              <span class="ws-chat-skill">Strategy</span>
+              <span class="ws-chat-skill">ROI Planning</span>
+              <span class="ws-chat-skill">Campaign Review</span>
+              <span class="ws-chat-skill">Budget</span>
+            </div>
+          </div>
+          <div class="ws-chat-prompts" id="wsAiPrompts">
+            <div class="ws-chat-prompt" onclick="wsAiPrompt(this)">How are my campaigns performing?</div>
+            <div class="ws-chat-prompt" onclick="wsAiPrompt(this)">What should I focus on this month?</div>
+            <div class="ws-chat-prompt" onclick="wsAiPrompt(this)">Explain my last report in plain English</div>
+            <div class="ws-chat-prompt" onclick="wsAiPrompt(this)">How can I increase my leads?</div>
+            <div class="ws-chat-prompt" onclick="wsAiPrompt(this)">Is my budget being used effectively?</div>
+          </div>
+          <div class="ws-chat-messages" id="wsAiMessages">
+            <div class="ws-msg">
+              <div class="ws-msg-avatar" style="background:#D4622A;font-size:11px;font-weight:900;">SL</div>
+              <div>
+                <div class="ws-msg-name">Sarah Lin <span style="font-weight:400;color:#aaa;font-size:11px;">· Chief Marketing Officer</span></div>
+                <div class="ws-msg-bubble" id="wsAiWelcome">Hi! I'm Sarah, your CMO here at ClickPoint. I have full visibility into your account, campaigns and performance data. Think of this as a direct line to me — ask me anything about your marketing strategy, what's working, where to push harder, or what the numbers actually mean.</div>
+              </div>
+            </div>
+          </div>
+          <div class="ws-chat-input-row">
+            <textarea class="ws-chat-input" id="wsAiInput" placeholder="Ask Sarah anything about your marketing…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();wsAiSend()}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+            <button class="ws-chat-send" onclick="wsAiSend()">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Settings View ── -->
+      <div class="ws-view" id="view-settings">
+        <div class="ws-page-title">Settings</div>
+        <div class="ws-page-sub">Your workspace configuration and account details.</div>
+        <div class="ws-card" style="max-width:600px;">
+          <div class="ws-settings-section">
+            <div class="ws-settings-title">Workspace</div>
+            <div class="ws-settings-row">
+              <div class="ws-settings-label">Workspace ID <span class="ws-settings-sub">Your unique identifier</span></div>
+              <div class="ws-settings-val" id="wsSettingsId">—</div>
+              <button class="ws-copy-btn" onclick="wsCopyWorkspaceLink()">Copy Link</button>
+            </div>
+            <div class="ws-settings-row">
+              <div class="ws-settings-label">Company Name <span class="ws-settings-sub">As shown in reports</span></div>
+              <div class="ws-settings-val" id="wsSettingsName">—</div>
+            </div>
+            <div class="ws-settings-row">
+              <div class="ws-settings-label">Agency <span class="ws-settings-sub">Managing your account</span></div>
+              <div class="ws-settings-val">ClickPoint Marketing</div>
+            </div>
+            <div class="ws-settings-row">
+              <div class="ws-settings-label">Status <span class="ws-settings-sub">Workspace status</span></div>
+              <span class="ws-tag">Active</span>
+            </div>
+          </div>
+          <div class="ws-settings-section">
+            <div class="ws-settings-title">Agency Sync</div>
+            <div class="ws-settings-row">
+              <div class="ws-settings-label">Live Sync <span class="ws-settings-sub">Your data syncs to agency HQ in real time</span></div>
+              <span class="ws-tag">Enabled</span>
+            </div>
+            <div class="ws-settings-row">
+              <div class="ws-settings-label">Last Synced</div>
+              <div class="ws-settings-val" id="wsSettingsSync">Just now</div>
+            </div>
+          </div>
+          <div class="ws-settings-section">
+            <div class="ws-settings-title">Access</div>
+            <div class="ws-settings-row">
+              <div class="ws-settings-label">Signed in as <span class="ws-settings-sub" id="wsSettingsEmail">—</span></div>
+              <button class="ws-copy-btn" style="background:#FF453A;" onclick="wsSignOut()">Sign Out</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /ws-main -->
+  </div><!-- /ws-layout -->
+</div><!-- /appShell -->
+
+<script>
+// ── Config ──────────────────────────────────────────────────────────────────
+const WS_API = 'https://clickpoint-api.up.railway.app'; // ← update with your Railway URL
+const SUPABASE_URL = 'https://placeholder.supabase.co';
+const SUPABASE_ANON_KEY = 'placeholder';
+
+// ── State ────────────────────────────────────────────────────────────────────
+let wsSession = null; // { workspaceId, companyName, email, isAdmin }
+let wsApiKey  = localStorage.getItem('cp_agc_key') || '';
+let wsData    = null; // loaded workspace data
+
+// ── Tab switcher ─────────────────────────────────────────────────────────────
+function wsShowTab(tab) {
+  document.getElementById('panelSignIn').style.display = tab === 'signin' ? 'block' : 'none';
+  document.getElementById('panelSignUp').style.display = tab === 'signup' ? 'block' : 'none';
+  document.getElementById('tabSignIn').classList.toggle('active', tab === 'signin');
+  document.getElementById('tabSignUp').classList.toggle('active', tab === 'signup');
+}
+
+// ── Self-signup ───────────────────────────────────────────────────────────────
+async function wsSignup() {
+  const company = document.getElementById('suCompany').value.trim();
+  const email   = document.getElementById('suEmail').value.trim();
+  const name    = document.getElementById('suName').value.trim();
+  const err     = document.getElementById('wsSignupErr');
+  const btn     = document.getElementById('suBtn');
+  err.style.display = 'none';
+
+  if (!company || !email) {
+    err.textContent = 'Please enter your company name and email.';
+    err.style.display = 'block';
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    err.textContent = 'Please enter a valid email address.';
+    err.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Creating workspace…';
+
+  try {
+    const res = await fetch(`${WS_API}/api/workspace/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ companyName: company, email, contactName: name })
+    });
+    const d = await res.json();
+
+    if (d.workspaceId && d.code) {
+      // Store for auto-login
+      window._suSignupData = { workspaceId: d.workspaceId, email, code: d.code, companyName: d.companyName || company };
+      // Show success panel
+      document.getElementById('suCredsId').textContent   = d.workspaceId;
+      document.getElementById('suCredsEmail').textContent = email;
+      document.getElementById('suCredsCode').textContent  = d.code;
+      document.getElementById('signupForm').style.display    = 'none';
+      document.getElementById('signupSuccess').style.display = 'block';
+    } else {
+      err.textContent = d.error || 'Something went wrong. Please try again.';
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Create my workspace →';
+    }
+  } catch (e) {
+    err.textContent = 'Could not reach the server. Please check your connection.';
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Create my workspace →';
+  }
+}
+
+function wsSignupLogin() {
+  const d = window._suSignupData;
+  if (!d) return;
+  // Pre-fill sign-in fields and log in
+  document.getElementById('wsIdInput').value    = d.workspaceId;
+  document.getElementById('wsEmailInput').value = d.email;
+  document.getElementById('wsCodeInput').value  = d.code;
+  wsShowTab('signin');
+  wsStartSession({ workspaceId: d.workspaceId, companyName: d.companyName, email: d.email, isAdmin: false });
+}
+
+// ── Login ────────────────────────────────────────────────────────────────────
+function wsLogin() {
+  const id    = document.getElementById('wsIdInput').value.trim().toLowerCase().replace(/\s+/g,'-');
+  const email = document.getElementById('wsEmailInput').value.trim();
+  const code  = document.getElementById('wsCodeInput').value.trim();
+  const err   = document.getElementById('wsLoginErr');
+  err.style.display = 'none';
+
+  if (!id || !email) { err.textContent = 'Please enter your workspace ID and email.'; err.style.display='block'; return; }
+
+  // Check admin bypass first
+  const isAdmin = (code === 'ADMIN' || code === 'admin') && localStorage.getItem('cp_admin_mode') === 'true';
+
+  // Try server auth, fall back to demo mode
+  fetch(`${WS_API}/api/workspace/auth`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ workspaceId: id, email, code })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success || d.demo) {
+      wsStartSession({ workspaceId: id, companyName: d.companyName || wsIdToName(id), email, isAdmin: d.isAdmin || isAdmin });
+    } else {
+      // Demo fallback — accept any code for testing
+      wsStartSession({ workspaceId: id, companyName: wsIdToName(id), email, isAdmin });
+    }
+  })
+  .catch(() => {
+    // Offline/demo fallback
+    wsStartSession({ workspaceId: id, companyName: wsIdToName(id), email, isAdmin });
+  });
+}
+
+function wsIdToName(id) {
+  return id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+function wsStartSession(session) {
+  wsSession = session;
+  sessionStorage.setItem('ws_session', JSON.stringify(session));
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = 'block';
+  wsInitApp();
+}
+
+function wsSignOut() {
+  sessionStorage.removeItem('ws_session');
+  location.reload();
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+function wsInitApp() {
+  const s = wsSession;
+  document.title = `${s.companyName} — ClickPoint Workspace`;
+  document.getElementById('wsTopbarName').textContent = s.companyName;
+
+  // Admin banner
+  if (s.isAdmin) document.getElementById('wsAdminBanner').style.display = 'flex';
+
+  // Settings
+  document.getElementById('wsSettingsId').textContent   = s.workspaceId;
+  document.getElementById('wsSettingsName').textContent = s.companyName;
+  document.getElementById('wsSettingsEmail').textContent = s.email;
+
+  // AI welcome — from Sarah, the CMO
+  document.getElementById('wsAiWelcome').textContent =
+    `Hi! I'm Sarah, CMO here at ClickPoint. I have full visibility into your ${s.companyName} account — campaigns, spend, performance, all of it. Think of this as a direct line to me. Ask me anything: what's working, where to push harder, what your numbers actually mean, or what I'd prioritise this month.`;
+
+  wsLoadDashboard();
+  wsLogActivity('workspace_open', `Workspace opened by ${s.email}`);
+}
+
+// ── Demo data (deterministic per workspace) ───────────────────────────────────
+function wsDemoSeed(extra = 0) {
+  let h = 0;
+  for (let i = 0; i < wsSession.workspaceId.length; i++) h += wsSession.workspaceId.charCodeAt(i);
+  return (h + extra) % 100;
+}
+
+function wsDemoMetrics() {
+  const seed = wsDemoSeed();
+  return {
+    campaigns:  3 + (seed % 4),
+    spend:      `£${(8 + seed % 22).toFixed(0)}K/mo`,
+    leads:      180 + seed * 3,
+    roas:       (2.8 + (seed % 20) / 10).toFixed(1) + 'x',
+    health:     6 + (seed % 4),
+    healthLabel: ['Good', 'Good', 'Very Good', 'Excellent'][seed % 4],
+    healthDesc:  'Your account is performing well across all channels. SEO and paid search are your strongest channels.',
+  };
+}
+
+function wsDemoCampaigns() {
+  const names = [
+    { name: 'Google Search — Brand', icon: '🔍', platform: 'Google Ads', status: 'active' },
+    { name: 'Meta Lead Gen', icon: '📘', platform: 'Meta Ads', status: 'active' },
+    { name: 'Display Retargeting', icon: '🖥', platform: 'Google Display', status: 'active' },
+    { name: 'LinkedIn Awareness', icon: '💼', platform: 'LinkedIn Ads', status: 'paused' },
+    { name: 'SEO Content Push', icon: '📝', platform: 'Organic', status: 'active' },
+  ];
+  const seed = wsDemoSeed();
+  return names.slice(0, 3 + seed % 3);
+}
+
+function wsDemoActivity() {
+  const items = [
+    { who: 'Raj', initials: 'RN', text: 'SEO audit completed — 18 technical fixes identified, high priority items submitted for implementation.', time: '2h ago' },
+    { who: 'Derek', initials: 'DW', text: 'Google Ads bids adjusted for Q2 — Smart Bidding target CPA updated to £38, expect improved efficiency by Monday.', time: '5h ago' },
+    { who: 'Jess', initials: 'JP', text: '3 new blog briefs written and submitted — "Enterprise Automation Trends", "ROI Calculator Guide", "Case Study: Q1 Results".', time: '1d ago' },
+    { who: 'Cleo', initials: 'CC', text: 'Meta campaign A/B test concluded — Variant B (product imagery) outperformed Variant A by 34% CTR. Scaling Variant B.', time: '1d ago' },
+    { who: 'Zara', initials: 'ZO', text: 'Q2 banner suite delivered to Derek — 7 sizes across GDN and Meta. Ready for upload.', time: '2d ago' },
+    { who: 'Sarah', initials: 'SL', text: 'Monthly strategy review completed — Q2 focus: increase demo bookings by 25% through paid search expansion.', time: '3d ago' },
+  ];
+  return items.slice(0, 4);
+}
+
+function wsDemoAnalytics(platform) {
+  const seed = wsDemoSeed();
+  const platforms = {
+    search:  { impressions:'124K', clicks:'3,842', ctr:'3.1%', cpc:'£2.40', spend:'£9,220', conv:'187', cpa:'£49', change: '+12%', bars:[40,55,48,62,58,70,65,72,68,80,75,82] },
+    social:  { reach:'48K', clicks:'1,204', ctr:'2.5%', cpm:'£8.20', spend:'£5,100', leads:'94', cpl:'£54', change: '+8%',  bars:[30,38,35,45,42,50,48,55,52,58,60,62] },
+    organic: { sessions:'8,420', pageviews:'22K', keywords:'342', topPos:'14', organic_leads:'62', blog_posts:'12', dr:'41', change: '+18%', bars:[50,52,55,58,60,65,62,68,70,72,74,78] },
+    email:   { sent:'4,200', opens:'1,134', open_rate:'27%', clicks:'380', ctr:'9%', unsubs:'12', revenue:'£3,800', change: '+5%',  bars:[20,25,22,28,26,32,30,35,33,38,36,40] },
+  };
+  return platforms[platform] || platforms.search;
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+function wsLoadDashboard() {
+  const m = wsDemoMetrics();
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('wsDashTitle').textContent = `${greeting}, ${wsSession.companyName}`;
+  document.getElementById('wsDashSub').textContent = "Here's what's happening with your marketing this week.";
+
+  // KPIs
+  document.getElementById('wsKpiCampaigns').textContent = m.campaigns;
+  document.getElementById('wsKpiCampaignsDelta').textContent = '↑ All running';
+  document.getElementById('wsKpiSpend').textContent = m.spend;
+  document.getElementById('wsKpiSpendDelta').className = 'ws-kpi-delta';
+  document.getElementById('wsKpiSpendDelta').textContent = 'On budget';
+  document.getElementById('wsKpiLeads').textContent = m.leads;
+  document.getElementById('wsKpiLeadsDelta').textContent = `↑ +14% vs last month`;
+  document.getElementById('wsKpiRoas').textContent = m.roas;
+  document.getElementById('wsKpiRoasDelta').textContent = '↑ Above target';
+
+  // Health
+  document.getElementById('wsHealthScore').textContent = m.health;
+  document.getElementById('wsHealthLabel').textContent = m.healthLabel;
+  document.getElementById('wsHealthDesc').textContent = m.healthDesc;
+  setTimeout(() => { document.getElementById('wsHealthBar').style.width = (m.health * 10) + '%'; }, 100);
+
+  // Campaigns
+  const camps = wsDemoCampaigns();
+  document.getElementById('wsDashCampaigns').innerHTML = camps.map(c => `
+    <div class="ws-campaign">
+      <div class="ws-campaign-icon" style="background:rgba(28,58,46,0.08)">${c.icon}</div>
+      <div>
+        <div class="ws-campaign-name">${c.name}</div>
+        <div class="ws-campaign-meta">${c.platform}</div>
+      </div>
+      <div class="ws-campaign-status ${c.status}">${c.status.charAt(0).toUpperCase()+c.status.slice(1)}</div>
+    </div>
+  `).join('');
+
+  // Campaign badge
+  const activeCnt = camps.filter(c=>c.status==='active').length;
+  const badge = document.getElementById('wsNavCampaignBadge');
+  badge.textContent = activeCnt; badge.style.display = 'inline';
+
+  // Activity
+  const acts = wsDemoActivity();
+  document.getElementById('wsDashActivity').innerHTML = acts.map(a => `
+    <div class="ws-activity-item">
+      <div class="ws-activity-avatar">${a.initials}</div>
+      <div>
+        <div class="ws-activity-text">${a.text}</div>
+        <div class="ws-activity-time">${a.who} · ${a.time}</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Try loading real report health from Supabase
+  wsLoadReportHealth();
+}
+
+async function wsLoadReportHealth() {
+  // Will be loaded from Supabase client_reports table when configured
+}
+
+// ── Campaigns View ────────────────────────────────────────────────────────────
+let wsPendingCampaigns = JSON.parse(sessionStorage.getItem('ws_pending_campaigns') || '[]');
+
+function wsNewCampaignOpen() {
+  const form = document.getElementById('wsNewCampaignForm');
+  form.style.display = 'block';
+  document.getElementById('wsCmpResult').style.display = 'none';
+  ['wsCmpName','wsCmpType','wsCmpChannel','wsCmpBudget','wsCmpAudience','wsCmpBrief'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  form.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function wsNewCampaignClose() {
+  document.getElementById('wsNewCampaignForm').style.display = 'none';
+}
+
+async function wsNewCampaignSubmit() {
+  const name     = document.getElementById('wsCmpName').value.trim();
+  const type     = document.getElementById('wsCmpType').value;
+  const channel  = document.getElementById('wsCmpChannel').value;
+  const budget   = document.getElementById('wsCmpBudget').value.trim();
+  const audience = document.getElementById('wsCmpAudience').value.trim();
+  const brief    = document.getElementById('wsCmpBrief').value.trim();
+  const result   = document.getElementById('wsCmpResult');
+
+  if (!name || !type || !channel) {
+    result.style.display = 'block';
+    result.style.background = '#FFF3F3';
+    result.style.borderColor = '#F5C6C6';
+    result.innerHTML = '⚠️ Please fill in Campaign Name, Type, and Channel.';
+    return;
+  }
+
+  // Build the pending campaign record
+  const campaign = {
+    name, type, channel, budget, audience, brief,
+    status: 'pending',
+    requestedAt: new Date().toISOString(),
+    workspaceId: wsSession.workspaceId,
+    companyName: wsSession.companyName,
+  };
+
+  // Optimistically add to pending list
+  wsPendingCampaigns.push(campaign);
+  sessionStorage.setItem('ws_pending_campaigns', JSON.stringify(wsPendingCampaigns));
+
+  // Log to agency HQ activity feed
+  const detail = `New campaign requested: "${name}" · ${type} · ${channel}${budget ? ' · ' + budget : ''}`;
+  wsLogActivity('campaign_request', detail);
+
+  // Show confirmation
+  result.style.display = 'block';
+  result.style.background = '#F0F8F4';
+  result.style.borderColor = '#D4E8DA';
+  result.innerHTML = `
+    <div style="font-weight:700;color:#1C3A2E;margin-bottom:6px;">✅ Campaign request submitted!</div>
+    <div style="color:#555;margin-bottom:4px;"><strong>${name}</strong> · ${type} · ${channel}</div>
+    <div style="color:#777;font-size:12px;margin-top:8px;">Your CMO Sarah will review this and be in touch within 24 hours. You can track the status in your campaigns list below.</div>
+  `;
+
+  // Refresh campaign list to show pending item
+  setTimeout(() => {
+    wsLoadCampaigns();
+    wsNewCampaignClose();
+  }, 2200);
+}
+
+function wsLoadCampaigns() {
+  const camps = wsDemoCampaigns();
+  const existing = [
+    ...camps,
+    { name: 'LinkedIn Awareness', icon: '💼', platform: 'LinkedIn Ads', status: 'paused' },
+    { name: 'YouTube Pre-roll',   icon: '▶️', platform: 'YouTube Ads',  status: 'draft'  },
+  ];
+
+  const channelIcons = {
+    'Google Ads':'🔍','Meta Ads (Facebook / Instagram)':'📘','LinkedIn Ads':'💼',
+    'Google Display':'🖥','YouTube Ads':'▶️','TikTok Ads':'🎵',
+    'SEO / Organic':'🌱','Email':'📧',
+  };
+
+  const pendingRows = wsPendingCampaigns.map(c => `
+    <div class="ws-campaign" style="padding:14px 0;opacity:0.85;">
+      <div class="ws-campaign-icon" style="background:rgba(212,98,42,0.08);width:42px;height:42px;">${channelIcons[c.channel] || '🚀'}</div>
+      <div>
+        <div class="ws-campaign-name">${c.name}</div>
+        <div class="ws-campaign-meta">${c.channel} · ${c.type}</div>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+        <div style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(212,98,42,0.1);color:#D4622A;">Pending Review</div>
+        <div style="font-size:11px;color:#aaa;">Submitted to CMO</div>
+      </div>
+    </div>
+  `).join('');
+
+  const existingRows = existing.map(c => `
+    <div class="ws-campaign" style="padding:14px 0;">
+      <div class="ws-campaign-icon" style="background:rgba(28,58,46,0.08);width:42px;height:42px;">${c.icon}</div>
+      <div>
+        <div class="ws-campaign-name">${c.name}</div>
+        <div class="ws-campaign-meta">${c.platform}</div>
+      </div>
+      <div style="margin-left:auto;">
+        <div class="ws-campaign-status ${c.status}">${c.status.charAt(0).toUpperCase()+c.status.slice(1)}</div>
+      </div>
+    </div>
+  `).join('');
+
+  const pendingSection = wsPendingCampaigns.length ? `
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#D4622A;margin:16px 0 4px;">⏳ Pending CMO Review</div>
+    ${pendingRows}
+    <div style="height:1px;background:var(--border);margin:12px 0;"></div>
+  ` : '';
+
+  document.getElementById('wsCampaignsList').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div class="ws-card-title" style="margin-bottom:0;">🚀 All Campaigns</div>
+      <span style="font-size:12px;color:var(--muted);">${existing.length + wsPendingCampaigns.length} total</span>
+    </div>
+    ${pendingSection}
+    ${existingRows}
+  `;
+}
+
+// ── Analytics ─────────────────────────────────────────────────────────────────
+let wsAnalyticsPlatform = 'search';
+function wsAnalyticsTab(platform, el) {
+  document.querySelectorAll('.ws-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  wsAnalyticsPlatform = platform;
+  wsRenderAnalytics(platform);
+}
+
+function wsRenderAnalytics(platform) {
+  const d = wsDemoAnalytics(platform);
+  const labels = {
+    search: [
+      { k:'Impressions', v:d.impressions }, { k:'Clicks', v:d.clicks },
+      { k:'CTR', v:d.ctr }, { k:'Avg CPC', v:d.cpc },
+      { k:'Total Spend', v:d.spend }, { k:'Conversions', v:d.conv },
+      { k:'Cost/Conv', v:d.cpa }, { k:'vs Last Month', v:d.change, cls:'up' }
+    ],
+    social: [
+      { k:'Reach', v:d.reach }, { k:'Link Clicks', v:d.clicks },
+      { k:'CTR', v:d.ctr }, { k:'CPM', v:d.cpm },
+      { k:'Total Spend', v:d.spend }, { k:'Leads', v:d.leads },
+      { k:'Cost/Lead', v:d.cpl }, { k:'vs Last Month', v:d.change, cls:'up' }
+    ],
+    organic: [
+      { k:'Sessions', v:d.sessions }, { k:'Page Views', v:d.pageviews },
+      { k:'Keywords', v:d.keywords }, { k:'Top 10 Rankings', v:d.topPos },
+      { k:'Organic Leads', v:d.organic_leads }, { k:'Blog Posts', v:d.blog_posts },
+      { k:'Domain Rating', v:d.dr }, { k:'vs Last Month', v:d.change, cls:'up' }
+    ],
+    email: [
+      { k:'Emails Sent', v:d.sent }, { k:'Opens', v:d.opens },
+      { k:'Open Rate', v:d.open_rate }, { k:'Clicks', v:d.clicks },
+      { k:'CTR', v:d.ctr }, { k:'Unsubscribes', v:d.unsubs },
+      { k:'Revenue', v:d.revenue }, { k:'vs Last Month', v:d.change, cls:'up' }
+    ],
+  };
+  const metrics = labels[platform];
+  const peak = Math.max(...d.bars);
+  document.getElementById('wsAnalyticsContent').innerHTML = `
+    <div class="ws-metrics-grid">
+      ${metrics.map(m => `
+        <div class="ws-metric-card">
+          <div class="ws-metric-title">${m.k}</div>
+          <div class="ws-metric-big">${m.v}</div>
+          ${m.cls ? `<div class="ws-metric-change ${m.cls}">${m.v}</div>` : ''}
+        </div>
+      `).join('')}
+    </div>
+    <div class="ws-card">
+      <div class="ws-card-title">📊 Last 12 Weeks — ${platform.charAt(0).toUpperCase()+platform.slice(1)} Volume</div>
+      <div class="ws-sparkline">
+        ${d.bars.map((v,i) => `<div class="ws-spark-bar${v===peak?' peak':''}" style="height:${Math.round(v/peak*100)}%"></div>`).join('')}
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:6px;"><span>12 weeks ago</span><span>This week</span></div>
+    </div>
+  `;
+}
+
+// ── Reports ───────────────────────────────────────────────────────────────────
+async function wsLoadReports() {
+  const container = document.getElementById('wsReportsList');
+  container.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px;">Loading reports…</div>';
+
+  // Demo reports
+  const demoReports = [
+    { period:'Q2 2026 — April', health:wsDemoMetrics().health, label:wsDemoMetrics().healthLabel, date:'Generated 2 Apr 2026', summary:'Strong month across paid and organic. ROAS up 12%, leads grew 14%.' },
+    { period:'Q1 2026 — March', health:7, label:'Good', date:'Generated 1 Mar 2026', summary:'Solid performance. Google Ads efficiency improved after bid strategy update.' },
+    { period:'Q1 2026 — February', health:6, label:'Good', date:'Generated 1 Feb 2026', summary:'Meta campaigns underperformed. Adjustments made mid-month showed improvement.' },
+  ];
+
+  container.innerHTML = `
+    <div class="ws-card-title">📋 Monthly Reports</div>
+    ${demoReports.map(r => `
+      <div class="ws-report-row" onclick="wsOpenReport('${r.period}','${r.summary}')">
+        <div class="ws-report-icon">📋</div>
+        <div>
+          <div class="ws-report-name">${r.period}</div>
+          <div class="ws-report-meta">${r.date} · ${r.summary.substring(0,60)}…</div>
+        </div>
+        <div class="ws-report-score">
+          <div class="ws-report-score-val">${r.health}/10</div>
+          <div class="ws-report-score-label">${r.label}</div>
+        </div>
+      </div>
+    `).join('')}
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);font-size:13px;color:var(--muted);">
+      Reports are generated monthly by your ClickPoint account team and automatically shared here.
+    </div>
+  `;
+}
+
+function wsOpenReport(period, summary) {
+  alert(`📋 ${period}\n\n${summary}\n\n(Full report viewer coming soon — ask your account manager for the full PDF.)`);
+}
+
+// ── AI Chat ───────────────────────────────────────────────────────────────────
+function wsAiPrompt(el) {
+  document.getElementById('wsAiInput').value = el.textContent;
+  wsAiSend();
+}
+
+async function wsAiSend() {
+  const input = document.getElementById('wsAiInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = ''; input.style.height = 'auto';
+
+  // Hide prompts after first message
+  document.getElementById('wsAiPrompts').style.display = 'none';
+
+  const msgs = document.getElementById('wsAiMessages');
+  msgs.innerHTML += `
+    <div class="ws-msg user">
+      <div class="ws-msg-avatar">You</div>
+      <div><div class="ws-msg-bubble">${msg}</div></div>
+    </div>
+  `;
+
+  // Typing indicator
+  const typingId = 'wsTyping_' + Date.now();
+  msgs.innerHTML += `
+    <div class="ws-msg" id="${typingId}">
+      <div class="ws-msg-avatar" style="background:#D4622A;font-size:11px;font-weight:900;">SL</div>
+      <div>
+        <div class="ws-msg-name">Sarah Lin <span style="font-weight:400;color:#aaa;font-size:11px;">· CMO</span></div>
+        <div class="ws-typing"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+  `;
+  msgs.scrollTop = msgs.scrollHeight;
+
+  // Build rich client context for Sarah
+  const m = wsDemoMetrics();
+  const context = `IMPORTANT — CLIENT-FACING MODE: You are speaking directly with the client, not internally with your team. The client is ${wsSession.companyName} (workspace: ${wsSession.workspaceId}). Speak as their CMO — authoritative, warm, and client-friendly. No internal agency jargon. Keep responses to 3-5 sentences unless depth is needed. Their current account metrics: ${m.campaigns} active campaigns, ${m.spend} monthly ad spend, ${m.leads} leads this month (up 14% vs last month), ${m.roas} ROAS, account health score ${m.health}/10 (${m.healthLabel}). Active channels: Google Ads (strongest), Meta Ads, Organic SEO. Address them as a client you know well — you have full visibility into their account.`;
+
+  let reply = '';
+  try {
+    const key = wsApiKey || localStorage.getItem('cp_agc_key') || '';
+    if (key) {
+      const res = await fetch(`${WS_API}/api/agent`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-API-Key':key},
+        body: JSON.stringify({ agentId:'sarah', messages:[{role:'user',content:msg}], context, workspaceId: wsSession.workspaceId, client: wsSession.companyName })
+      });
+      const data = await res.json();
+      reply = data.content || '';
+    }
+  } catch(e) {}
+
+  if (!reply) {
+    // Sarah-voiced fallback responses
+    const lower = msg.toLowerCase();
+    if (lower.includes('perform') || lower.includes('how are')) reply = `Looking at your numbers right now — things are in good shape. Your ROAS is at ${m.roas}, which is above the 2.5x industry benchmark, and leads are up 14% on last month. Google Ads is your strongest performer. I'd say you're in a strong position to push a bit harder this quarter.`;
+    else if (lower.includes('focus') || lower.includes('priorit')) reply = `My honest advice: double down on paid search — it's converting well and there's headroom to scale. I'd want to see the Google Ads budget increase by 15-20% to capture demand before competitors do. The SEO work is also gaining momentum; give it another 4-6 weeks and you'll see more organic leads coming through consistently.`;
+    else if (lower.includes('report') || lower.includes('explain')) reply = `Your account health is ${m.health}/10 — that's ${m.healthLabel}. In plain terms: your ads are spending efficiently, you're getting solid leads per pound spent, and the organic side is growing. The one thing I'd flag is Meta's lead cost — the team is already working on creative refreshes to bring that down.`;
+    else if (lower.includes('lead') || lower.includes('increase')) reply = `The fastest wins are usually on the landing page side — even a 10% lift in conversion rate means 10% more leads from your existing budget. Beyond that, I'd look at lookalike audiences on Meta based on your best clients, and more transactional SEO content targeting bottom-of-funnel queries. Your team can move on all three of these.`;
+    else if (lower.includes('budget') || lower.includes('spend') || lower.includes('effective')) reply = `Your ${m.spend}/month is working well — your ROAS of ${m.roas} means you're getting solid returns. Google is giving you the best efficiency; Meta has room to improve but we're managing it carefully. I wouldn't cut anything right now — if anything, the case is there to increase Google spend and hold Meta steady while we optimise creatives.`;
+    else if (lower.includes('best') || lower.includes('channel')) reply = `Google Ads, hands down, for lead quality and ROAS. SEO is your best long-term asset and it's growing steadily. Meta is working for reach and awareness but costs more per lead — we're improving that. I'd lean into Google and SEO for direct revenue, and keep Meta for brand presence and retargeting.`;
+    else reply = `Good question. With ${m.campaigns} campaigns running and a ${m.health}/10 health score, your account is in solid shape. If you want me to dig into a specific area — budget, creative, channel mix, whatever — just ask. That's what I'm here for.`;
+  }
+
+  document.getElementById(typingId).remove();
+  msgs.innerHTML += `
+    <div class="ws-msg">
+      <div class="ws-msg-avatar" style="background:#D4622A;font-size:11px;font-weight:900;">SL</div>
+      <div>
+        <div class="ws-msg-name">Sarah Lin <span style="font-weight:400;color:#aaa;font-size:11px;">· CMO</span></div>
+        <div class="ws-msg-bubble">${reply}</div>
+      </div>
+    </div>
+  `;
+  msgs.scrollTop = msgs.scrollHeight;
+
+  // Log the conversation activity
+  wsLogActivity('ai_query', `Client asked: "${msg.substring(0,80)}"`);
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function wsSetView(view) {
+  document.querySelectorAll('.ws-view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('.ws-nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.view === view);
+  });
+  if (view === 'campaigns') wsLoadCampaigns();
+  if (view === 'analytics') { wsRenderAnalytics('search'); }
+  if (view === 'reports')   wsLoadReports();
+}
+
+// ── Activity logging (syncs to agency HQ) ────────────────────────────────────
+function wsLogActivity(type, detail) {
+  if (!wsSession) return;
+  fetch(`${WS_API}/api/workspace/activity`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ workspaceId: wsSession.workspaceId, companyName: wsSession.companyName, type, detail, timestamp: new Date().toISOString() })
+  }).catch(() => {}); // Silent fail
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+function wsCopyWorkspaceLink() {
+  const link = `${location.origin}${location.pathname}?w=${wsSession.workspaceId}`;
+  navigator.clipboard.writeText(link).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+// ── Auto-restore session ──────────────────────────────────────────────────────
+(function() {
+  // Check URL param for admin preview
+  const params = new URLSearchParams(location.search);
+  const wParam  = params.get('w');
+  const adminParam = params.get('admin');
+
+  const saved = sessionStorage.getItem('ws_session');
+  if (saved) {
+    try {
+      const s = JSON.parse(saved);
+      if (wParam && s.workspaceId !== wParam) { sessionStorage.removeItem('ws_session'); return; }
+      wsSession = s;
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appShell').style.display = 'block';
+      wsInitApp();
+      return;
+    } catch(e) {}
+  }
+
+  // Pre-fill workspace from URL
+  if (wParam) {
+    document.getElementById('wsIdInput').value = wParam;
+    // Admin direct-access (from HQ "View Workspace" button)
+    if (adminParam === '1' && localStorage.getItem('cp_admin_mode') === 'true') {
+      wsStartSession({ workspaceId: wParam, companyName: wsIdToName(wParam), email: 'admin@clickpoint.agency', isAdmin: true });
+    }
+  }
+})();
+</script>
+</body>
+</html>

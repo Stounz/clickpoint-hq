@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Assets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: #fff; }
+
+/* ── ASSET 1: App Dashboard Mockup ── */
+#asset-dashboard {
+  width: 1200px;
+  padding: 48px;
+  background: linear-gradient(135deg, #1C3A2E 0%, #0f2219 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mock-window {
+  width: 100%;
+  background: #1a2f25;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+}
+.mock-bar {
+  background: rgba(255,255,255,0.05);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot.r { background: #FF5F57; }
+.dot.y { background: #FEBC2E; }
+.dot.g { background: #28C840; }
+.mock-bar-title { font-size: 12px; color: rgba(255,255,255,0.35); font-weight: 600; margin-left: 10px; letter-spacing: 0.02em; }
+.mock-body { display: flex; min-height: 460px; }
+.mock-sidebar {
+  width: 180px;
+  background: rgba(0,0,0,0.2);
+  border-right: 1px solid rgba(255,255,255,0.05);
+  padding: 20px 0;
+  flex-shrink: 0;
+}
+.mock-logo {
+  padding: 0 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 12px;
+}
+.mock-logo-img { height: 22px; opacity: 0.9; }
+.mock-nav-section { padding: 12px 16px 4px; font-size: 8px; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.2); font-weight: 700; }
+.mock-nav-item { padding: 9px 16px; font-size: 11px; color: rgba(255,255,255,0.35); font-weight: 500; display: flex; align-items: center; gap: 8px; }
+.mock-nav-item.active { color: #fff; background: rgba(255,255,255,0.07); border-left: 2px solid #D4622A; }
+.mock-nav-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.5; flex-shrink: 0; }
+.mock-main { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.mock-kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.mock-kpi {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 16px;
+}
+.mock-kpi-val { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+.mock-kpi-label { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 4px; font-weight: 500; }
+.mock-kpi-trend { font-size: 10px; color: #30D158; margin-top: 8px; font-weight: 600; }
+.mock-cards-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; flex: 1; }
+.mock-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 16px;
+}
+.mock-card-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.3); font-weight: 700; margin-bottom: 14px; }
+.mock-client-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.mock-avatar { width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; color: #fff; flex-shrink: 0; }
+.mock-client-name { font-size: 11px; color: rgba(255,255,255,0.7); flex: 1; font-weight: 500; }
+.mock-client-sub { font-size: 9px; color: rgba(255,255,255,0.25); margin-top: 1px; }
+.mock-badge { padding: 3px 8px; border-radius: 20px; font-size: 8px; font-weight: 700; }
+.mock-badge.green { background: rgba(48,209,88,0.15); color: #30D158; }
+.mock-badge.orange { background: rgba(255,149,0,0.15); color: #FF9500; }
+.mock-badge.blue { background: rgba(10,132,255,0.15); color: #0A84FF; }
+.mock-chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; padding-top: 8px; }
+.mock-bar-el { flex: 1; border-radius: 4px 4px 0 0; background: rgba(212,98,42,0.4); }
+.mock-bar-el.active { background: #D4622A; }
+.mock-chart-labels { display: flex; gap: 6px; margin-top: 6px; }
+.mock-chart-label { flex: 1; text-align: center; font-size: 8px; color: rgba(255,255,255,0.2); }
+
+/* ── ASSET 2: Hero Section ── */
+#asset-hero {
+  width: 1440px;
+  min-height: 700px;
+  background: #fff;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 80px;
+  padding: 80px 100px;
+}
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #D4622A;
+  margin-bottom: 24px;
+}
+.hero-eyebrow::before { content: ''; width: 24px; height: 2px; background: #D4622A; display: block; }
+.hero-h1 { font-size: 58px; font-weight: 900; color: #1C3A2E; line-height: 1.05; letter-spacing: -2px; margin-bottom: 20px; }
+.hero-h1 em { font-style: normal; color: #D4622A; }
+.hero-p { font-size: 18px; color: #6B7280; line-height: 1.65; margin-bottom: 36px; max-width: 480px; }
+.hero-btns { display: flex; gap: 14px; margin-bottom: 52px; }
+.btn-p { padding: 16px 32px; background: #1C3A2E; color: #fff; border-radius: 12px; font-size: 15px; font-weight: 700; text-decoration: none; }
+.btn-s { padding: 16px 32px; border: 1.5px solid #E4E7EC; border-radius: 12px; font-size: 15px; font-weight: 600; color: #1C3A2E; text-decoration: none; }
+.hero-stats { display: flex; gap: 40px; }
+.hero-stat-val { font-size: 30px; font-weight: 900; color: #1C3A2E; letter-spacing: -0.5px; }
+.hero-stat-label { font-size: 12px; color: #9CA3AF; margin-top: 3px; }
+.hero-visual {
+  background: linear-gradient(135deg, #1C3A2E 0%, #0f2219 100%);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 40px 100px rgba(28,58,46,0.25);
+  aspect-ratio: 4/3;
+}
+
+/* ── ASSET 3: Pricing Cards ── */
+#asset-pricing {
+  width: 1200px;
+  padding: 80px 60px;
+  background: #F7F8FA;
+}
+.pricing-label { text-align: center; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #D4622A; margin-bottom: 16px; }
+.pricing-h2 { text-align: center; font-size: 44px; font-weight: 900; color: #1C3A2E; letter-spacing: -1.5px; margin-bottom: 48px; line-height: 1.1; }
+.pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.pricing-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 36px 32px;
+  border: 1px solid #E4E7EC;
+  position: relative;
+}
+.pricing-card.featured {
+  background: #1C3A2E;
+  border-color: #1C3A2E;
+  transform: translateY(-12px);
+  box-shadow: 0 32px 80px rgba(28,58,46,0.25);
+}
+.pricing-badge { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: #D4622A; color: #fff; font-size: 11px; font-weight: 800; padding: 4px 14px; border-radius: 20px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.06em; }
+.pricing-tier { font-size: 13px; font-weight: 700; color: #9CA3AF; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+.pricing-tier.light { color: rgba(255,255,255,0.45); }
+.pricing-price { font-size: 48px; font-weight: 900; color: #1C3A2E; letter-spacing: -1.5px; margin-bottom: 4px; }
+.pricing-price.light { color: #fff; }
+.pricing-price sup { font-size: 22px; font-weight: 700; vertical-align: super; margin-right: 2px; }
+.pricing-price sub { font-size: 15px; font-weight: 500; opacity: 0.5; }
+.pricing-desc { font-size: 13px; color: #6B7280; margin-bottom: 28px; line-height: 1.5; }
+.pricing-desc.light { color: rgba(255,255,255,0.5); }
+.pricing-features { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+.pricing-features li { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #374151; font-weight: 500; }
+.pricing-features li.light { color: rgba(255,255,255,0.8); }
+.pf-check { width: 18px; height: 18px; border-radius: 50%; background: rgba(28,58,46,0.1); display: flex; align-items: center; justify-content: center; font-size: 9px; color: #1C3A2E; font-weight: 800; flex-shrink: 0; }
+.pf-check.light { background: rgba(255,255,255,0.15); color: #fff; }
+.pricing-btn { display: block; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 700; text-align: center; text-decoration: none; }
+.pricing-btn.dark { background: #1C3A2E; color: #fff; }
+.pricing-btn.light-btn { background: #fff; color: #1C3A2E; }
+.pricing-btn.ghost { border: 1.5px solid #E4E7EC; color: #1C3A2E; }
+
+/* ── ASSET 4: Features Grid ── */
+#asset-features {
+  width: 1200px;
+  padding: 80px 60px;
+  background: #fff;
+}
+.feat-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #D4622A; margin-bottom: 16px; }
+.feat-h2 { font-size: 44px; font-weight: 900; color: #1C3A2E; letter-spacing: -1.5px; margin-bottom: 12px; line-height: 1.1; }
+.feat-sub { font-size: 17px; color: #6B7280; max-width: 560px; line-height: 1.65; margin-bottom: 52px; }
+.feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.feat-card { padding: 32px; border: 1px solid #E4E7EC; border-radius: 16px; }
+.feat-icon { width: 48px; height: 48px; border-radius: 12px; background: rgba(28,58,46,0.07); display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 18px; }
+.feat-title { font-size: 17px; font-weight: 800; color: #1C3A2E; margin-bottom: 8px; letter-spacing: -0.2px; }
+.feat-body { font-size: 14px; color: #6B7280; line-height: 1.65; }
+
+/* ── ASSET 5: CTA Banner ── */
+#asset-cta {
+  width: 1200px;
+  padding: 40px;
+  background: #fff;
+}
+.cta-inner {
+  background: linear-gradient(135deg, #1C3A2E 0%, #152E23 100%);
+  border-radius: 24px;
+  padding: 80px;
+  text-align: center;
+}
+.cta-eyebrow { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(212,98,42,0.9); margin-bottom: 20px; }
+.cta-h2 { font-size: 48px; font-weight: 900; color: #fff; letter-spacing: -1.5px; margin-bottom: 16px; line-height: 1.1; }
+.cta-sub { font-size: 18px; color: rgba(255,255,255,0.5); margin-bottom: 40px; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+.cta-btns { display: flex; gap: 14px; justify-content: center; }
+.cta-btn-p { padding: 18px 40px; background: #fff; color: #1C3A2E; border-radius: 12px; font-size: 15px; font-weight: 800; text-decoration: none; }
+.cta-btn-s { padding: 18px 40px; border: 1.5px solid rgba(255,255,255,0.2); color: #fff; border-radius: 12px; font-size: 15px; font-weight: 600; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- ASSET 1: Dashboard Mockup -->
+<div id="asset-dashboard">
+  <div class="mock-window">
+    <div class="mock-bar">
+      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      <div class="mock-bar-title">ClickPoint HQ — Agency Dashboard</div>
+    </div>
+    <div class="mock-body">
+      <div class="mock-sidebar">
+        <div class="mock-logo">
+          <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" class="mock-logo-img" alt="ClickPoint">
+        </div>
+        <div class="mock-nav-section">Main</div>
+        <div class="mock-nav-item active"><div class="mock-nav-dot"></div>Dashboard</div>
+        <div class="mock-nav-item"><div class="mock-nav-dot"></div>Command Centre</div>
+        <div class="mock-nav-item"><div class="mock-nav-dot"></div>New Campaign</div>
+        <div class="mock-nav-section">Team</div>
+        <div class="mock-nav-item"><div class="mock-nav-dot"></div>Members</div>
+        <div class="mock-nav-item"><div class="mock-nav-dot"></div>Revenue</div>
+        <div class="mock-nav-section">Clients</div>
+        <div class="mock-nav-item"><div class="mock-nav-dot"></div>All Clients</div>
+        <div class="mock-nav-item"><div class="mock-nav-dot"></div>Workspaces</div>
+        <div class="mock-nav-item"><div class="mock-nav-dot"></div>Reports</div>
+      </div>
+      <div class="mock-main">
+        <div class="mock-kpi-row">
+          <div class="mock-kpi">
+            <div class="mock-kpi-val">25</div>
+            <div class="mock-kpi-label">Active Clients</div>
+            <div class="mock-kpi-trend">↑ 3 this month</div>
+          </div>
+          <div class="mock-kpi">
+            <div class="mock-kpi-val">A$298K</div>
+            <div class="mock-kpi-label">Monthly Revenue</div>
+            <div class="mock-kpi-trend">↑ 12% vs last month</div>
+          </div>
+          <div class="mock-kpi">
+            <div class="mock-kpi-val">94%</div>
+            <div class="mock-kpi-label">Retention Rate</div>
+            <div class="mock-kpi-trend">↑ 2pts vs Q3</div>
+          </div>
+        </div>
+        <div class="mock-cards-row">
+          <div class="mock-card">
+            <div class="mock-card-title">Client Workspaces</div>
+            <div class="mock-client-row">
+              <div class="mock-avatar" style="background:#D4622A;">CF</div>
+              <div><div class="mock-client-name">Crestwave Foods</div><div class="mock-client-sub">New campaign request</div></div>
+              <div class="mock-badge orange">Action Required</div>
+            </div>
+            <div class="mock-client-row">
+              <div class="mock-avatar" style="background:#0A84FF;">AD</div>
+              <div><div class="mock-client-name">Apex Dynamics</div><div class="mock-client-sub">CMO chat · 2h ago</div></div>
+              <div class="mock-badge green">Active</div>
+            </div>
+            <div class="mock-client-row">
+              <div class="mock-avatar" style="background:#30D158;">NG</div>
+              <div><div class="mock-client-name">Northfield Group</div><div class="mock-client-sub">Report downloaded</div></div>
+              <div class="mock-badge green">Active</div>
+            </div>
+            <div class="mock-client-row">
+              <div class="mock-avatar" style="background:#BF5AF2;">OL</div>
+              <div><div class="mock-client-name">Orbital Labs</div><div class="mock-client-sub">Logged in today</div></div>
+              <div class="mock-badge blue">Viewing</div>
+            </div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-title">Revenue — Last 7 Days</div>
+            <div class="mock-chart-bars">
+              <div class="mock-bar-el" style="height:55%"></div>
+              <div class="mock-bar-el" style="height:68%"></div>
+              <div class="mock-bar-el" style="height:45%"></div>
+              <div class="mock-bar-el" style="height:80%"></div>
+              <div class="mock-bar-el" style="height:62%"></div>
+              <div class="mock-bar-el active" style="height:92%"></div>
+              <div class="mock-bar-el" style="height:76%"></div>
+            </div>
+            <div class="mock-chart-labels">
+              <div class="mock-chart-label">M</div>
+              <div class="mock-chart-label">T</div>
+              <div class="mock-chart-label">W</div>
+              <div class="mock-chart-label">T</div>
+              <div class="mock-chart-label">F</div>
+              <div class="mock-chart-label">S</div>
+              <div class="mock-chart-label">S</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ASSET 2: Hero Section -->
+<div id="asset-hero">
+  <div>
+    <div class="hero-eyebrow">Introducing the ClickPoint Platform</div>
+    <h1 class="hero-h1">The operating system for <em>modern marketing agencies.</em></h1>
+    <p class="hero-p">Run your whole agency from one dashboard. Give every client their own self-service workspace. You profit on every layer.</p>
+    <div class="hero-btns">
+      <a class="btn-p" href="#">Start free trial</a>
+      <a class="btn-s" href="#">Book a demo</a>
+    </div>
+    <div class="hero-stats">
+      <div><div class="hero-stat-val">A$0</div><div class="hero-stat-label">Setup cost</div></div>
+      <div><div class="hero-stat-val">14 days</div><div class="hero-stat-label">Free trial</div></div>
+      <div><div class="hero-stat-val">2 layers</div><div class="hero-stat-label">Of revenue</div></div>
+    </div>
+  </div>
+  <div class="hero-visual"></div>
+</div>
+
+<!-- ASSET 3: Pricing Cards -->
+<div id="asset-pricing">
+  <div class="pricing-label">Pricing</div>
+  <div class="pricing-h2">One platform.<br>Two revenue streams.</div>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="pricing-tier">Starter</div>
+      <div class="pricing-price"><sup>A$</sup>499<sub>/mo</sub></div>
+      <div class="pricing-desc">Everything you need to get your agency running on one platform.</div>
+      <ul class="pricing-features">
+        <li><div class="pf-check">✓</div> Up to 10 client workspaces</li>
+        <li><div class="pf-check">✓</div> Agency HQ dashboard</li>
+        <li><div class="pf-check">✓</div> AI team (Sarah, Derek, Jess…)</li>
+        <li><div class="pf-check">✓</div> Campaign management</li>
+        <li><div class="pf-check">✓</div> Monthly report generation</li>
+      </ul>
+      <a class="pricing-btn ghost" href="#">Get started</a>
+    </div>
+    <div class="pricing-card featured">
+      <div class="pricing-badge">Most Popular</div>
+      <div class="pricing-tier light">Pro</div>
+      <div class="pricing-price light"><sup>A$</sup>1,299<sub>/mo</sub></div>
+      <div class="pricing-desc light">Unlimited workspaces. Sell the platform. Keep the margin.</div>
+      <ul class="pricing-features">
+        <li class="light"><div class="pf-check light">✓</div> Unlimited client workspaces</li>
+        <li class="light"><div class="pf-check light">✓</div> White-label ready</li>
+        <li class="light"><div class="pf-check light">✓</div> Client billing &amp; margin control</li>
+        <li class="light"><div class="pf-check light">✓</div> Priority support</li>
+        <li class="light"><div class="pf-check light">✓</div> Custom AI agent prompts</li>
+      </ul>
+      <a class="pricing-btn light-btn" href="#">Get started</a>
+    </div>
+    <div class="pricing-card">
+      <div class="pricing-tier">Enterprise</div>
+      <div class="pricing-price" style="font-size:36px;letter-spacing:-1px;padding-top:8px;">Custom</div>
+      <div class="pricing-desc">Full white-label, custom domain, dedicated onboarding &amp; SLA.</div>
+      <ul class="pricing-features">
+        <li><div class="pf-check">✓</div> Your brand, your domain</div></li>
+        <li><div class="pf-check">✓</div> Dedicated account manager</li>
+        <li><div class="pf-check">✓</div> Custom integrations</li>
+        <li><div class="pf-check">✓</div> SLA &amp; uptime guarantee</li>
+        <li><div class="pf-check">✓</div> Reseller agreements</li>
+      </ul>
+      <a class="pricing-btn dark" href="#">Talk to us</a>
+    </div>
+  </div>
+</div>
+
+<!-- ASSET 4: Features Grid -->
+<div id="asset-features">
+  <div class="feat-label">Features</div>
+  <div class="feat-h2">Everything your agency needs.<br>Nothing it doesn't.</div>
+  <div class="feat-sub">Built for marketing agencies that want to deliver more, retain clients longer, and earn beyond the hourly rate.</div>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-icon">🏢</div>
+      <div class="feat-title">Agency HQ</div>
+      <div class="feat-body">Your command centre. Manage every client, campaign, and team member from one unified dashboard.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🚀</div>
+      <div class="feat-title">Client Workspaces</div>
+      <div class="feat-body">Every client gets their own branded portal. They see their data, chat with their CMO, request campaigns.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🤖</div>
+      <div class="feat-title">AI Team Built In</div>
+      <div class="feat-body">Sarah (CMO), Derek (Paid Search), Jess (Content), Raj (SEO) — your AI team works around the clock.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📊</div>
+      <div class="feat-title">Live Analytics</div>
+      <div class="feat-body">Google Ads, Meta, GA4 and Search Console data pulled automatically. No manual reporting.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">💰</div>
+      <div class="feat-title">Revenue Layer</div>
+      <div class="feat-body">Sell client workspaces as a subscription. Set your own margin. A new recurring revenue stream on top of your retainer.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📋</div>
+      <div class="feat-title">Automated Reports</div>
+      <div class="feat-body">Monthly reports written by your AI team — Raj analyses the data, Jess writes the narrative, Sarah signs off.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ASSET 5: CTA Banner -->
+<div id="asset-cta">
+  <div class="cta-inner">
+    <div class="cta-eyebrow">Get Started Today</div>
+    <h2 class="cta-h2">Ready to add a second<br>revenue stream?</h2>
+    <p class="cta-sub">Join agencies using ClickPoint to deliver more, retain clients longer, and earn beyond the hourly rate.</p>
+    <div class="cta-btns">
+      <a class="cta-btn-p" href="#">Start free trial — no card needed</a>
+      <a class="cta-btn-s" href="#">Talk to us first</a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

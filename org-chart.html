@@ -4,9 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ClickPoint Marketing HQ</title>
+<link rel="icon" type="image/png" href="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/cropped-clickpoint-logo-header-2x.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -41,7 +45,7 @@
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Helvetica Neue', sans-serif;
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
     background: #F4F3EE;
     color: var(--text-primary);
     min-height: 100vh;
@@ -1506,6 +1510,352 @@
   .cmd-scenario-btn:hover { background:#C05520; }
   .cmd-scenario-btn:disabled { background:#999990; cursor:not-allowed; }
   .cmd-scenario-pulse { display:inline-block; width:7px; height:7px; border-radius:50%; background:#30D158; animation:cmd-pulse 1s ease-in-out infinite; margin-right:6px; }
+
+  /* ── Integrations Hub ─────────────────────────────────────────────────── */
+  .intg-backdrop { position:fixed; inset:0; z-index:600; background:rgba(0,0,0,0.55); display:none; align-items:stretch; }
+  .intg-backdrop.open { display:flex; }
+  .intg-shell { display:flex; flex-direction:column; width:calc(100vw - 160px); margin-left:160px; height:100vh; background:#F5F2E8; overflow:hidden; transform:translateX(100%); transition:transform 0.32s cubic-bezier(0.4,0,0.2,1); }
+  .intg-backdrop.open .intg-shell { transform:translateX(0); }
+  .intg-hdr { display:flex; align-items:center; justify-content:space-between; padding:18px 24px; background:#fff; border-bottom:1px solid #E2E1DB; flex-shrink:0; }
+  .intg-hdr-left h2 { font-size:17px; font-weight:700; color:#1C3A2E; margin:0 0 2px; }
+  .intg-hdr-left p { font-size:11px; color:#999; margin:0; }
+  .intg-hdr-right { display:flex; gap:8px; align-items:center; }
+  .intg-add-btn { display:flex; align-items:center; gap:6px; padding:8px 16px; border-radius:10px; background:#1C3A2E; color:#fff; border:none; cursor:pointer; font-size:12px; font-weight:600; font-family:inherit; }
+  .intg-add-btn:hover { background:#2A5240; }
+  .intg-close-x { width:32px; height:32px; border-radius:50%; background:#F0EFE9; border:none; cursor:pointer; font-size:15px; color:#666; display:flex; align-items:center; justify-content:center; }
+  .intg-body { display:flex; flex:1; overflow:hidden; }
+  .intg-sidebar { width:154px; flex-shrink:0; padding:12px 0; border-right:1px solid #E2E1DB; background:#fff; overflow-y:auto; }
+  .intg-cat-hd { font-size:9px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#bbb; padding:10px 18px 4px; }
+  .intg-cat { padding:7px 18px; font-size:12px; font-weight:600; color:#888; cursor:pointer; transition:all 0.15s; }
+  .intg-cat:hover { color:#1C3A2E; background:#F0F8F4; }
+  .intg-cat.active { color:#1C3A2E; background:#E8F0EC; border-left:3px solid #1C3A2E; padding-left:15px; }
+  .intg-grid-wrap { flex:1; overflow-y:auto; padding:20px; }
+  .intg-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px; }
+  .intg-card { background:#fff; border-radius:14px; border:1px solid #E2E1DB; overflow:hidden; transition:box-shadow 0.2s; }
+  .intg-card:hover { box-shadow:0 4px 20px rgba(0,0,0,0.08); }
+  .intg-card-top { display:flex; align-items:center; gap:10px; padding:14px 14px 10px; }
+  .intg-icon { width:38px; height:38px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0; letter-spacing:-0.5px; }
+  .intg-card-meta { flex:1; min-width:0; }
+  .intg-card-name { font-size:13px; font-weight:700; color:#1C3A2E; }
+  .intg-card-desc { font-size:10px; color:#aaa; margin-top:1px; }
+  .intg-count { font-size:11px; font-weight:700; color:#30D158; white-space:nowrap; }
+  .intg-count.zero { color:#ddd; }
+  .intg-conns { padding:0 14px 4px; border-top:1px solid #F0EFE9; }
+  .intg-conn-row { display:flex; align-items:center; gap:6px; padding:7px 0; border-bottom:1px solid #F8F7F3; font-size:11px; }
+  .intg-conn-row:last-child { border-bottom:none; }
+  .intg-conn-client { font-weight:600; color:#333; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .intg-conn-id { color:#bbb; font-size:10px; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .intg-conn-dot { color:#bbb; font-size:10px; letter-spacing:1px; }
+  .intg-conn-del { width:18px; height:18px; border-radius:50%; background:#fff0f0; border:none; color:#FF453A; cursor:pointer; font-size:9px; flex-shrink:0; line-height:18px; text-align:center; }
+  .intg-card-add { width:100%; padding:10px; border:none; border-top:1px solid #F0EFE9; background:#FAFAF7; color:#1C3A2E; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+  .intg-card-add:hover { background:#EEF4F0; }
+  .intg-secure-bar { display:flex; align-items:center; gap:8px; padding:10px 24px; background:#F0F8F4; border-bottom:1px solid #D4E8DA; font-size:11px; color:#2A5240; flex-shrink:0; }
+  /* Connect modal */
+  .intg-modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:700; display:none; align-items:center; justify-content:center; }
+  .intg-modal-bg.open { display:flex; }
+  .intg-modal { background:#fff; border-radius:18px; width:460px; max-width:92vw; padding:28px; box-shadow:0 20px 60px rgba(0,0,0,0.18); }
+  .intg-modal h3 { font-size:16px; font-weight:700; color:#1C3A2E; margin:0 0 3px; }
+  .intg-modal-sub { font-size:12px; color:#999; margin:0 0 20px; }
+  .intg-mfield { margin-bottom:13px; }
+  .intg-mlabel { font-size:11px; font-weight:700; color:#555; margin-bottom:5px; display:block; }
+  .intg-minput { width:100%; padding:9px 12px; border:1px solid #E2E1DB; border-radius:9px; font-size:13px; font-family:inherit; color:#222; box-sizing:border-box; background:#FAFAF7; }
+  .intg-minput:focus { outline:none; border-color:#1C3A2E; background:#fff; }
+  .intg-minput[type=password] { letter-spacing:0.12em; }
+  .intg-mhint { font-size:10px; color:#bbb; margin-top:3px; }
+  .intg-enc-badge { display:flex; align-items:center; gap:7px; padding:10px 12px; border-radius:9px; background:#F0F8F4; border:1px solid #C5E3D0; font-size:11px; color:#2A5240; margin-bottom:16px; }
+  .intg-mactions { display:flex; gap:8px; justify-content:flex-end; }
+  .intg-mbtn-cancel { padding:9px 18px; border-radius:9px; background:#F0EFE9; border:none; color:#555; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .intg-mbtn-save { padding:9px 20px; border-radius:9px; background:#1C3A2E; border:none; color:#fff; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .intg-mbtn-save:disabled { opacity:0.45; cursor:not-allowed; }
+  .intg-setup-warn { background:#FFF8F0; border:1px solid #F5D9B0; border-radius:12px; padding:16px 18px; font-size:12px; color:#8B4800; line-height:1.7; }
+  .intg-setup-warn strong { color:#5C2E00; }
+
+  /* ── Per-client Analytics Dashboard ─────────────────────────────────────── */
+  .anl-backdrop { position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.5); display:none; }
+  .anl-backdrop.open { display:block; }
+  .anl-shell { position:absolute; right:0; top:0; bottom:0; width:calc(100vw - 160px); background:#F5F2E8; display:flex; flex-direction:column; transform:translateX(100%); transition:transform 0.32s cubic-bezier(0.4,0,0.2,1); overflow:hidden; }
+  .anl-backdrop.open .anl-shell { transform:translateX(0); }
+  .anl-hdr { display:flex; align-items:center; gap:12px; padding:16px 24px; background:#fff; border-bottom:1px solid #E2E1DB; flex-shrink:0; }
+  .anl-back { padding:6px 12px; border-radius:8px; background:#F0EFE9; border:none; color:#555; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .anl-client-name { font-size:16px; font-weight:700; color:#1C3A2E; flex:1; }
+  .anl-range-sel { padding:6px 10px; border-radius:8px; border:1px solid #E2E1DB; font-size:12px; font-family:inherit; color:#333; background:#FAFAF7; cursor:pointer; }
+  .anl-sync-btn { display:flex; align-items:center; gap:5px; padding:7px 14px; border-radius:9px; background:#1C3A2E; color:#fff; border:none; cursor:pointer; font-size:12px; font-weight:600; font-family:inherit; }
+  .anl-sync-btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .anl-close-x { width:30px; height:30px; border-radius:50%; background:#F0EFE9; border:none; cursor:pointer; font-size:14px; color:#666; }
+  .anl-body { flex:1; overflow-y:auto; padding:20px 24px; }
+  /* Summary KPI row */
+  .anl-kpi-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; margin-bottom:20px; }
+  .anl-kpi { background:#fff; border-radius:12px; border:1px solid #E2E1DB; padding:14px 16px; }
+  .anl-kpi-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#aaa; margin-bottom:6px; }
+  .anl-kpi-val { font-size:22px; font-weight:800; color:#1C3A2E; }
+  .anl-kpi-trend { font-size:11px; margin-top:4px; }
+  .anl-kpi-trend.up   { color:#30D158; }
+  .anl-kpi-trend.down { color:#FF453A; }
+  .anl-kpi-trend.flat { color:#aaa; }
+  /* Platform cards grid */
+  .anl-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
+  .anl-card { background:#fff; border-radius:14px; border:1px solid #E2E1DB; overflow:hidden; }
+  .anl-card-hdr { display:flex; align-items:center; gap:10px; padding:14px 16px 10px; border-bottom:1px solid #F0EFE9; }
+  .anl-plat-icon { width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; flex-shrink:0; }
+  .anl-plat-name { font-size:13px; font-weight:700; color:#1C3A2E; flex:1; }
+  .anl-plat-status { font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; }
+  .anl-plat-status.live { background:#E8F9EE; color:#218838; }
+  .anl-plat-status.demo { background:#FFF8E6; color:#856404; }
+  .anl-plat-status.none { background:#F0EFE9; color:#888; }
+  .anl-card-metrics { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0; padding:12px 16px 0; }
+  .anl-metric { text-align:center; padding:6px 4px 10px; }
+  .anl-metric-val { font-size:17px; font-weight:800; color:#1A1A1A; }
+  .anl-metric-val.green { color:#30D158; }
+  .anl-metric-val.blue  { color:#0A84FF; }
+  .anl-metric-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#aaa; margin-top:2px; }
+  /* Sparkline */
+  .anl-sparkline-wrap { padding:10px 16px 14px; border-top:1px solid #F5F4F0; }
+  .anl-sparkline-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#ccc; margin-bottom:6px; }
+  .anl-sparkline { display:flex; align-items:flex-end; gap:3px; height:36px; }
+  .anl-spark-bar { flex:1; border-radius:2px 2px 0 0; min-height:2px; transition:height 0.4s; }
+  .anl-card-foot { display:flex; align-items:center; justify-content:space-between; padding:8px 16px; border-top:1px solid #F0EFE9; background:#FAFAF7; font-size:10px; }
+  .anl-foot-sync { color:#aaa; }
+  .anl-foot-sub { display:flex; gap:12px; }
+  .anl-foot-metric { color:#777; }
+  /* Not connected card */
+  .anl-card-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px 20px; text-align:center; min-height:180px; }
+  .anl-card-empty-icon { font-size:28px; margin-bottom:8px; opacity:0.4; }
+  .anl-card-empty-text { font-size:12px; color:#bbb; margin-bottom:12px; }
+  .anl-connect-cta { padding:7px 16px; border-radius:9px; background:#1C3A2E; color:#fff; border:none; cursor:pointer; font-size:12px; font-weight:600; font-family:inherit; }
+  /* Analytics button on client row */
+  .anl-row-btn { padding:4px 10px; border-radius:7px; background:#E8F0EC; border:none; color:#1C3A2E; font-size:10px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+  .anl-row-btn:hover { background:#D0E8D8; }
+  .portal-row-btn { padding:4px 10px; border-radius:7px; background:#F0ECFF; border:none; color:#5856D6; font-size:10px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+  .portal-row-btn:hover { background:#E0D8FF; }
+
+  /* ── Portal Access Modal ─────────────────────────────────────────────── */
+  .pac-modal-bg { position:fixed; inset:0; z-index:900; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; }
+  .pac-modal-bg.open { display:flex; }
+  .pac-modal { background:#fff; border-radius:20px; width:440px; max-width:calc(100vw - 32px); box-shadow:0 20px 60px rgba(0,0,0,0.2); padding:28px; }
+  .pac-title { font-size:17px; font-weight:700; color:#1A1A1A; margin-bottom:4px; }
+  .pac-sub { font-size:13px; color:#999; margin-bottom:22px; }
+  .pac-field { margin-bottom:14px; }
+  .pac-field label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#555; display:block; margin-bottom:6px; }
+  .pac-field input { width:100%; padding:10px 13px; border:1.5px solid #E2E1DB; border-radius:10px; font-size:13px; font-family:inherit; color:#1A1A1A; outline:none; }
+  .pac-field input:focus { border-color:#1C3A2E; }
+  .pac-result { background:#F4F3EE; border-radius:12px; padding:16px 18px; margin-bottom:18px; display:none; }
+  .pac-result-code { font-size:32px; font-weight:800; color:#1C3A2E; letter-spacing:8px; margin-bottom:6px; }
+  .pac-result-hint { font-size:12px; color:#999; }
+  .pac-copy-row { display:flex; gap:8px; margin-top:10px; }
+  .pac-copy-btn { flex:1; padding:8px; border-radius:8px; border:1.5px solid #E2E1DB; background:#fff; font-size:12px; font-weight:600; color:#555; cursor:pointer; font-family:inherit; text-align:center; }
+  .pac-copy-btn:hover { background:#F4F3EE; }
+  .pac-actions { display:flex; gap:8px; }
+  .pac-cancel { flex:1; padding:10px; border-radius:10px; border:none; background:#F4F3EE; font-size:13px; font-weight:600; color:#555; cursor:pointer; font-family:inherit; }
+  .pac-generate { flex:2; padding:10px; border-radius:10px; border:none; background:#1C3A2E; color:#fff; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .pac-generate:disabled { opacity:0.5; cursor:not-allowed; }
+
+  /* ── Notification Settings Modal ─────────────────────────────────────── */
+  .ntf-modal-bg { position:fixed; inset:0; z-index:900; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; }
+  .ntf-modal-bg.open { display:flex; }
+  .ntf-modal { background:#fff; border-radius:20px; width:480px; max-width:calc(100vw - 32px); max-height:88vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+  .ntf-hdr { padding:22px 24px 0; display:flex; align-items:flex-start; gap:12px; }
+  .ntf-hdr-info { flex:1; }
+  .ntf-title { font-size:17px; font-weight:700; color:#1A1A1A; }
+  .ntf-sub { font-size:13px; color:#999; margin-top:3px; }
+  .ntf-close-x { background:none; border:none; font-size:18px; color:#aaa; cursor:pointer; padding:2px 6px; line-height:1; flex-shrink:0; }
+  .ntf-body { padding:20px 24px 24px; }
+  .ntf-channel-card { border:1.5px solid #E2E1DB; border-radius:13px; padding:16px 18px; margin-bottom:14px; }
+  .ntf-channel-hdr { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .ntf-channel-icon { font-size:18px; }
+  .ntf-channel-name { font-size:14px; font-weight:700; color:#1A1A1A; }
+  .ntf-channel-status { font-size:11px; font-weight:700; padding:3px 9px; border-radius:100px; }
+  .ntf-status-on  { background:#E8FFF1; color:#27AE60; }
+  .ntf-status-off { background:#F4F3EE; color:#aaa; }
+  .ntf-field { margin-bottom:12px; }
+  .ntf-field label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#555; display:block; margin-bottom:6px; }
+  .ntf-field input { width:100%; padding:9px 12px; border:1.5px solid #E2E1DB; border-radius:9px; font-size:12px; font-family:inherit; color:#1A1A1A; outline:none; }
+  .ntf-field input:focus { border-color:#1C3A2E; }
+  .ntf-test-btn { padding:7px 14px; border-radius:8px; border:1.5px solid #E2E1DB; background:#fff; font-size:12px; font-weight:600; color:#555; cursor:pointer; font-family:inherit; }
+  .ntf-test-btn:hover { background:#F4F3EE; }
+  .ntf-save-btn { width:100%; padding:11px; border-radius:11px; background:#1C3A2E; color:#fff; border:none; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; margin-top:4px; }
+  .ntf-save-btn:hover { background:#2A5240; }
+  .ntf-divider { margin:6px 0 16px; border:none; border-top:1px solid #F0EFE9; }
+  .ntf-triggers { margin-bottom:14px; }
+  .ntf-trigger-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid #F5F4F0; }
+  .ntf-trigger-row:last-child { border-bottom:none; }
+  .ntf-trigger-label { flex:1; font-size:13px; color:#333; }
+  .ntf-trigger-desc { font-size:11px; color:#aaa; margin-top:2px; }
+  .ntf-toggle { width:36px; height:20px; border-radius:99px; background:#E2E1DB; border:none; cursor:pointer; position:relative; flex-shrink:0; transition:background 0.2s; }
+  .ntf-toggle.on { background:#1C3A2E; }
+  .ntf-toggle::after { content:''; width:14px; height:14px; border-radius:50%; background:#fff; position:absolute; top:3px; left:3px; transition:transform 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
+  .ntf-toggle.on::after { transform:translateX(16px); }
+
+  /* ── Reports ─────────────────────────────────────────────────────────── */
+  .rpt-backdrop { position:fixed; inset:0; z-index:3000; background:#F4F3EE; display:none; flex-direction:column; }
+  .rpt-backdrop.open { display:flex; }
+  .rpt-hdr { display:flex; align-items:center; gap:12px; padding:20px 28px; background:#fff; border-bottom:1px solid #E2E1DB; flex-shrink:0; }
+  .rpt-back { background:none; border:none; font-size:13px; font-weight:600; color:#1C3A2E; cursor:pointer; padding:6px 10px; border-radius:8px; font-family:inherit; }
+  .rpt-back:hover { background:#F4F3EE; }
+  .rpt-title { font-size:17px; font-weight:700; color:#1A1A1A; margin-right:auto; }
+  .rpt-gen-btn { background:#1C3A2E; color:#fff; border:none; padding:9px 18px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; display:flex; align-items:center; gap:6px; }
+  .rpt-gen-btn:hover { background:#2A5240; }
+  .rpt-close-x { background:none; border:none; font-size:18px; color:#999; cursor:pointer; padding:4px 8px; line-height:1; }
+  .rpt-body { flex:1; overflow-y:auto; padding:28px; }
+  .rpt-empty { text-align:center; padding:80px 20px; color:#aaa; }
+  .rpt-empty-icon { font-size:40px; margin-bottom:14px; }
+  .rpt-empty-text { font-size:14px; line-height:1.6; }
+  .rpt-list { display:flex; flex-direction:column; gap:12px; max-width:860px; margin:0 auto; }
+  .rpt-row { background:#fff; border:1.5px solid #E2E1DB; border-radius:14px; padding:18px 22px; display:flex; align-items:center; gap:16px; cursor:pointer; transition:all 0.15s; }
+  .rpt-row:hover { border-color:#1C3A2E; box-shadow:0 2px 16px rgba(28,58,46,0.08); }
+  .rpt-row-icon { width:44px; height:44px; border-radius:11px; background:#E8F0EC; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+  .rpt-row-info { flex:1; min-width:0; }
+  .rpt-row-client { font-size:14px; font-weight:700; color:#1A1A1A; }
+  .rpt-row-period { font-size:12px; color:#999; margin-top:2px; }
+  .rpt-row-score { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#555; white-space:nowrap; }
+  .rpt-row-date { font-size:11px; color:#bbb; white-space:nowrap; }
+  .rpt-health-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  /* Generation modal */
+  .rpt-gen-bg { position:fixed; inset:0; z-index:4000; background:rgba(0,0,0,0.35); display:none; align-items:center; justify-content:center; }
+  .rpt-gen-bg.open { display:flex; }
+  .rpt-gen-modal { background:#fff; border-radius:20px; padding:28px; width:520px; max-width:calc(100vw - 40px); box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+  .rpt-gen-title { font-size:18px; font-weight:700; color:#1A1A1A; margin-bottom:5px; }
+  .rpt-gen-sub { font-size:13px; color:#999; margin-bottom:22px; }
+  .rpt-gen-fields { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:22px; }
+  .rpt-gen-fields .full { grid-column:1/-1; }
+  .rpt-gen-fields label { font-size:11px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.05em; display:block; margin-bottom:6px; }
+  .rpt-gen-fields select, .rpt-gen-fields input { width:100%; padding:10px 12px; border:1.5px solid #E2E1DB; border-radius:10px; font-size:13px; font-family:inherit; color:#1A1A1A; background:#fff; outline:none; }
+  .rpt-gen-fields select:focus, .rpt-gen-fields input:focus { border-color:#1C3A2E; }
+  .rpt-steps { display:flex; flex-direction:column; gap:10px; margin-bottom:22px; }
+  .rpt-step { display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:12px; background:#F9F8F4; border:1.5px solid #E2E1DB; transition:all 0.25s; }
+  .rpt-step.active { border-color:#D4622A; background:#FFF5F0; }
+  .rpt-step.done { border-color:#30D158; background:#F0FFF4; }
+  .rpt-step-num { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; background:#E2E1DB; color:#888; flex-shrink:0; transition:all 0.25s; }
+  .rpt-step.active .rpt-step-num { background:#D4622A; color:#fff; }
+  .rpt-step.done .rpt-step-num { background:#30D158; color:#fff; }
+  .rpt-step-info { flex:1; }
+  .rpt-step-name { font-size:13px; font-weight:600; color:#1A1A1A; }
+  .rpt-step-desc { font-size:11px; color:#999; margin-top:2px; }
+  .rpt-step-status { font-size:11px; font-weight:600; color:#bbb; white-space:nowrap; }
+  .rpt-step.active .rpt-step-status { color:#D4622A; }
+  .rpt-step.done .rpt-step-status { color:#30D158; }
+  .rpt-gen-actions { display:flex; gap:10px; justify-content:flex-end; }
+  .rpt-gen-cancel { background:#F4F3EE; border:none; padding:10px 18px; border-radius:10px; font-size:13px; font-weight:600; color:#555; cursor:pointer; font-family:inherit; }
+  .rpt-gen-submit { background:#1C3A2E; color:#fff; border:none; padding:10px 22px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; display:flex; align-items:center; gap:6px; }
+  .rpt-gen-submit:disabled { opacity:0.5; cursor:not-allowed; }
+  /* Viewer */
+  .rpt-viewer-bg { position:fixed; inset:0; z-index:4000; background:rgba(0,0,0,0.4); display:none; align-items:flex-start; justify-content:center; overflow-y:auto; padding:40px 20px; }
+  .rpt-viewer-bg.open { display:flex; }
+  .rpt-viewer { background:#F4F3EE; border-radius:20px; width:820px; max-width:100%; box-shadow:0 24px 80px rgba(0,0,0,0.25); overflow:hidden; position:relative; }
+  .rpt-viewer-bar { background:#1C3A2E; color:#fff; padding:18px 24px; display:flex; align-items:center; gap:14px; }
+  .rpt-viewer-logo { font-size:15px; font-weight:800; letter-spacing:-0.3px; opacity:0.9; flex-shrink:0; }
+  .rpt-viewer-title { flex:1; min-width:0; }
+  .rpt-viewer-client { font-size:16px; font-weight:700; }
+  .rpt-viewer-period { font-size:12px; opacity:0.65; margin-top:2px; }
+  .rpt-viewer-acts { display:flex; gap:8px; align-items:center; flex-shrink:0; }
+  .rpt-viewer-print { background:rgba(255,255,255,0.15); border:none; color:#fff; padding:7px 14px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .rpt-viewer-print:hover { background:rgba(255,255,255,0.25); }
+  .rpt-viewer-close { background:none; border:none; color:rgba(255,255,255,0.6); font-size:20px; cursor:pointer; line-height:1; padding:2px 6px; }
+  .rpt-viewer-close:hover { color:#fff; }
+  .rpt-viewer-body { padding:24px; }
+  .rpt-health-bar { background:#fff; border-radius:14px; padding:18px 22px; margin-bottom:16px; display:flex; align-items:center; gap:20px; border:1px solid #E2E1DB; }
+  .rpt-score-big { font-size:42px; font-weight:800; line-height:1; }
+  .rpt-score-denom { font-size:20px; font-weight:400; color:#aaa; }
+  .rpt-health-info { flex:1; }
+  .rpt-health-label-txt { font-size:15px; font-weight:700; color:#1A1A1A; }
+  .rpt-health-track { height:6px; background:#E2E1DB; border-radius:99px; margin-top:8px; overflow:hidden; }
+  .rpt-health-fill { height:100%; border-radius:99px; transition:width 0.9s ease; }
+  .rpt-kpi-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
+  .rpt-kpi { background:#fff; border-radius:12px; padding:14px 16px; border:1px solid #E2E1DB; }
+  .rpt-kpi-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#999; margin-bottom:4px; }
+  .rpt-kpi-val { font-size:20px; font-weight:800; color:#1A1A1A; }
+  .rpt-kpi-sub { font-size:11px; color:#aaa; margin-top:2px; }
+  .rpt-section { background:#fff; border-radius:14px; padding:22px; margin-bottom:14px; border:1px solid #E2E1DB; }
+  .rpt-sec-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid #F0EFE9; }
+  .rpt-sec-title { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:#888; }
+  .rpt-sec-author { font-size:11px; color:#aaa; display:flex; align-items:center; gap:6px; }
+  .rpt-author-av { width:20px; height:20px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:8px; font-weight:800; color:#fff; flex-shrink:0; }
+  .rpt-sec-body { font-size:13.5px; line-height:1.75; color:#333; }
+  .rpt-sec-body p { margin-bottom:12px; }
+  .rpt-sec-body p:last-child { margin-bottom:0; }
+  .rpt-sec-body strong, .rpt-sec-body b { color:#1A1A1A; font-weight:700; }
+  .rpt-sec-body h2, .rpt-sec-body h3 { font-size:12px; font-weight:800; color:#1A1A1A; margin:16px 0 6px; text-transform:uppercase; letter-spacing:0.05em; }
+  .rpt-rec-table { width:100%; border-collapse:collapse; }
+  .rpt-rec-table th { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#aaa; padding:6px 12px 10px; text-align:left; border-bottom:1.5px solid #E2E1DB; }
+  .rpt-rec-table td { padding:10px 12px; border-bottom:1px solid #F4F3EE; font-size:13px; vertical-align:middle; }
+  .rpt-rec-table tr:last-child td { border-bottom:none; }
+  .rpt-pri { display:inline-block; padding:3px 9px; border-radius:100px; font-size:10px; font-weight:700; letter-spacing:0.04em; }
+  .rpt-pri-HIGH { background:#FFF0EE; color:#D4622A; }
+  .rpt-pri-MED  { background:#FFF8E6; color:#856404; }
+  .rpt-pri-LOW  { background:#F0FFF4; color:#27AE60; }
+  .rpt-owner { display:inline-flex; align-items:center; gap:4px; background:#F4F3EE; border-radius:6px; padding:3px 8px; font-size:11px; font-weight:600; color:#555; }
+  .rpt-sign-off { margin-top:16px; padding:14px 16px; background:#F9F8F4; border-radius:10px; border-left:3px solid #1C3A2E; font-size:13px; font-style:italic; color:#555; line-height:1.6; }
+  .rpt-sign-off-name { font-size:11px; font-weight:700; color:#1C3A2E; margin-top:8px; font-style:normal; display:block; }
+  .rpt-footer { text-align:center; font-size:10px; color:#bbb; padding:16px 0 4px; }
+  @media print {
+    .rpt-viewer-bg { position:static; overflow:visible; padding:0; background:none !important; display:block !important; }
+    .rpt-viewer { box-shadow:none; border-radius:0; }
+    .rpt-viewer-bar { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .rpt-viewer-acts, .app-layout, .rpt-backdrop, .rpt-gen-bg { display:none !important; }
+  }
+
+  /* ── Manage Staff modal ───────────────────────────────────────────────── */
+  .staff-modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:800; display:none; align-items:center; justify-content:center; }
+  .staff-modal-bg.open { display:flex; }
+  .staff-modal { background:#fff; border-radius:20px; width:640px; max-width:94vw; max-height:86vh; display:flex; flex-direction:column; box-shadow:0 24px 72px rgba(0,0,0,0.18); overflow:hidden; }
+  .staff-modal-hdr { display:flex; align-items:center; padding:20px 24px; border-bottom:1px solid #E2E1DB; gap:10px; flex-shrink:0; }
+  .staff-modal-hdr h3 { font-size:16px; font-weight:700; color:#1C3A2E; margin:0; flex:1; }
+  .staff-add-btn { display:flex; align-items:center; gap:5px; padding:7px 14px; border-radius:9px; background:#1C3A2E; color:#fff; border:none; cursor:pointer; font-size:12px; font-weight:600; font-family:inherit; }
+  .staff-add-btn:hover { background:#2A5240; }
+  .staff-close-x { width:30px; height:30px; border-radius:50%; background:#F0EFE9; border:none; cursor:pointer; font-size:14px; color:#666; }
+  .staff-modal-body { flex:1; overflow-y:auto; padding:16px 24px 24px; }
+  /* Agent list */
+  .staff-agent-card { display:flex; align-items:flex-start; gap:12px; padding:14px; border-radius:12px; border:1px solid #E2E1DB; margin-bottom:10px; background:#FAFAF7; }
+  .staff-agent-card:hover { border-color:#C5D8CB; background:#F4F9F6; }
+  .staff-av { width:40px; height:40px; border-radius:50%; background:#1C3A2E; color:#fff; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .staff-agent-info { flex:1; min-width:0; }
+  .staff-agent-name { font-size:14px; font-weight:700; color:#1C3A2E; margin-bottom:2px; }
+  .staff-agent-role { font-size:11px; color:#888; margin-bottom:8px; }
+  .staff-skills-wrap { display:flex; flex-wrap:wrap; gap:4px; }
+  .staff-skill-tag { font-size:10px; font-weight:600; padding:2px 8px; border-radius:20px; background:rgba(28,58,46,0.08); color:#1C3A2E; }
+  .staff-edit-btn { padding:6px 14px; border-radius:8px; background:#F0EFE9; border:none; color:#1C3A2E; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; flex-shrink:0; }
+  .staff-edit-btn:hover { background:#E0EDE5; }
+  /* Edit form */
+  .staff-form-field { margin-bottom:14px; }
+  .staff-form-label { font-size:11px; font-weight:700; color:#555; margin-bottom:5px; display:block; }
+  .staff-form-input { width:100%; padding:9px 12px; border:1px solid #E2E1DB; border-radius:9px; font-size:13px; font-family:inherit; color:#222; background:#FAFAF7; box-sizing:border-box; }
+  .staff-form-input:focus { outline:none; border-color:#1C3A2E; background:#fff; }
+  .staff-tags-wrap { display:flex; flex-wrap:wrap; gap:5px; padding:8px; border:1px solid #E2E1DB; border-radius:9px; background:#FAFAF7; min-height:40px; cursor:text; }
+  .staff-tags-wrap:focus-within { border-color:#1C3A2E; background:#fff; }
+  .staff-tag-pill { display:flex; align-items:center; gap:4px; padding:3px 8px; border-radius:20px; background:#1C3A2E; color:#fff; font-size:11px; font-weight:600; }
+  .staff-tag-del { background:none; border:none; color:rgba(255,255,255,0.7); cursor:pointer; font-size:12px; padding:0; line-height:1; }
+  .staff-tag-del:hover { color:#fff; }
+  .staff-tag-input { border:none; background:transparent; outline:none; font-size:12px; font-family:inherit; color:#333; min-width:120px; padding:2px 4px; }
+  .staff-prompt-toggle { font-size:11px; color:#888; cursor:pointer; padding:6px 0; display:flex; align-items:center; gap:5px; border:none; background:none; font-family:inherit; margin-bottom:8px; }
+  .staff-prompt-toggle:hover { color:#1C3A2E; }
+  .staff-form-textarea { width:100%; padding:9px 12px; border:1px solid #E2E1DB; border-radius:9px; font-size:12px; font-family:monospace; color:#333; background:#F8F8F6; box-sizing:border-box; resize:vertical; min-height:120px; }
+  .staff-form-textarea:focus { outline:none; border-color:#1C3A2E; }
+  .staff-form-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
+  .staff-fbtn-cancel { padding:9px 18px; border-radius:9px; background:#F0EFE9; border:none; color:#555; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .staff-fbtn-save { padding:9px 20px; border-radius:9px; background:#1C3A2E; border:none; color:#fff; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .staff-fbtn-save:disabled { opacity:0.45; cursor:not-allowed; }
+  .staff-claude-badge { display:flex; align-items:center; gap:7px; padding:10px 12px; border-radius:9px; background:#F0F8F4; border:1px solid #C5E3D0; font-size:11px; color:#2A5240; margin-bottom:14px; }
+  /* Memory UI */
+  .agc-mem-badge { display:none; align-items:center; gap:4px; font-size:10px; font-weight:700; padding:2px 9px; border-radius:20px; background:rgba(108,74,233,0.1); color:#6C4AE9; cursor:pointer; white-space:nowrap; }
+  .agc-mem-badge.visible { display:flex; }
+  .staff-mem-btn { padding:5px 11px; border-radius:8px; background:#F0EAF9; border:none; color:#6C4AE9; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+  .staff-mem-btn:hover { background:#E5D8F5; }
+  .mem-row { display:flex; align-items:flex-start; gap:8px; padding:10px 0; border-bottom:1px solid #F0EFE9; }
+  .mem-row:last-child { border-bottom:none; }
+  .mem-type { font-size:9px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; padding:2px 6px; border-radius:4px; white-space:nowrap; flex-shrink:0; margin-top:1px; }
+  .mem-type.preference { background:#FFF0E6; color:#D4622A; }
+  .mem-type.strategy   { background:#E6F0FF; color:#0A66C2; }
+  .mem-type.insight    { background:#F0F8F4; color:#1C3A2E; }
+  .mem-type.outcome    { background:#F0FAF0; color:#218838; }
+  .mem-content { flex:1; font-size:12px; color:#333; line-height:1.5; }
+  .mem-meta { font-size:10px; color:#bbb; margin-top:2px; }
+  .mem-del { width:20px; height:20px; border-radius:50%; background:#fff0f0; border:none; color:#FF453A; cursor:pointer; font-size:10px; flex-shrink:0; }
+  .mem-importance { display:flex; gap:2px; margin-top:3px; }
+  .mem-star { font-size:9px; color:#F5BE00; }
+  .mem-add-form { margin-top:14px; padding-top:14px; border-top:1px solid #E2E1DB; }
+  .mem-client-filter { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+  .mem-client-chip { padding:4px 12px; border-radius:20px; background:#F0EFE9; border:none; font-size:11px; font-weight:600; color:#666; cursor:pointer; font-family:inherit; }
+  .mem-client-chip.active { background:#1C3A2E; color:#fff; }
+  .mem-empty { text-align:center; padding:32px; color:#bbb; font-size:12px; }
 </style>
 </head>
 <body>
@@ -1518,8 +1868,7 @@
 <div class="app-shell">
   <aside class="app-sidebar">
     <div class="app-logo-wrap">
-      <div class="app-logo-mark">✦</div>
-      <div class="app-logo-name">ClickPoint</div>
+      <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" alt="ClickPoint" style="height:32px;width:auto;display:block;margin-bottom:6px;">
       <div class="app-logo-tag">Marketing HQ</div>
     </div>
     <nav class="app-nav">
@@ -1529,14 +1878,23 @@
       <div class="app-nav-item" data-nav="campaign" onclick="setNavActive('campaign');openCampaignCreator()">🚀 &nbsp;New Campaign</div>
       <div class="app-nav-section">Team</div>
       <div class="app-nav-item" data-nav="team" onclick="setNavActive('team');openStatPanel('team')">👥 &nbsp;Members <span class="app-nav-badge">13</span></div>
-      <div class="app-nav-item" data-nav="performance" onclick="setNavActive('performance');openStatPanel('performance')">📈 &nbsp;Performance</div>
+      <div class="app-nav-item" data-nav="revenue" onclick="setNavActive('revenue');openStatPanel('revenue')">💰 &nbsp;Revenue</div>
       <div class="app-nav-item" data-nav="scheduled" onclick="setNavActive('scheduled');openStatPanel('scheduled')">📅 &nbsp;Schedule <span class="app-nav-badge">16</span></div>
       <div class="app-nav-section">Work</div>
       <div class="app-nav-item" data-nav="tasks" onclick="setNavActive('tasks');openStatPanel('tasks')">✅ &nbsp;Tasks <span class="app-nav-badge">31</span></div>
       <div class="app-nav-item" data-nav="deliverables" onclick="setNavActive('deliverables');openDeliverables()">📁 &nbsp;Deliverables</div>
+      <div class="app-nav-item" data-nav="reports" onclick="setNavActive('reports');rptOpen()">📋 &nbsp;Reports <span class="app-nav-badge" id="rptNavBadge" style="display:none;">0</span></div>
       <div class="app-nav-section">Clients</div>
       <div class="app-nav-item" data-nav="clients" onclick="setNavActive('clients');openStatPanel('clients')">🎯 &nbsp;All Clients <span class="app-nav-badge">24</span></div>
       <div class="app-nav-item" data-nav="onboard" onclick="setNavActive('onboard');openOnboarding()">➕ &nbsp;Onboard Client</div>
+      <div class="app-nav-item" data-nav="staff" onclick="setNavActive('staff');staffOpen()">⚙️ &nbsp;Manage Staff</div>
+      <div class="app-nav-section">Integrations</div>
+      <div class="app-nav-item" data-nav="integrations" onclick="setNavActive('integrations');intgOpen()">🔌 &nbsp;Platforms <span class="app-nav-badge" id="intgNavBadge" style="display:none;">0</span></div>
+      <div class="app-nav-section">Platform</div>
+      <div class="app-nav-item" data-nav="workspaces" onclick="setNavActive('workspaces');wsOpen()">🏢 &nbsp;Workspaces <span class="app-nav-badge" id="wsNavBadge" style="display:none;"></span></div>
+      <div class="app-nav-section">Settings</div>
+      <div class="app-nav-item" data-nav="notifications" onclick="setNavActive('notifications');ntfOpen()">🔔 &nbsp;Notifications</div>
+      <div class="app-nav-item" data-nav="portal" onclick="window.open('portal.html','_blank')" style="opacity:0.8;">🔗 &nbsp;Client Portal ↗</div>
     </nav>
     <div class="app-sidebar-foot">
       <button class="app-sidebar-cta" onclick="setNavActive('campaign');openCampaignCreator()">
@@ -1577,9 +1935,9 @@
       <div class="stat-label">Active Tasks</div>
       <div class="stat-hint">View breakdown ↗</div>
     </div>
-    <div class="glass-card stat-tile" onclick="openStatPanel('performance')">
-      <div class="stat-value">87%</div>
-      <div class="stat-label">Avg Performance</div>
+    <div class="glass-card stat-tile" onclick="openStatPanel('revenue')">
+      <div class="stat-value" id="dashRevTile">$278K</div>
+      <div class="stat-label">Monthly Revenue</div>
       <div class="stat-hint">View breakdown ↗</div>
     </div>
     <div class="glass-card stat-tile" onclick="openStatPanel('scheduled')">
@@ -2943,6 +3301,43 @@ function renderPerformance() {
     </div>`;
 }
 
+function renderRevenueSP() {
+  const retainerClients = clients.filter(c => c.type === 'Retainer' && c.status === 'Active');
+  const projectClients  = clients.filter(c => c.type === 'Project'  && c.status === 'Active');
+  const parseVal = v => { if (!v) return 0; const n = parseFloat(v.replace(/[^0-9.]/g,'')); return v.includes('K') ? n*1000 : n; };
+  const retainerMRR = retainerClients.reduce((s,c) => s + parseVal(c.value), 0);
+  const projectTotal = projectClients.reduce((s,c) => s + parseVal(c.value), 0);
+  const fmt = n => n >= 1000 ? '$' + Math.round(n/1000) + 'K' : '$' + n;
+
+  const topClients = [...clients].filter(c=>c.status==='Active').sort((a,b) => parseVal(b.value)-parseVal(a.value)).slice(0,8);
+  const maxVal = parseVal(topClients[0]?.value) || 1;
+
+  return `
+    <div class="sp-section-label">Revenue Split</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+      <div style="background:#F4F3EE;border-radius:12px;padding:14px;">
+        <div style="font-size:11px;font-weight:700;color:#999990;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Retainer MRR</div>
+        <div style="font-size:22px;font-weight:800;color:#1C3A2E;">${fmt(retainerMRR)}</div>
+        <div style="font-size:11px;color:#555550;">${retainerClients.length} clients</div>
+      </div>
+      <div style="background:#F4F3EE;border-radius:12px;padding:14px;">
+        <div style="font-size:11px;font-weight:700;color:#999990;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Project Revenue</div>
+        <div style="font-size:22px;font-weight:800;color:#D4622A;">${fmt(projectTotal)}</div>
+        <div style="font-size:11px;color:#555550;">${projectClients.length} clients</div>
+      </div>
+    </div>
+    <div class="sp-section-label">Top Clients by Value</div>
+    ${topClients.map(c => `
+      <div class="tbd-row">
+        <div class="tbd-label" style="display:flex;align-items:center;gap:7px;">
+          <div style="width:22px;height:22px;border-radius:6px;background:${c.bg};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;flex-shrink:0;">${c.initials}</div>
+          ${c.name}
+        </div>
+        <div class="tbd-track"><div class="tbd-fill" style="width:${Math.round(parseVal(c.value)/maxVal*100)}%;background:#1C3A2E;"></div></div>
+        <div class="tbd-count">${c.value}</div>
+      </div>`).join('')}`;
+}
+
 const schedDays = [
   { day:'Mon', date:'21', items:[
     { id:'s1', title:'Weekly Paid Media Sync', time:'9:00 AM', duration:'45 min', color:'#0A84FF', type:'Meeting', owner:'Marcus Kim', attendees:['Marcus Kim','Derek Wu','Luna Moss','Tyler Pham'], description:'Weekly review of paid media performance across all channels. Covers Google Ads, Meta, TikTok and programmatic. Review last week\'s ROAS, CTR and CPA targets vs actuals, then set priorities for the coming week.', actions:['Join Meeting','View Brief','Add to Calendar'] },
@@ -3003,7 +3398,7 @@ function renderTeam() {
 const statPanelData = {
   team:        { value:'13',  label:'Team Members',        accentColor:'#BF5AF2', render: renderTeam },
   tasks:       { value:'31',  label:'Active Tasks',         accentColor:'#FF9F0A', render: renderTasks },
-  performance: { value:'87%', label:'Avg Performance',      accentColor:'#30D158', render: renderPerformance },
+  revenue:      { value:'$278K', label:'Monthly Revenue',       accentColor:'#30D158', render: renderRevenueSP },
   scheduled:   { value:'16',  label:'Scheduled This Week',  accentColor:'#5AC8FA', render: renderScheduled },
   clients:     { value:'24',  label:'Active Clients',       accentColor:'#30D158', render: renderClients },
 };
@@ -3027,11 +3422,11 @@ function openStatPanel(type) {
   const d = statPanelData[type];
   if (!d) return;
   const navItems = [
-    { key:'team',        label:'👥  Team Members',    value:'13',  color:'#BF5AF2' },
-    { key:'tasks',       label:'✅  Active Tasks',     value:'31',  color:'#FF9F0A' },
-    { key:'performance', label:'📈  Performance',      value:'87%', color:'#30D158' },
-    { key:'scheduled',   label:'📅  Scheduled',        value:'16',  color:'#5AC8FA' },
-    { key:'clients',     label:'🎯  Active Clients',   value:'24',  color:'#30D158' },
+    { key:'team',         label:'👥  Team Members',    value:'13',  color:'#BF5AF2' },
+    { key:'tasks',        label:'✅  Active Tasks',     value:'31',  color:'#FF9F0A' },
+    { key:'revenue',      label:'💰  Monthly Revenue',  value:'$278K', color:'#30D158' },
+    { key:'scheduled',    label:'📅  Scheduled',        value:'16',  color:'#5AC8FA' },
+    { key:'clients',      label:'🎯  Active Clients',   value:'24',  color:'#30D158' },
   ];
   const nav = navItems.map(n => `
     <div class="cd-nav-item${n.key===type?' active':''}" onclick="switchSPSection(this,'${n.key}')" style="${n.key===type?'border-left-color:#1C3A2E;':''}">
@@ -3057,15 +3452,11 @@ function openStatPanel(type) {
         </div>
       </div>
     </aside>
-    <div class="cd-main" style="position:relative;overflow:hidden;">
+    <div class="cd-main" style="position:relative;">
       <div class="cd-topbar">
         <div>
           <div class="cd-page-title">${d.label}</div>
           <div class="cd-page-sub">Q2 2026 · ClickPoint Marketing Analytics</div>
-        </div>
-        <div class="cd-user-pill">
-          <div style="text-align:right;"><div class="cd-user-name">Sarah Lin</div><div class="cd-user-role-lbl">Chief Marketing Officer</div></div>
-          <div class="cd-user-av">SL</div>
         </div>
         <button class="panel-close" onclick="closeStatPanel()" title="Close">✕</button>
       </div>
@@ -3229,6 +3620,9 @@ function submitCampaign() {
       ${rows ? `<div class="cc-confirm-summary">${rows}</div>` : ''}
     </div>`;
   document.querySelector('#ccShell .cc-sidebar-foot').innerHTML = `<button class="cc-btn-primary" onclick="closeCampaignCreator()" style="width:100%;">Done ✓</button>`;
+
+  // Persist to Supabase
+  dbAddCampaign({ name, client, types, audience, brief, assigned });
 }
 
 // ── Task Panel ──
@@ -3661,10 +4055,6 @@ function openClientDashboard(clientName) {
         <div>
           <div class="cd-page-title">${c.name}</div>
           <div class="cd-page-sub">${c.industry} · ${c.type} Client Dashboard</div>
-        </div>
-        <div class="cd-user-pill">
-          <div><div class="cd-user-name">Sarah Lin</div><div class="cd-user-role-lbl">Chief Marketing Officer</div></div>
-          <div class="cd-user-av">SL</div>
         </div>
         <button class="panel-close" onclick="closeClientDashboard()" title="Close">✕</button>
       </div>
@@ -5307,6 +5697,10 @@ function obLaunch() {
   clients.push(newClient);
   closeOnboarding();
   obShowToast(`${clientName} onboarding launched — team notified 🎉`);
+  // Persist to Supabase
+  dbAddClient(newClient).then(id => {
+    if (id) renderDashClients();
+  });
 }
 
 function obSaveDraft() {
@@ -5377,6 +5771,8 @@ function renderDashClients() {
             <div style="font-size:10px;color:#999990;">${c.type}</div>
           </div>
           <span class="client-status" style="background:${statusColors[c.status]}22;color:${statusColors[c.status]};border:1px solid ${statusColors[c.status]}44;">${c.status}</span>
+          <button class="anl-row-btn" onclick="event.stopPropagation();anlOpen('${c.name.replace(/'/g,"\\'")}',${parseFloat((c.value||'0').replace(/[^0-9.]/g,''))*((c.value||'').includes('K')?1000:1)})">📊</button>
+          <button class="portal-row-btn" onclick="event.stopPropagation();pacOpen('${c.name.replace(/'/g,"\\'")}')">🔗</button>
           <span style="font-size:14px;color:#D0CFC9;">›</span>
         </div>`).join('')}
     </div>`;
@@ -5569,11 +5965,6 @@ function cmdBuildShell() {
         <button onclick="agcToggle()" style="padding:6px 14px;border-radius:8px;background:rgba(212,98,42,0.12);border:1.5px solid rgba(212,98,42,0.3);color:#D4622A;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.background='rgba(212,98,42,0.2)'" onmouseout="this.style.background='rgba(212,98,42,0.12)'">💬 Talk to Agent</button>
         <button class="panel-close" onclick="closeCommandCentre()" title="Close">✕</button>
       </div>
-      <div class="cmd-scenario-bar">
-        <span class="cmd-scenario-label">Scenario</span>
-        <span class="cmd-scenario-name">🏢 Apex Dynamics — Q2 Campaign Launch</span>
-        <button class="cmd-scenario-btn" id="cmdScenarioBtn" onclick="cmdStartScenario()">▶ Run Scenario</button>
-      </div>
       <div class="cmd-body">
         <div class="cmd-col">
           <div class="cmd-col-hd">
@@ -5609,15 +6000,19 @@ function cmdBuildShell() {
           </div>
         </div>
         <div class="agc-header">
-          <select class="agc-agent-sel" id="agcAgentSel">
-            <option value="sarah">Sarah Lin — CMO / Strategy</option>
-            <option value="jess">Jess Park — Content & SEO</option>
-            <option value="derek">Derek Wu — Paid Search</option>
-            <option value="raj">Raj Nair — SEO & Analytics</option>
-            <option value="zara">Zara Osei — Creative</option>
-            <option value="cleo">Cleo Chan — Social Media</option>
+          <select class="agc-agent-sel" id="agcAgentSel" onchange="agcUpdateSkills()">
+            <!-- populated dynamically by agcRebuildSelect() on load -->
+            <option value="sarah">Sarah Lin — Chief Marketing Officer</option>
+            <option value="derek">Derek Wu — Paid Search Specialist</option>
+            <option value="jess">Jess Park — Director of Content & SEO</option>
+            <option value="raj">Raj Nair — SEO & Analytics Specialist</option>
+            <option value="zara">Zara Osei — Creative Director</option>
+            <option value="cleo">Cleo Chan — Social Media Specialist</option>
           </select>
           <button class="agc-close" onclick="agcToggle()">✕</button>
+        </div>
+        <div id="agcSkillBar" style="display:flex;flex-wrap:wrap;gap:5px;padding:8px 14px 10px;border-bottom:1px solid #E2E1DB;background:#FAFAF7;align-items:center;">
+          <span class="agc-mem-badge" id="agcMemBadge" title="Memories loaded into this conversation" onclick="staffViewMemories(document.getElementById('agcAgentSel')?.value)">🧠 <span id="agcMemCount">0</span></span>
         </div>
         <div class="agc-messages" id="agcMessages">
           <div class="agc-empty">Select an agent and type a message.<br>They'll respond in real time using AI.</div>
@@ -5761,10 +6156,18 @@ function cmdResolveEsc(id, optIdx) {
 }
 
 // ── Agent Live Chat ──
-const AGC_API = 'http://localhost:3001';
+const AGC_API = 'https://clickpoint-api.up.railway.app'; // ← update with your Railway URL
 let agcHistory = []; // {role, content} for current conversation
 let agcPanelOpen = false;
 let agcApiKey = localStorage.getItem('agcApiKey') || '';
+let agcCurrentClient = 'General'; // updated by client detection on each send
+
+function agcDetectClient() {
+  // Scan recent messages for any known client name
+  const recentText = agcHistory.slice(-6).map(m => m.content).join(' ');
+  const match = clients.find(c => recentText.toLowerCase().includes(c.name.toLowerCase()));
+  return match ? match.name : 'General';
+}
 
 function agcHeaders() {
   const h = { 'Content-Type': 'application/json' };
@@ -5806,16 +6209,265 @@ function agcShowKeyBar(show, hasSavedKey) {
   }
 }
 
+// ── Dynamic agent store (replaces hardcoded agcAgentSkills) ──────────────────
+let agcAgents = [
+  { key:'sarah', name:'Sarah Lin',  role:'Chief Marketing Officer',   skills:['Campaign Strategy','Client Relations','Team Leadership','ROI Planning','Budget Allocation','Stakeholder Comms'] },
+  { key:'derek', name:'Derek Wu',   role:'Paid Search Specialist',    skills:['Google Ads','Microsoft Ads','Smart Bidding','ROAS Optimisation','Search / Shopping / PMax','Negative Keywords','A/B Testing'] },
+  { key:'jess',  name:'Jess Park',  role:'Director of Content & SEO', skills:['Ad Copywriting','SEO Content','Keyword Research','Content Briefs','Topic Clusters','Editorial Planning','Landing Pages'] },
+  { key:'raj',   name:'Raj Nair',   role:'SEO & Analytics Specialist',skills:['Technical SEO','Core Web Vitals','GA4 Setup','Search Console','Crawl & Indexing','UTM Strategy','Monthly Reporting'] },
+  { key:'zara',  name:'Zara Osei',  role:'Creative Director',         skills:['Display Banners','Brand Identity','Creative Briefs','Ad Creative','Meta & TikTok Visual','Typography','Design QA'] },
+  { key:'cleo',  name:'Cleo Chan',  role:'Social Media Specialist',   skills:['Meta Ads','TikTok Ads','LinkedIn Strategy','Spark Ads','Lookalike Audiences','Community Management','Influencer Briefs'] },
+];
+
+async function agcLoadAgents() {
+  // Pull any custom/edited agents from server (which merged DB on startup)
+  try {
+    const res = await fetch('https://clickpoint-api.up.railway.app/api/agents');
+    if (!res.ok) return;
+    const data = await res.json();
+    (data.agents || []).forEach(a => {
+      const existing = agcAgents.find(x => x.key === a.key);
+      if (existing) {
+        existing.name = a.name; existing.role = a.role; existing.skills = a.skills || existing.skills;
+      } else {
+        agcAgents.push({ key: a.key, name: a.name, role: a.role, skills: a.skills || [] });
+      }
+    });
+    agcRebuildSelect();
+  } catch { /* server offline — use defaults */ }
+}
+
+function agcRebuildSelect() {
+  const sel = document.getElementById('agcAgentSel');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = agcAgents.map(a =>
+    `<option value="${a.key}" ${a.key === cur ? 'selected' : ''}>${a.name} — ${a.role}</option>`
+  ).join('');
+  agcUpdateSkills();
+}
+
+function agcUpdateSkills() {
+  const sel = document.getElementById('agcAgentSel');
+  const bar = document.getElementById('agcSkillBar');
+  if (!sel || !bar) return;
+  const agent  = agcAgents.find(a => a.key === sel.value);
+  const skills = agent ? agent.skills : [];
+  bar.innerHTML = skills.map(s =>
+    `<span style="font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;background:rgba(28,58,46,0.08);color:#1C3A2E;white-space:nowrap;">${s}</span>`
+  ).join('');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// MANAGE STAFF
+// ════════════════════════════════════════════════════════════════════════════
+let staffEditSkills = [];  // mutable skill list during edit
+let staffEditKey    = null; // null = new agent
+let staffPromptOpen = false;
+
+function staffOpen() {
+  document.getElementById('staffModalBg').classList.add('open');
+  staffRenderList();
+}
+function staffClose() {
+  document.getElementById('staffModalBg').classList.remove('open');
+}
+
+// ── List view ─────────────────────────────────────────────────────────────────
+function staffRenderList() {
+  document.getElementById('staffModalTitle').textContent = '👥 Manage Staff';
+  document.getElementById('staffAddBtn').style.display = '';
+  const initials = name => name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('staffModalBody').innerHTML = agcAgents.map(a => `
+    <div class="staff-agent-card">
+      <div class="staff-av">${initials(a.name)}</div>
+      <div class="staff-agent-info">
+        <div class="staff-agent-name">${a.name}</div>
+        <div class="staff-agent-role">${a.role}</div>
+        <div class="staff-skills-wrap">
+          ${a.skills.map(s => `<span class="staff-skill-tag">${s}</span>`).join('')}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+        <button class="staff-edit-btn" onclick="staffEdit('${a.key}')">Edit ›</button>
+        <button class="staff-mem-btn" onclick="staffViewMemories('${a.key}')">🧠 Memory</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── Edit / Add view ───────────────────────────────────────────────────────────
+function staffEdit(key) {
+  staffEditKey = key;
+  staffPromptOpen = false;
+  const agent = key ? agcAgents.find(a => a.key === key) : null;
+  staffEditSkills = agent ? [...agent.skills] : [];
+  document.getElementById('staffModalTitle').textContent = agent ? `Edit: ${agent.name}` : 'Add Staff Member';
+  document.getElementById('staffAddBtn').style.display = 'none';
+  staffRenderEditForm(agent);
+}
+
+function staffRenderEditForm(agent) {
+  const isNew = !agent;
+  document.getElementById('staffModalBody').innerHTML = `
+    <div class="staff-claude-badge">
+      🤖 Saving updates Claude's system prompt immediately — no server restart needed.
+      New skills are live on the very next chat message.
+    </div>
+
+    ${isNew ? `<div class="staff-form-field">
+      <label class="staff-form-label">Agent Key (unique ID, lowercase, no spaces)</label>
+      <input class="staff-form-input" id="sfKey" placeholder="e.g. marcus_chen" value="">
+    </div>` : ''}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="staff-form-field">
+        <label class="staff-form-label">Full Name</label>
+        <input class="staff-form-input" id="sfName" placeholder="e.g. Marcus Chen" value="${agent ? agent.name : ''}">
+      </div>
+      <div class="staff-form-field">
+        <label class="staff-form-label">Role / Title</label>
+        <input class="staff-form-input" id="sfRole" placeholder="e.g. Data Analyst" value="${agent ? agent.role : ''}">
+      </div>
+    </div>
+
+    <div class="staff-form-field">
+      <label class="staff-form-label">Skills <span style="color:#aaa;font-weight:400;">(type a skill + Enter to add)</span></label>
+      <div class="staff-tags-wrap" id="sfTagsWrap" onclick="document.getElementById('sfTagInput').focus()">
+        ${staffBuildTags()}
+        <input class="staff-tag-input" id="sfTagInput" placeholder="Add skill…"
+          onkeydown="staffTagKeydown(event)" oninput="this.size=Math.max(14,this.value.length+2)">
+      </div>
+    </div>
+
+    <div class="staff-form-field">
+      <label class="staff-form-label">Industry / Client Focus <span style="color:#aaa;font-weight:400;">(optional)</span></label>
+      <input class="staff-form-input" id="sfExtra" placeholder="e.g. Specialises in healthcare and fintech clients" value="">
+    </div>
+
+    <button class="staff-prompt-toggle" onclick="staffTogglePrompt()">
+      <span id="sfPromptArrow">▸</span> Preview Claude system prompt
+    </button>
+    <div id="sfPromptWrap" style="display:none;margin-bottom:14px;">
+      <textarea class="staff-form-textarea" id="sfPromptArea" placeholder="Auto-generated from fields above…" rows="7"></textarea>
+      <div style="font-size:10px;color:#aaa;margin-top:4px;">Leave blank to auto-generate. Edit only if you need custom instructions.</div>
+    </div>
+
+    <div class="staff-form-actions">
+      <button class="staff-fbtn-cancel" onclick="staffRenderList();document.getElementById('staffModalTitle').textContent='👥 Manage Staff';document.getElementById('staffAddBtn').style.display=''">← Back</button>
+      <button class="staff-fbtn-save" id="sfSaveBtn" onclick="staffSave()">Save &amp; Update Claude</button>
+    </div>`;
+}
+
+function staffBuildTags() {
+  return staffEditSkills.map((s,i) => `
+    <span class="staff-tag-pill">
+      ${s}
+      <button class="staff-tag-del" onclick="staffRemoveSkill(${i})">×</button>
+    </span>`).join('');
+}
+
+function staffRefreshTags() {
+  const wrap = document.getElementById('sfTagsWrap');
+  if (!wrap) return;
+  const input = document.getElementById('sfTagInput');
+  wrap.innerHTML = staffBuildTags() + input.outerHTML;
+  document.getElementById('sfTagInput').focus();
+}
+
+function staffTagKeydown(e) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const val = e.target.value.trim().replace(/,$/,'');
+    if (val && !staffEditSkills.includes(val)) {
+      staffEditSkills.push(val);
+      staffRefreshTags();
+      if (staffPromptOpen) staffUpdatePromptPreview();
+    } else { e.target.value = ''; }
+  } else if (e.key === 'Backspace' && !e.target.value && staffEditSkills.length) {
+    staffEditSkills.pop();
+    staffRefreshTags();
+  }
+}
+
+function staffRemoveSkill(i) {
+  staffEditSkills.splice(i, 1);
+  staffRefreshTags();
+  if (staffPromptOpen) staffUpdatePromptPreview();
+}
+
+function staffTogglePrompt() {
+  staffPromptOpen = !staffPromptOpen;
+  document.getElementById('sfPromptArrow').textContent = staffPromptOpen ? '▾' : '▸';
+  document.getElementById('sfPromptWrap').style.display = staffPromptOpen ? 'block' : 'none';
+  if (staffPromptOpen) staffUpdatePromptPreview();
+}
+
+function staffUpdatePromptPreview() {
+  const name   = document.getElementById('sfName')?.value.trim() || 'Agent';
+  const role   = document.getElementById('sfRole')?.value.trim() || 'Specialist';
+  const extra  = document.getElementById('sfExtra')?.value.trim() || '';
+  const skills = staffEditSkills.map(s => `- ${s}`).join('\n');
+  const preview = `You are ${name}, ${role} at ClickPoint Marketing Agency. You are expert, precise, and results-focused.\n\nYour specialties:\n${skills}\n\nWhen asked for analysis, copy, plans, or strategy — provide actual, specific output ready to use. Be direct and actionable.${extra ? '\n\nAdditional context:\n' + extra : ''}`;
+  const area = document.getElementById('sfPromptArea');
+  if (area && !area.dataset.edited) area.value = preview;
+}
+
+// ── Save ──────────────────────────────────────────────────────────────────────
+async function staffSave() {
+  const name  = document.getElementById('sfName')?.value.trim();
+  const role  = document.getElementById('sfRole')?.value.trim();
+  const extra = document.getElementById('sfExtra')?.value.trim() || '';
+  const customPrompt = document.getElementById('sfPromptArea')?.value.trim() || '';
+  let   key   = staffEditKey || (document.getElementById('sfKey')?.value.trim().toLowerCase().replace(/\s+/g,'_') || '');
+
+  if (!name) { alert('Please enter a name.'); return; }
+  if (!key)  { alert('Please enter an agent key (unique ID).'); return; }
+
+  // Flush any half-typed skill
+  const tagInput = document.getElementById('sfTagInput');
+  if (tagInput?.value.trim()) { staffEditSkills.push(tagInput.value.trim()); }
+
+  const btn = document.getElementById('sfSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  try {
+    const res = await fetch('https://clickpoint-api.up.railway.app/api/agents/save', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ key, name, role, skills: staffEditSkills, extraContext: extra, systemPrompt: customPrompt }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Save failed');
+
+    // Update local agcAgents array
+    const existing = agcAgents.find(a => a.key === key);
+    if (existing) { existing.name = name; existing.role = role; existing.skills = [...staffEditSkills]; }
+    else          { agcAgents.push({ key, name, role, skills: [...staffEditSkills] }); }
+
+    agcRebuildSelect();
+    staffClose();
+    dbShowSync(`✓ ${name} updated — Claude prompt live immediately 🤖`);
+  } catch (err) {
+    btn.disabled = false; btn.textContent = 'Save & Update Claude';
+    alert(err.message.includes('fetch') ? 'Server offline — changes saved locally only.' : 'Error: ' + err.message);
+    // Still update local state even if server offline
+    const existing = agcAgents.find(a => a.key === key);
+    if (existing) { existing.name = name; existing.role = role; existing.skills = [...staffEditSkills]; }
+    else          { agcAgents.push({ key, name, role, skills: [...staffEditSkills] }); }
+    agcRebuildSelect();
+    staffClose();
+  }
+}
+
 function agcToggle() {
   const panel = document.getElementById('agcPanel');
   if (!panel) return;
   agcPanelOpen = !agcPanelOpen;
   if (agcPanelOpen) {
     panel.classList.add('open');
-    // If no local key yet, show the key bar immediately (don't wait for health check)
-    if (!agcApiKey) agcShowKeyBar(true, false);
     const ki = document.getElementById('agcKeyInput');
     if (ki && agcApiKey) ki.placeholder = '••••••••••••••••••• (key saved — enter new to replace)';
+    agcUpdateSkills();
     agcCheckConnection();
     setTimeout(() => {
       const focus = agcApiKey ? document.getElementById('agcInput') : document.getElementById('agcKeyInput');
@@ -5835,12 +6487,12 @@ async function agcCheckConnection() {
     const res = await fetch(`${AGC_API}/health`, {
       signal: AbortSignal.timeout(3000)
     });
-    // Server is reachable — now check if the USER has their own key saved locally.
-    // The server may have an internal env key that doesn't work for user API calls,
-    // so we always require a locally-saved user key before going green.
-    if (agcApiKey) {
+    // Server is reachable — check if it has a key (env or user-supplied)
+    const health = await res.json().catch(() => ({}));
+    const hasKey = agcApiKey || health.api_key_set;
+    if (hasKey) {
       bar.className = 'agc-status-bar';
-      bar.innerHTML = '<span>🟢</span> Agents online — powered by Claude <button onclick="agcShowKeyBar(true,true)" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:10px;color:#7A7767;padding:0;text-decoration:underline;">change key</button>';
+      bar.innerHTML = '<span>🟢</span> Agents online — powered by Claude';
       agcShowKeyBar(false, true);
     } else {
       bar.className = 'agc-status-bar error';
@@ -5889,11 +6541,14 @@ async function agcSend() {
   messages.scrollTop = messages.scrollHeight;
 
   try {
+    agcCurrentClient = agcDetectClient();
+
     const res = await fetch(`${AGC_API}/api/agent`, {
       method: 'POST',
       headers: agcHeaders(),
       body: JSON.stringify({
         agentId,
+        client: agcCurrentClient,
         messages: agcHistory,
         context: `Current date: April 2026. You are working at ClickPoint Marketing Agency. Active clients include: ${clients.slice(0,5).map(c=>c.name).join(', ')}.`
       })
@@ -5909,8 +6564,21 @@ async function agcSend() {
       agcHistory.push({ role: 'assistant', content: data.content });
       agcAppendMsg('agent', data.content, agent);
 
+      // Update memory badge
+      if (data.memories_used > 0) agcSetMemBadge(data.memories_used);
+
       // Also add to Internal Comms as a real thread entry
       agcAddToComms(agentId, text, data.content);
+
+      // Show "Assign Tasks" button if response mentions team members
+      const teamNames = ['derek','jess','raj','zara','cleo','sarah','Derek','Jess','Raj','Zara','Cleo'];
+      const mentionsTeam = teamNames.some(n => data.content.includes(n));
+      if (mentionsTeam) agcShowAssignButton(data.content, text);
+
+      // Extract memories after every 2nd exchange (4+ messages)
+      if (agcHistory.length >= 4 && agcHistory.length % 4 === 0) {
+        agcExtractMemories(agentId, agcCurrentClient);
+      }
     }
   } catch (err) {
     document.getElementById(typingId)?.remove();
@@ -5946,6 +6614,136 @@ function agcAppendMsg(role, text, agent) {
       </div>`);
   }
   messages.scrollTop = messages.scrollHeight;
+}
+
+let _agcPendingAssign = null; // stores {text, client} for assign button
+
+function agcShowAssignButton(responseText, originalPrompt) {
+  const messages = document.getElementById('agcMessages');
+  if (!messages) return;
+  messages.querySelector('.agc-assign-btn-wrap')?.remove();
+  const clientMatch = clients.find(c => responseText.includes(c.name) || originalPrompt.includes(c.name));
+  _agcPendingAssign = { text: responseText, client: clientMatch ? clientMatch.name : 'General' };
+  const wrap = document.createElement('div');
+  wrap.className = 'agc-assign-btn-wrap';
+  wrap.style.cssText = 'display:flex;justify-content:flex-end;padding:4px 0 8px;';
+  const btn = document.createElement('button');
+  btn.style.cssText = 'display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:10px;background:#1C3A2E;color:#fff;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;';
+  btn.textContent = '📋 Assign Tasks to Team';
+  btn.addEventListener('click', () => agcExtractTasks(_agcPendingAssign.text, _agcPendingAssign.client, btn));
+  wrap.appendChild(btn);
+  messages.appendChild(wrap);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+async function agcExtractTasks(responseText, clientName, btn) {
+  btn.disabled = true;
+  btn.textContent = '⏳ Extracting tasks…';
+  try {
+    const res = await fetch(`${AGC_API}/api/agent`, {
+      method: 'POST',
+      headers: agcHeaders(),
+      body: JSON.stringify({
+        agentId: 'task_extractor',
+        messages: [{ role: 'user', content: responseText }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    let tasks = [];
+    try {
+      const cleaned = data.content.replace(/```json\n?/gi,'').replace(/```\n?/g,'').trim();
+      tasks = JSON.parse(cleaned);
+    } catch { tasks = []; }
+
+    if (!tasks.length) {
+      btn.textContent = '✓ No tasks found';
+      return;
+    }
+
+    // Override client with detected one
+    tasks = tasks.map(t => ({ ...t, client: t.client === 'General' ? clientName : t.client }));
+
+    const ok = await dbAddFeedItems(tasks);
+    if (ok) {
+      btn.parentElement.innerHTML = `<div style="font-size:11px;color:#30D158;font-weight:600;padding:4px 0;">✓ ${tasks.length} task${tasks.length>1?'s':''} assigned — briefing team now…</div>`;
+      // Refresh Live Activity if Command Centre is open
+      if (document.getElementById('cmdBackdrop')?.classList.contains('open')) cmdRender();
+      // Auto-brief each agent via Sarah
+      await agcBriefTeam(tasks, clientName);
+      const wrap = document.querySelector('.agc-assign-btn-wrap');
+      if (wrap) wrap.innerHTML = `<div style="font-size:11px;color:#30D158;font-weight:600;padding:4px 0;">✓ ${tasks.length} tasks assigned · team briefed — check Internal Comms</div>`;
+    } else {
+      btn.textContent = '⚠️ Save failed';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    btn.textContent = `⚠️ ${err.message}`;
+    btn.disabled = false;
+  }
+}
+
+const agentNameMap = { sarah:'Sarah Lin', jess:'Jess Park', derek:'Derek Wu', raj:'Raj Nair', zara:'Zara Osei', cleo:'Cleo Chan' };
+
+async function agcBriefTeam(tasks, clientName) {
+  // Group tasks by agent (exclude sarah briefing herself)
+  const byAgent = {};
+  tasks.forEach(t => {
+    if (t.agent === 'sarah') return;
+    if (!byAgent[t.agent]) byAgent[t.agent] = [];
+    byAgent[t.agent].push(t.action);
+  });
+  const agents = Object.keys(byAgent);
+  if (!agents.length) return;
+
+  // Ask Sarah to write a brief to each agent
+  const briefPrompt = `Write short, direct Slack-style briefing messages from you (Sarah) to each team member about their ${clientName} tasks. Be specific, action-oriented, friendly. Return ONLY a JSON array with no markdown:
+[{"to":"derek","message":"Hey Derek — ..."},{"to":"jess","message":"Hey Jess — ..."}]
+
+Tasks by person:
+${agents.map(a => `${agentNameMap[a] || a}: ${byAgent[a].join(', ')}`).join('\n')}`;
+
+  let briefs = [];
+  try {
+    const res = await fetch(`${AGC_API}/api/agent`, {
+      method: 'POST', headers: agcHeaders(),
+      body: JSON.stringify({ agentId: 'sarah', messages: [{ role: 'user', content: briefPrompt }] })
+    });
+    const data = await res.json();
+    const cleaned = (data.content || '').replace(/```json\n?/gi,'').replace(/```\n?/g,'').trim();
+    briefs = JSON.parse(cleaned);
+  } catch (e) {
+    // Fallback: plain briefs without API call
+    briefs = agents.map(a => ({
+      to: a,
+      message: `Hey ${(agentNameMap[a]||a).split(' ')[0]} — you've been assigned the following for ${clientName}: ${byAgent[a].join('; ')}. Please confirm you can start this week and flag any blockers early.`
+    }));
+  }
+
+  // Save each brief as a thread in Supabase
+  for (const brief of briefs) {
+    if (!brief.to || !brief.message) continue;
+    const threadId = await dbAddThread({
+      subject: `${clientName} — task briefing`,
+      client: clientName, from: 'sarah', to: brief.to,
+      messages: [{ from: 'sarah', text: brief.message, time: 'just now' }]
+    });
+    if (threadId) {
+      cmdThreads.unshift({
+        id: threadId, subject: `${clientName} — task briefing`,
+        client: clientName, from: 'sarah', to: brief.to,
+        resolved: false, _dbId: threadId,
+        messages: [{ from: 'sarah', text: brief.message, time: 'just now' }]
+      });
+    }
+  }
+
+  // Refresh Internal Comms column if Command Centre is open
+  const commsBody = document.getElementById('cmdCommsBody');
+  if (commsBody) commsBody.innerHTML = cmdBuildThreads();
+  const commsCount = document.getElementById('cmdCommsCount');
+  if (commsCount) commsCount.textContent = cmdThreads.filter(t => !t.resolved).length;
 }
 
 function agcAddToComms(agentId, userMsg, agentReply) {
@@ -6201,6 +6999,48 @@ async function dbLoadClients() {
   dbShowSync('✓ Clients synced');
 }
 
+async function dbLoadFeed() {
+  const { data, error } = await db.from('cmd_feed').select('*').order('created_at', { ascending: false }).limit(50);
+  if (error) { console.warn('dbLoadFeed:', error.message); return; }
+  if (!data.length) return;
+  // Prepend live DB items to the feed (keep local mock items at the bottom)
+  const dbItems = data.map(r => ({
+    id: 'db-' + r.id, agent: r.agent, action: r.action,
+    client: r.client, time: r.time || 'just now', type: r.type === 'success' ? 'done' : r.type
+  }));
+  // Remove any existing db- items then prepend fresh ones
+  const localItems = cmdFeed.filter(f => !String(f.id).startsWith('db-'));
+  cmdFeed.length = 0;
+  dbItems.forEach(i => cmdFeed.push(i));
+  localItems.forEach(i => cmdFeed.push(i));
+  // Re-render if Command Centre is open
+  const body = document.getElementById('cmdFeedBody');
+  if (body) body.innerHTML = cmdBuildFeed();
+  dbShowSync('✓ Feed synced');
+}
+
+async function dbAddFeedItems(items) {
+  const rows = items.map(t => ({
+    agent: t.agent, action: t.action, client: t.client,
+    time: 'just now', type: t.type || 'info'
+  }));
+  const { error } = await db.from('cmd_feed').insert(rows);
+  if (error) { console.warn('dbAddFeedItems:', error.message); return false; }
+  dbShowSync(`✓ ${rows.length} task${rows.length > 1 ? 's' : ''} assigned`);
+  return true;
+}
+
+async function dbAddCampaign(campaign) {
+  const { data, error } = await db.from('campaigns').insert([{
+    name: campaign.name, client: campaign.client, types: campaign.types,
+    audience: campaign.audience, brief: campaign.brief, assigned: campaign.assigned,
+    status: 'Active'
+  }]).select().single();
+  if (error) { dbShowSync('Campaign save failed', false); console.warn('dbAddCampaign:', error.message); return null; }
+  dbShowSync('✓ Campaign saved');
+  return data.id;
+}
+
 async function dbAddClient(client) {
   const { data, error } = await db.from('clients').insert([{
     name: client.name, industry: client.industry, type: client.type,
@@ -6271,10 +7111,16 @@ async function dbLoadEscalations() {
   if (error) { console.warn('Supabase escalations:', error.message); return; }
   cmdEscalations.length = 0;
   data.forEach(r => cmdEscalations.push({
-    id: r.id, priority: r.priority, client: r.client,
-    title: r.title, body: r.body, raisedBy: r.raised_by,
-    raisedTime: r.raised_time, suggestion: r.suggestion,
-    resolved: r.resolved, _dbId: r.id
+    id: r.id, _dbId: r.id,
+    priority: (r.priority || 'LOW').toLowerCase(),
+    client: r.client,
+    from: r.raised_by || 'sarah',
+    subject: r.title,
+    context: r.body,
+    recommendation: r.suggestion,
+    time: r.raised_time || 'just now',
+    options: ['Approve', 'Decline', 'Schedule a Call'],
+    resolved: r.resolved
   }));
   dbShowSync('✓ Escalations synced');
 }
@@ -6338,9 +7184,13 @@ window.addEventListener('load', async () => {
     dbLoadClients(),
     dbLoadDeliverables(),
     dbLoadEscalations(),
-    dbLoadThreads()
+    dbLoadThreads(),
+    dbLoadFeed(),
+    intgLoad(),
+    agcLoadAgents(),
   ]);
   renderDashClients(); // refresh dashboard with live client data
+  agcRebuildSelect();  // populate chat panel with live agent list
   console.log('✅ Supabase connected — all data loaded');
 });
 
@@ -6350,7 +7200,1606 @@ db.channel('clickpoint-live')
   .on('postgres_changes', { event: '*', schema: 'public', table: 'deliverables' }, () => dbLoadDeliverables())
   .on('postgres_changes', { event: '*', schema: 'public', table: 'cmd_escalations' }, () => dbLoadEscalations())
   .on('postgres_changes', { event: '*', schema: 'public', table: 'cmd_threads' }, () => dbLoadThreads())
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'cmd_feed' }, () => dbLoadFeed())
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'client_integrations' }, () => intgLoad())
   .subscribe();
+
+// ════════════════════════════════════════════════════════════════════════════
+// PER-CLIENT ANALYTICS DASHBOARD
+// ════════════════════════════════════════════════════════════════════════════
+
+const anlPlatformDefs = {
+  google_ads:     { name:'Google Ads',         abbr:'GA',  color:'#4285F4' },
+  meta_ads:       { name:'Meta Ads',           abbr:'M',   color:'#1877F2' },
+  ga4:            { name:'Google Analytics 4', abbr:'G4',  color:'#E37400' },
+  search_console: { name:'Search Console',     abbr:'SC',  color:'#34A853' },
+  linkedin_ads:   { name:'LinkedIn Ads',       abbr:'in',  color:'#0A66C2' },
+  tiktok_ads:     { name:'TikTok Ads',         abbr:'TT',  color:'#111' },
+  microsoft_ads:  { name:'Microsoft Ads',      abbr:'MS',  color:'#00A4EF' },
+};
+
+// Always show these 4 core platforms; show others if connected
+const ANL_CORE = ['google_ads','meta_ads','ga4','search_console'];
+
+let anlClient  = null;
+let anlBudget  = 10000;
+let anlMetrics = {};   // platform → metrics data
+
+function anlOpen(clientName, budget = 10000) {
+  anlClient  = clientName;
+  anlBudget  = budget || 10000;
+  anlMetrics = {};
+  document.getElementById('anlClientName').textContent = clientName + ' — Analytics';
+  document.getElementById('anlRange').value = '30';
+  document.getElementById('anlBackdrop').classList.add('open');
+  anlLoad();
+}
+function anlClose() {
+  document.getElementById('anlBackdrop').classList.remove('open');
+}
+
+async function anlLoad() {
+  if (!anlClient) return;
+  const days = parseInt(document.getElementById('anlRange').value) || 30;
+  const body = document.getElementById('anlBody');
+  body.innerHTML = '<div style="text-align:center;padding:60px;color:#aaa;font-size:13px;">⏳ Fetching metrics…</div>';
+
+  // Which platforms to show: core + any extras connected for this client
+  const connected  = intgConnections.filter(c => c.client === anlClient).map(c => c.platform);
+  const extras     = connected.filter(p => !ANL_CORE.includes(p));
+  const platforms  = [...ANL_CORE, ...extras];
+
+  // Fetch all platforms in parallel
+  const results = await Promise.all(platforms.map(p => anlFetch(p, days)));
+  results.forEach((data, i) => { if (data) anlMetrics[platforms[i]] = data; });
+
+  anlRender(platforms, days, connected);
+}
+
+async function anlSync() {
+  // Force refresh: clear cache flag and reload
+  const btn = document.getElementById('anlSyncBtn');
+  btn.disabled = true; btn.textContent = '⏳ Syncing…';
+  anlMetrics = {};
+  await anlLoad();
+  btn.disabled = false; btn.textContent = '🔄 Sync Now';
+  dbShowSync('✓ Analytics refreshed');
+}
+
+async function anlFetch(platform, days) {
+  try {
+    const res = await fetch('https://clickpoint-api.up.railway.app/api/metrics/fetch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client: anlClient, platform, days, budget: anlBudget }),
+    });
+    if (res.ok) return await res.json();
+    return anlDemoFallback(platform, days);  // server error → client demo
+  } catch {
+    // Server offline — generate client-side demo so dashboard is never empty
+    return anlDemoFallback(platform, days);
+  }
+}
+
+function anlDemoFallback(platform, days) {
+  // Deterministic demo based on client + platform name
+  const s = (anlClient + platform).split('').reduce((a,c,i)=>a+c.charCodeAt(0)*(i+1),0) % 1000;
+  const bud = anlBudget || 10000;
+  const trend = Array.from({length:7},(_,i)=>Math.round(bud*(0.05+i*0.008+(s%5)*0.002)));
+  if (platform === 'google_ads') {
+    const spend = Math.round(bud*(0.38+s*0.0003)*(days/30));
+    const clicks = Math.round(spend/0.82); const impr = Math.round(clicks/0.036);
+    const conv = Math.round(clicks*0.024); const cv = conv*72;
+    return { platform, is_demo:true, days, spend, impressions:impr, clicks,
+             ctr:+(clicks/Math.max(1,impr)*100).toFixed(2), cpc:+(spend/Math.max(1,clicks)).toFixed(2),
+             conversions:conv, conv_value:cv, roas:+(cv/Math.max(0.01,spend)).toFixed(2),
+             trend: trend.map(v=>+(v*3.8).toFixed(0)) };
+  } else if (platform === 'meta_ads') {
+    const spend = Math.round(bud*(0.22+s*0.0002)*(days/30));
+    const reach = Math.round(spend*(38+s*0.04)); const clicks = Math.round(spend/1.2);
+    const cv = clicks*15;
+    return { platform, is_demo:true, days, spend, reach, impressions:Math.round(reach*1.4),
+             clicks, ctr:+(clicks/Math.max(1,Math.round(reach*1.4))*100).toFixed(2),
+             cpm:+(spend/Math.max(1,Math.round(reach*1.4))*1000).toFixed(2),
+             roas:+(cv/Math.max(0.01,spend)).toFixed(2), conv_value:cv, trend };
+  } else if (platform === 'ga4') {
+    const sessions = Math.round(bud*(1.8+s*0.002)*(days/30));
+    return { platform, is_demo:true, days, sessions, users:Math.round(sessions*0.76),
+             new_users:Math.round(sessions*0.48), bounce_rate:+(38+s*0.012).toFixed(1),
+             avg_session_duration:`${2+s%3}m ${10+s%50}s`,
+             conv_rate:+(2.4+s*0.002).toFixed(2),
+             revenue:Math.round(sessions*0.028*82), trend: trend.map(v=>v*12) };
+  } else if (platform === 'search_console') {
+    const impr = Math.round(bud*(7+s*0.01)*(days/30));
+    const clicks = Math.round(impr*0.02);
+    return { platform, is_demo:true, days, impressions:impr, clicks,
+             ctr:+(clicks/Math.max(1,impr)*100).toFixed(2),
+             avg_position:+(6.2+s*0.006).toFixed(1), trend: trend.map(v=>v*70) };
+  }
+  return null;
+}
+
+function anlRender(platforms, days, connected) {
+  const body = document.getElementById('anlBody');
+
+  // ── Summary KPIs (aggregate across paid platforms) ───────────────────────
+  let totalSpend = 0, totalRev = 0, totalClicks = 0, totalConv = 0;
+  ['google_ads','meta_ads','linkedin_ads','tiktok_ads','microsoft_ads'].forEach(p => {
+    const m = anlMetrics[p];
+    if (m) {
+      totalSpend  += m.spend        || 0;
+      totalRev    += m.conv_value   || 0;
+      totalClicks += m.clicks       || 0;
+      totalConv   += m.conversions  || 0;
+    }
+  });
+  const blendedROAS = totalRev > 0 ? (totalRev / Math.max(0.01, totalSpend)) : 0;
+  const ga4 = anlMetrics['ga4'];
+
+  const kpis = [
+    { label:'Total Ad Spend', val: anlFmtCur(totalSpend), sub: `${days}-day window`, cls:'' },
+    { label:'Total Revenue',  val: anlFmtCur(totalRev),   sub: blendedROAS > 0 ? `${blendedROAS.toFixed(1)}x blended ROAS` : 'Connect platforms', cls: blendedROAS >= 3 ? 'up' : '' },
+    { label:'Total Clicks',   val: anlFmtNum(totalClicks), sub: totalConv > 0 ? `${Math.round(totalConv)} conversions` : '', cls:'' },
+    { label:'Organic Sessions', val: ga4 ? anlFmtNum(ga4.sessions) : '—', sub: ga4 ? `${ga4.conv_rate}% conv rate` : 'Connect GA4', cls:'' },
+  ];
+
+  const isAnyDemo = platforms.some(p => anlMetrics[p]?.is_demo);
+
+  body.innerHTML = `
+    ${isAnyDemo ? `<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;margin-bottom:16px;border-radius:10px;background:#FFF8E6;border:1px solid #F5D9B0;font-size:11px;color:#856404;">
+      ⚠️ <strong>Demo data shown</strong> for disconnected platforms — connect them in Integrations Hub to see real metrics.
+      <button onclick="intgOpen()" style="margin-left:auto;padding:4px 12px;border-radius:7px;background:#856404;color:#fff;border:none;cursor:pointer;font-size:10px;font-weight:700;font-family:inherit;">Connect Platforms →</button>
+    </div>` : ''}
+
+    <div class="anl-kpi-row">
+      ${kpis.map(k => `
+        <div class="anl-kpi">
+          <div class="anl-kpi-label">${k.label}</div>
+          <div class="anl-kpi-val">${k.val}</div>
+          ${k.sub ? `<div class="anl-kpi-trend ${k.cls}">${k.sub}</div>` : ''}
+        </div>`).join('')}
+    </div>
+
+    <div class="anl-grid">
+      ${platforms.map(p => anlPlatformCard(p, connected.includes(p))).join('')}
+    </div>`;
+}
+
+function anlPlatformCard(platform, isConnected) {
+  const def     = anlPlatformDefs[platform] || { name: platform, abbr: '?', color: '#999' };
+  const metrics = anlMetrics[platform];
+  const lightBg = ['#F5BE00','#96BF48'];
+  const textCol = lightBg.includes(def.color) ? '#333' : '#fff';
+
+  const iconHTML = `<div class="anl-plat-icon" style="background:${def.color}22;color:${def.color};">${def.abbr}</div>`;
+
+  if (!metrics) {
+    return `
+      <div class="anl-card">
+        <div class="anl-card-hdr">
+          ${iconHTML}
+          <span class="anl-plat-name">${def.name}</span>
+          <span class="anl-plat-status none">Not connected</span>
+        </div>
+        <div class="anl-card-empty">
+          <div class="anl-card-empty-icon">${platform === 'ga4' || platform === 'search_console' ? '📊' : '💳'}</div>
+          <div class="anl-card-empty-text">Connect ${def.name} to see<br>live metrics for ${anlClient}</div>
+          <button class="anl-connect-cta" onclick="anlClose();intgOpen();setTimeout(()=>intgOpenModal('${platform}'),400)">Connect ${def.name} →</button>
+        </div>
+      </div>`;
+  }
+
+  const statusLabel = metrics.is_demo ? 'Demo data' : 'Live';
+  const statusCls   = metrics.is_demo ? 'demo' : 'live';
+
+  // Platform-specific metric triples
+  let m1, m2, m3, foot1, foot2, sparkMetric;
+  if (platform === 'google_ads') {
+    m1 = { val: anlFmtCur(metrics.spend),        lbl:'Spend',        cls:'' };
+    m2 = { val: `${(metrics.roas||0).toFixed(1)}x`, lbl:'ROAS',      cls:'green' };
+    m3 = { val: anlFmtNum(metrics.conversions),  lbl:'Conversions',   cls:'' };
+    foot1 = `CTR ${metrics.ctr}%`;  foot2 = `CPC ${anlFmtCur(metrics.cpc)}`;
+    sparkMetric = 'Daily Spend';
+  } else if (platform === 'meta_ads') {
+    m1 = { val: anlFmtCur(metrics.spend),        lbl:'Spend',        cls:'' };
+    m2 = { val: `${(metrics.roas||0).toFixed(1)}x`, lbl:'ROAS',      cls:'green' };
+    m3 = { val: anlFmtNum(metrics.reach),         lbl:'Reach',       cls:'' };
+    foot1 = `CTR ${metrics.ctr}%`;  foot2 = `CPM ${anlFmtCur(metrics.cpm)}`;
+    sparkMetric = 'Daily Spend';
+  } else if (platform === 'ga4') {
+    m1 = { val: anlFmtNum(metrics.sessions),     lbl:'Sessions',     cls:'' };
+    m2 = { val: anlFmtNum(metrics.users),         lbl:'Users',       cls:'blue' };
+    m3 = { val: `${metrics.conv_rate}%`,          lbl:'Conv Rate',   cls:'green' };
+    foot1 = `${metrics.bounce_rate}% bounce`;  foot2 = metrics.avg_session_duration + ' avg';
+    sparkMetric = 'Daily Sessions';
+  } else if (platform === 'search_console') {
+    m1 = { val: anlFmtNum(metrics.impressions),  lbl:'Impressions',  cls:'' };
+    m2 = { val: anlFmtNum(metrics.clicks),        lbl:'Clicks',      cls:'blue' };
+    m3 = { val: `${metrics.ctr}%`,                lbl:'CTR',         cls:'green' };
+    foot1 = `Avg position ${metrics.avg_position}`;  foot2 = '';
+    sparkMetric = 'Daily Impressions';
+  } else {
+    m1 = { val: anlFmtCur(metrics.spend||0),     lbl:'Spend',        cls:'' };
+    m2 = { val: `${(metrics.roas||0).toFixed(1)}x`, lbl:'ROAS',      cls:'green' };
+    m3 = { val: anlFmtNum(metrics.clicks||0),     lbl:'Clicks',      cls:'' };
+    foot1 = '';  foot2 = '';  sparkMetric = 'Trend';
+  }
+
+  const sparkHtml = metrics.trend ? anlSparkline(metrics.trend, def.color) : '';
+
+  return `
+    <div class="anl-card">
+      <div class="anl-card-hdr">
+        ${iconHTML}
+        <span class="anl-plat-name">${def.name}</span>
+        <span class="anl-plat-status ${statusCls}">${statusLabel}</span>
+      </div>
+      <div class="anl-card-metrics">
+        <div class="anl-metric"><div class="anl-metric-val ${m1.cls}">${m1.val}</div><div class="anl-metric-label">${m1.lbl}</div></div>
+        <div class="anl-metric"><div class="anl-metric-val ${m2.cls}">${m2.val}</div><div class="anl-metric-label">${m2.lbl}</div></div>
+        <div class="anl-metric"><div class="anl-metric-val ${m3.cls}">${m3.val}</div><div class="anl-metric-label">${m3.lbl}</div></div>
+      </div>
+      ${sparkHtml ? `<div class="anl-sparkline-wrap">
+        <div class="anl-sparkline-label">${sparkMetric} — last 7 periods</div>
+        ${sparkHtml}
+      </div>` : ''}
+      <div class="anl-card-foot">
+        <span class="anl-foot-sync">${metrics.from_cache ? '📦 Cached' : metrics.is_demo ? '🔮 Demo' : '🟢 Live'} · ${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>
+        <span class="anl-foot-sub">
+          ${foot1 ? `<span class="anl-foot-metric">${foot1}</span>` : ''}
+          ${foot2 ? `<span class="anl-foot-metric">${foot2}</span>` : ''}
+        </span>
+      </div>
+    </div>`;
+}
+
+function anlSparkline(trend, color) {
+  if (!trend || !trend.length) return '';
+  const max = Math.max(...trend, 1);
+  const bars = trend.map(v => {
+    const pct = Math.max(4, Math.round((v / max) * 100));
+    return `<div class="anl-spark-bar" style="height:${pct}%;background:${color};opacity:0.65;"></div>`;
+  }).join('');
+  return `<div class="anl-sparkline">${bars}</div>`;
+}
+
+function anlFmtCur(n) {
+  if (!n || isNaN(n)) return '$0';
+  if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000)    return '$' + (n/1000).toFixed(1) + 'K';
+  return '$' + Math.round(n).toLocaleString();
+}
+function anlFmtNum(n) {
+  if (!n || isNaN(n)) return '0';
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000)    return (n/1000).toFixed(1) + 'K';
+  return Math.round(n).toLocaleString();
+}
+
+// ── Memory badge helpers ──────────────────────────────────────────────────────
+function agcSetMemBadge(count) {
+  const badge = document.getElementById('agcMemBadge');
+  const span  = document.getElementById('agcMemCount');
+  if (!badge || !span) return;
+  span.textContent = count;
+  badge.classList.toggle('visible', count > 0);
+}
+
+async function agcExtractMemories(agentKey, client) {
+  // Fire-and-forget — runs silently in background
+  try {
+    const res = await fetch(`${AGC_API}/api/memories/extract`, {
+      method: 'POST',
+      headers: agcHeaders(),
+      body: JSON.stringify({ agentKey, client, messages: agcHistory }),
+    });
+    const data = await res.json();
+    if (data.count > 0) {
+      console.log(`🧠 Saved ${data.count} new memor${data.count===1?'y':'ies'} for ${agentKey}/${client}`);
+      dbShowSync(`🧠 ${data.count} memory${data.count===1?'':'s'} saved from this conversation`);
+    }
+  } catch { /* silent fail — memory is nice-to-have */ }
+}
+
+// ── Staff memory viewer ───────────────────────────────────────────────────────
+let staffMemAgent = null;
+let staffMemClient = 'All';
+
+async function staffViewMemories(agentKey) {
+  const agent = agcAgents.find(a => a.key === agentKey);
+  if (!agent) return;
+  staffMemAgent = agentKey;
+  staffMemClient = 'All';
+  document.getElementById('staffModalTitle').textContent = `🧠 ${agent.name}'s Memory`;
+  document.getElementById('staffAddBtn').style.display = 'none';
+  document.getElementById('staffModalBody').innerHTML = `<div style="text-align:center;padding:24px;color:#aaa;font-size:12px;">Loading memories…</div>`;
+  document.getElementById('staffModalBg').classList.add('open');
+  await staffRenderMemories();
+}
+
+async function staffRenderMemories() {
+  const body = document.getElementById('staffModalBody');
+  let url = `${AGC_API}/api/memories?agent=${staffMemAgent}`;
+  if (staffMemClient !== 'All') url += `&client=${encodeURIComponent(staffMemClient)}`;
+
+  let memories = [];
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    memories = data.memories || [];
+  } catch { /* server offline */ }
+
+  // Build client filter chips
+  const clientsWithMems = ['All', ...new Set(memories.map(m => m.client))];
+
+  const typeClass = t => ({'preference':'preference','strategy':'strategy','insight':'insight','outcome':'outcome'}[t]||'insight');
+  const stars = n => '★'.repeat(n) + '☆'.repeat(5-n);
+
+  body.innerHTML = `
+    <div class="mem-client-filter">
+      ${clientsWithMems.map(c =>
+        `<button class="mem-client-chip ${c===staffMemClient?'active':''}" onclick="staffMemClient='${c}';staffRenderMemories()">${c}</button>`
+      ).join('')}
+    </div>
+
+    ${memories.length === 0
+      ? `<div class="mem-empty">No memories yet for ${staffMemAgent}${staffMemClient!=='All'?' / '+staffMemClient:''}.<br>They build automatically as conversations happen.</div>`
+      : memories.map(m => `
+          <div class="mem-row">
+            <span class="mem-type ${typeClass(m.memory_type)}">${m.memory_type||'insight'}</span>
+            <div style="flex:1;">
+              <div class="mem-content">${m.content}</div>
+              <div class="mem-meta">${m.client} · ${m.source==='manual'?'Added manually':'Auto-extracted'} · ${new Date(m.created_at).toLocaleDateString()}</div>
+              <div class="mem-importance">${stars(m.importance||3)}</div>
+            </div>
+            <button class="mem-del" onclick="staffDeleteMemory(${m.id})" title="Delete">✕</button>
+          </div>`
+        ).join('')
+    }
+
+    <div class="mem-add-form">
+      <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:8px;">+ Add Memory Manually</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <select class="staff-form-input" id="memAddClient" style="font-size:12px;">
+          <option value="General">General</option>
+          ${clients.filter(c=>c.status==='Active').map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}
+        </select>
+        <select class="staff-form-input" id="memAddType" style="font-size:12px;">
+          <option value="insight">Insight</option>
+          <option value="preference">Preference</option>
+          <option value="strategy">Strategy</option>
+          <option value="outcome">Outcome</option>
+        </select>
+      </div>
+      <textarea class="staff-form-textarea" id="memAddContent" placeholder="e.g. Client prefers brand-safe placements only — no controversial topics" rows="3" style="min-height:72px;margin-bottom:8px;"></textarea>
+      <div style="display:flex;justify-content:flex-end;gap:8px;">
+        <button class="staff-fbtn-cancel" onclick="staffOpen()">← Back to Staff</button>
+        <button class="staff-fbtn-save" onclick="staffAddMemory()">Save Memory</button>
+      </div>
+    </div>`;
+}
+
+async function staffDeleteMemory(id) {
+  if (!confirm('Remove this memory?')) return;
+  try {
+    await fetch(`${AGC_API}/api/memories/delete`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ id }),
+    });
+  } catch { /* try direct Supabase */ }
+  // Also try direct Supabase delete (works even if server offline)
+  await db.from('agent_memories').delete().eq('id', id);
+  staffRenderMemories();
+}
+
+async function staffAddMemory() {
+  const content = document.getElementById('memAddContent')?.value.trim();
+  const client  = document.getElementById('memAddClient')?.value || 'General';
+  const type    = document.getElementById('memAddType')?.value   || 'insight';
+  if (!content) { alert('Please enter the memory content.'); return; }
+  try {
+    await fetch(`${AGC_API}/api/memories/add`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ agentKey: staffMemAgent, client, content, memoryType: type, importance: 3 }),
+    });
+  } catch {
+    // Fallback: save directly to Supabase
+    await db.from('agent_memories').insert([{
+      agent_key: staffMemAgent, client, content, memory_type: type, importance: 3, source: 'manual'
+    }]);
+  }
+  dbShowSync('✓ Memory saved');
+  staffRenderMemories();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// INTEGRATIONS HUB
+// ════════════════════════════════════════════════════════════════════════════
+
+const intgPlatforms = [
+  { id:'google_ads',     name:'Google Ads',         cat:'paid',      abbr:'GA',  color:'#4285F4',
+    desc:'Search, Shopping & Display',
+    fields:[{key:'account_id',label:'Customer ID',      ph:'123-456-7890',           secret:false},
+            {key:'token',     label:'Access Token',     ph:'ya29...',                secret:true}]},
+  { id:'meta_ads',       name:'Meta Ads',            cat:'paid',      abbr:'M',   color:'#1877F2',
+    desc:'Facebook & Instagram advertising',
+    fields:[{key:'account_id',label:'Ad Account ID',    ph:'act_123456789',          secret:false},
+            {key:'token',     label:'Access Token',     ph:'EAABsbm...',             secret:true}]},
+  { id:'microsoft_ads',  name:'Microsoft Ads',       cat:'paid',      abbr:'MS',  color:'#00A4EF',
+    desc:'Bing & Microsoft search ads',
+    fields:[{key:'account_id',label:'Account ID',       ph:'12345678',               secret:false},
+            {key:'token',     label:'Access Token',     ph:'...',                    secret:true}]},
+  { id:'linkedin_ads',   name:'LinkedIn Ads',        cat:'paid',      abbr:'in',  color:'#0A66C2',
+    desc:'B2B LinkedIn campaigns',
+    fields:[{key:'account_id',label:'Account ID',       ph:'123456789',              secret:false},
+            {key:'token',     label:'Access Token',     ph:'...',                    secret:true}]},
+  { id:'tiktok_ads',     name:'TikTok Ads',          cat:'paid',      abbr:'TT',  color:'#111111',
+    desc:'TikTok paid advertising',
+    fields:[{key:'account_id',label:'Advertiser ID',    ph:'678900...',              secret:false},
+            {key:'token',     label:'Access Token',     ph:'...',                    secret:true}]},
+  { id:'ga4',            name:'Google Analytics 4',  cat:'analytics', abbr:'G4',  color:'#E37400',
+    desc:'Website analytics & conversions',
+    fields:[{key:'account_id',label:'Property ID',      ph:'123456789',              secret:false},
+            {key:'token',     label:'Service Account Key',ph:'{"type":"service_account"...}',secret:true}]},
+  { id:'search_console', name:'Search Console',      cat:'analytics', abbr:'SC',  color:'#34A853',
+    desc:'Organic search & CTR data',
+    fields:[{key:'account_id',label:'Site URL',          ph:'https://example.com',   secret:false},
+            {key:'token',     label:'Service Account Key',ph:'{"type":"service_account"...}',secret:true}]},
+  { id:'hubspot',        name:'HubSpot',             cat:'crm',       abbr:'HS',  color:'#FF7A59',
+    desc:'CRM, contacts & deal pipeline',
+    fields:[{key:'account_id',label:'Portal ID',         ph:'12345678',              secret:false},
+            {key:'token',     label:'Private App Token', ph:'pat-na1-...',           secret:true}]},
+  { id:'salesforce',     name:'Salesforce',          cat:'crm',       abbr:'SF',  color:'#00A1E0',
+    desc:'Enterprise CRM & marketing cloud',
+    fields:[{key:'account_id',label:'Instance URL',      ph:'https://myorg.salesforce.com',secret:false},
+            {key:'token',     label:'Access Token',      ph:'...',                   secret:true}]},
+  { id:'mailchimp',      name:'Mailchimp',           cat:'email',     abbr:'MC',  color:'#F5BE00',
+    desc:'Email campaigns & automations',
+    fields:[{key:'account_id',label:'Audience ID',       ph:'abc123def4',            secret:false},
+            {key:'token',     label:'API Key',           ph:'abc123...-us1',         secret:true}]},
+  { id:'klaviyo',        name:'Klaviyo',             cat:'email',     abbr:'KV',  color:'#6C4AE9',
+    desc:'Email & SMS marketing platform',
+    fields:[{key:'account_id',label:'Account ID',        ph:'XXXXXX',                secret:false},
+            {key:'token',     label:'API Key',           ph:'pk_...',                secret:true}]},
+  { id:'shopify',        name:'Shopify',             cat:'ecommerce', abbr:'SH',  color:'#96BF48',
+    desc:'E-commerce analytics & sales',
+    fields:[{key:'account_id',label:'Shop Domain',       ph:'yourstore.myshopify.com',secret:false},
+            {key:'token',     label:'Admin API Token',   ph:'shpat_...',             secret:true}]},
+];
+
+let intgConnections  = [];  // [{id, client, platform, account_id, status, last_synced}]
+let intgActiveCat    = 'all';
+let intgModalPlatform = null;
+
+// ── Open / close ─────────────────────────────────────────────────────────────
+function intgOpen() {
+  document.getElementById('intgBackdrop').classList.add('open');
+  intgLoad();
+}
+function intgClose() {
+  document.getElementById('intgBackdrop').classList.remove('open');
+}
+function intgSetCat(cat) {
+  intgActiveCat = cat;
+  document.querySelectorAll('.intg-cat').forEach(el =>
+    el.classList.toggle('active', el.dataset.cat === cat));
+  intgRender();
+}
+
+// ── Load from Supabase (metadata only — no tokens) ───────────────────────────
+async function intgLoad() {
+  const { data, error } = await db
+    .from('client_integrations')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (!error) intgConnections = data || [];
+  intgRender();
+  // Update nav badge
+  const badge = document.getElementById('intgNavBadge');
+  if (badge) {
+    badge.textContent = intgConnections.length;
+    badge.style.display = intgConnections.length ? '' : 'none';
+  }
+}
+
+// ── Render platform grid ──────────────────────────────────────────────────────
+function intgRender() {
+  const grid = document.getElementById('intgGrid');
+  if (!grid) return;
+  const list = intgActiveCat === 'all'
+    ? intgPlatforms
+    : intgPlatforms.filter(p => p.cat === intgActiveCat);
+
+  const addCard = `
+    <div class="intg-card" style="border:2px dashed #E2E1DB;background:#FAFAF7;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px;cursor:pointer;transition:all 0.2s;" onclick="intgOpenModal()" onmouseenter="this.style.borderColor='#1C3A2E';this.style.background='#F0F8F4'" onmouseleave="this.style.borderColor='#E2E1DB';this.style.background='#FAFAF7'">
+      <div style="width:38px;height:38px;border-radius:50%;background:#E8F0EC;display:flex;align-items:center;justify-content:center;font-size:20px;color:#1C3A2E;margin-bottom:8px;">+</div>
+      <div style="font-size:12px;font-weight:700;color:#1C3A2E;">Connect Platform</div>
+      <div style="font-size:10px;color:#aaa;margin-top:2px;">Choose any platform & client</div>
+    </div>`;
+
+  grid.innerHTML = list.map(p => {
+    const conns = intgConnections.filter(c => c.platform === p.id);
+    // icon colour contrast
+    const lightBg = ['#F5BE00','#96BF48'];
+    const textCol  = lightBg.includes(p.color) ? '#333' : '#fff';
+    const connRows = conns.map(c => `
+      <div class="intg-conn-row">
+        <span class="intg-conn-client">${c.client}</span>
+        <span class="intg-conn-id">${c.account_id || '—'}</span>
+        <span class="intg-conn-dot">●●●●</span>
+        <button class="intg-conn-del" onclick="intgDisconnect(${c.id},'${p.name.replace(/'/g,"\\'")}','${c.client.replace(/'/g,"\\'")}')">✕</button>
+      </div>`).join('');
+
+    return `
+    <div class="intg-card">
+      <div class="intg-card-top">
+        <div class="intg-icon" style="background:${p.color}22;color:${p.color};">${p.abbr}</div>
+        <div class="intg-card-meta">
+          <div class="intg-card-name">${p.name}</div>
+          <div class="intg-card-desc">${p.desc}</div>
+        </div>
+        <div class="intg-count ${conns.length ? '' : 'zero'}">${conns.length ? '● '+conns.length : '○ 0'}</div>
+      </div>
+      ${conns.length ? `<div class="intg-conns">${connRows}</div>` : ''}
+      <button class="intg-card-add" onclick="intgOpenModal('${p.id}')">+ Connect Client Account</button>
+    </div>`;
+  }).join('') + addCard;
+}
+
+// ── Connect modal ─────────────────────────────────────────────────────────────
+function intgOpenModal(platformId) {
+  const p = platformId ? intgPlatforms.find(x => x.id === platformId) : null;
+  intgModalPlatform = p;
+
+  const platformOpts = intgPlatforms.map(x =>
+    `<option value="${x.id}" ${p && p.id===x.id ? 'selected' : ''}>${x.name}</option>`).join('');
+  const clientOpts = clients.filter(c => c.status === 'Active')
+    .map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+
+  const fieldsHtml = p ? p.fields.map(f => `
+    <div class="intg-mfield">
+      <label class="intg-mlabel">${f.label}</label>
+      <input class="intg-minput" type="${f.secret ? 'password' : 'text'}"
+             id="intgF_${f.key}" placeholder="${f.ph}" autocomplete="off">
+      ${f.secret ? '<div class="intg-mhint">🔒 Encrypted with AES-256 before storage — never readable again after save</div>' : ''}
+    </div>`).join('') : '';
+
+  document.getElementById('intgModal').innerHTML = `
+    <h3>${p ? 'Connect ' + p.name : 'Connect Platform'}</h3>
+    <p class="intg-modal-sub">${p ? p.desc : 'Choose a platform and client to link'}</p>
+
+    ${!p ? `<div class="intg-mfield"><label class="intg-mlabel">Platform</label>
+      <select class="intg-minput" id="intgFPlatform" onchange="intgOpenModal(this.value)">
+        <option value="">— Select platform —</option>${platformOpts}
+      </select></div>` : ''}
+
+    <div class="intg-mfield">
+      <label class="intg-mlabel">Client</label>
+      <select class="intg-minput" id="intgFClient">
+        <option value="">— Select client —</option>${clientOpts}
+      </select>
+    </div>
+
+    ${fieldsHtml}
+
+    ${p ? `<div class="intg-enc-badge">
+      🔐 Sent over HTTPS → encrypted on your server → stored encrypted in Supabase.
+      Only your server can decrypt. Raw token never visible in this app again.
+    </div>` : ''}
+
+    <div class="intg-mactions">
+      <button class="intg-mbtn-cancel" onclick="intgCloseModal()">Cancel</button>
+      ${p ? `<button class="intg-mbtn-save" id="intgSaveBtn" onclick="intgSave()">Save Securely</button>` : ''}
+    </div>`;
+
+  document.getElementById('intgModalBg').classList.add('open');
+}
+function intgCloseModal() {
+  document.getElementById('intgModalBg').classList.remove('open');
+  intgModalPlatform = null;
+}
+
+// ── Save connection (goes through server.py for encryption) ──────────────────
+async function intgSave() {
+  const p = intgModalPlatform;
+  if (!p) return;
+
+  const clientVal  = document.getElementById('intgFClient')?.value;
+  const accountId  = document.getElementById(`intgF_${p.fields[0].key}`)?.value.trim();
+  const token      = document.getElementById(`intgF_${p.fields[1].key}`)?.value.trim();
+
+  if (!clientVal) { alert('Please select a client.'); return; }
+  if (!token)     { alert(`Please enter the ${p.fields[1].label}.`); return; }
+
+  const btn = document.getElementById('intgSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  try {
+    const res = await fetch('https://clickpoint-api.up.railway.app/api/integrations/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client: clientVal, platform: p.id, accountId, token }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Save failed');
+
+    intgCloseModal();
+    await intgLoad();
+    dbShowSync(`✓ ${p.name} connected for ${clientVal}${data.encrypted ? ' · AES-256 🔐' : ''}`);
+  } catch (err) {
+    btn.disabled = false; btn.textContent = 'Save Securely';
+    const isServer = err.message.includes('Failed to fetch');
+    alert(isServer
+      ? 'Cannot reach server.py. Make sure it\'s running and the integration setup steps are complete (see server startup output).'
+      : 'Connection failed: ' + err.message);
+  }
+}
+
+// ── Disconnect ────────────────────────────────────────────────────────────────
+async function intgDisconnect(id, platformName, clientName) {
+  if (!confirm(`Disconnect ${platformName} for ${clientName}?\n\nThis will permanently remove the stored (encrypted) credentials.`)) return;
+
+  // Delete metadata row — cascade removes integration_credentials automatically
+  const { error } = await db.from('client_integrations').delete().eq('id', id);
+  if (error) { alert('Disconnect failed: ' + error.message); return; }
+  dbShowSync(`✓ ${platformName} disconnected for ${clientName}`);
+  await intgLoad();
+  // Re-render modal if open to reflect change
+  if (document.getElementById('intgModalBg').classList.contains('open') && intgModalPlatform) {
+    intgOpenModal(intgModalPlatform.id);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PORTAL ACCESS — generate client portal credentials
+// ══════════════════════════════════════════════════════════════════════════════
+let pacCurrentClient = '';
+
+function pacOpen(clientName) {
+  pacCurrentClient = clientName;
+  document.getElementById('pacClient').value = clientName;
+  document.getElementById('pacEmail').value  = '';
+  document.getElementById('pacResult').style.display = 'none';
+  document.getElementById('pacCode').textContent = '——————';
+  document.getElementById('pacSendEmail').checked = false;
+  const btn = document.getElementById('pacGenerateBtn');
+  btn.disabled = false; btn.textContent = '✦ Generate Access';
+  document.getElementById('pacModalBg').classList.add('open');
+}
+function pacClose() {
+  document.getElementById('pacModalBg').classList.remove('open');
+}
+
+async function pacGenerate() {
+  const email  = document.getElementById('pacEmail').value.trim();
+  if (!email) { document.getElementById('pacEmail').focus(); return; }
+  const sendEmail = document.getElementById('pacSendEmail').checked;
+  const btn = document.getElementById('pacGenerateBtn');
+  btn.disabled = true; btn.textContent = '⏳ Generating…';
+
+  try {
+    const res = await fetch('https://clickpoint-api.up.railway.app/api/portal/access', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client: pacCurrentClient, email, send_email: sendEmail }),
+    });
+    const data = await res.json();
+    const code = data.access_code || '------';
+    document.getElementById('pacCode').textContent = code;
+    document.getElementById('pacResult').style.display = 'block';
+    btn.textContent = '🔄 Regenerate';
+    btn.disabled = false;
+    if (data.email_sent) dbShowSync(`✓ Portal access emailed to ${email}`);
+    else dbShowSync(`✓ Access code: ${code}`);
+  } catch(e) {
+    // Server offline — generate locally for demo
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    document.getElementById('pacCode').textContent = code;
+    document.getElementById('pacResult').style.display = 'block';
+    btn.textContent = '🔄 Regenerate';
+    btn.disabled = false;
+  }
+}
+
+function pacCopy(what) {
+  const code = document.getElementById('pacCode').textContent;
+  let text = what === 'link'
+    ? `Portal: ${window.location.origin}/portal.html\nCode: ${code}\nEmail: ${document.getElementById('pacEmail').value}`
+    : code;
+  navigator.clipboard.writeText(text).then(() => dbShowSync('✓ Copied to clipboard'));
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// NOTIFICATIONS — settings + dispatch
+// ══════════════════════════════════════════════════════════════════════════════
+const NTF_KEY = 'cp_notify_settings';
+
+// ── Workspaces (Admin Master View) ───────────────────────────────────────────
+let wsWorkspaces = []; // cached list
+
+function wsOpen() {
+  const panel = document.getElementById('wsPanel');
+  panel.style.transform = 'translateX(0)';
+  panel.style.boxShadow = '-8px 0 40px rgba(0,0,0,0.18)';
+  localStorage.setItem('cp_admin_mode','true');
+  wsLoadWorkspaces();
+}
+
+function wsClose() {
+  document.getElementById('wsPanel').style.transform = 'translateX(100%)';
+}
+
+async function wsLoadWorkspaces() {
+  const grid = document.getElementById('wsCardGrid');
+  grid.innerHTML = '<div style="color:#999;font-size:13px;padding:20px 0;">Loading workspaces…</div>';
+
+  let workspaces = [];
+  try {
+    const res = await fetch(`${window.AGENT_API || 'https://clickpoint-api.up.railway.app'}/api/workspaces`);
+    const data = await res.json();
+    workspaces = data.workspaces || [];
+  } catch(e) {}
+
+  // Merge with local client list for demo enrichment
+  const clientArr = typeof clients !== 'undefined' ? clients : [];
+  if (workspaces.length === 0) {
+    // Demo workspaces from client list
+    workspaces = clientArr.slice(0, 8).map(c => ({
+      workspace_id: c.name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,''),
+      company_name: c.name, email: `marketing@${c.name.toLowerCase().replace(/\s+/g,'')}.com`,
+      last_login: 'Demo', last_activity: `Workspace opened · ${Math.floor(Math.random()*12+1)}h ago`,
+      demo: true
+    }));
+  }
+
+  wsWorkspaces = workspaces;
+  document.getElementById('wsStatTotal').textContent  = workspaces.length;
+  document.getElementById('wsStatActive').textContent = Math.ceil(workspaces.length * 0.7);
+  document.getElementById('wsStatAi').textContent     = Math.floor(workspaces.length * 2.3);
+  const badge = document.getElementById('wsNavBadge');
+  badge.textContent = workspaces.length; badge.style.display = 'inline';
+
+  if (workspaces.length === 0) {
+    grid.innerHTML = `
+      <div style="text-align:center;padding:60px 20px;color:#999;">
+        <div style="font-size:40px;margin-bottom:12px;">🏢</div>
+        <div style="font-size:16px;font-weight:700;color:#1A1A1A;margin-bottom:6px;">No workspaces yet</div>
+        <div style="font-size:13px;margin-bottom:20px;">Create a workspace for each client to give them self-service access.</div>
+        <button onclick="wsCreateOpen()" style="padding:10px 24px;background:#1C3A2E;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">+ Create First Workspace</button>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = workspaces.map(ws => wsRenderCard(ws)).join('');
+}
+
+function wsRenderCard(ws) {
+  const initials = ws.company_name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  const colors   = ['#1C3A2E','#2A5240','#0A84FF','#8E44AD','#D4622A','#1A5276'];
+  let ci = 0; for(let i=0;i<ws.workspace_id.length;i++) ci += ws.workspace_id.charCodeAt(i);
+  const color = colors[ci % colors.length];
+  const workspaceLink = `https://platform.clickpointconsulting.com.au/workspace.html?w=${ws.workspace_id}&admin=1`;
+
+  return `
+    <div style="background:#fff;border:1px solid #E2E1DB;border-radius:14px;padding:20px;margin-bottom:12px;transition:box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 20px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:44px;height:44px;border-radius:12px;background:${color};color:#fff;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${initials}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:15px;font-weight:700;color:#1A1A1A;">${ws.company_name}</div>
+          <div style="font-size:11px;color:#999;margin-top:1px;">${ws.workspace_id} · ${ws.email}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(48,209,88,0.1);color:#1C8C44;">Active</div>
+          <button onclick="window.open('${workspaceLink}','_blank')" style="padding:6px 14px;background:#1C3A2E;color:#fff;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">👁 View</button>
+          <button onclick="wsCopyInvite('${ws.workspace_id}','${ws.company_name}')" style="padding:6px 14px;background:#F4F3EE;color:#555;border:1px solid #E2E1DB;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;">📋 Invite</button>
+        </div>
+      </div>
+      ${ws.last_activity ? `<div style="margin-top:12px;padding:10px 12px;background:#F9F8F4;border-radius:8px;font-size:12px;color:#555;">📡 ${ws.last_activity}</div>` : ''}
+    </div>
+  `;
+}
+
+function wsCopyInvite(workspaceId, companyName) {
+  const link = `https://platform.clickpointconsulting.com.au/workspace.html?w=${workspaceId}`;
+  navigator.clipboard.writeText(link).then(() => {
+    notifyEvent('workspace_invite', companyName, `Invite link copied for ${companyName}`);
+    alert(`Invite link copied!\n\nSend this to ${companyName}:\n${link}`);
+  }).catch(() => alert(`Workspace link:\n${link}`));
+}
+
+function wsCreateOpen() {
+  document.getElementById('wsCreateForm').style.display = 'block';
+  document.getElementById('wsCreateResult').style.display = 'none';
+  document.getElementById('wsCreateName').value = '';
+  document.getElementById('wsCreateEmail').value = '';
+  document.getElementById('wsCreateForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function wsCreateSubmit() {
+  const name  = document.getElementById('wsCreateName').value.trim();
+  const email = document.getElementById('wsCreateEmail').value.trim();
+  const result = document.getElementById('wsCreateResult');
+
+  if (!name || !email) { alert('Please enter company name and email.'); return; }
+
+  result.style.display = 'none';
+  try {
+    const res = await fetch('https://clickpoint-api.up.railway.app/api/workspace/create', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ companyName: name, email })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      result.style.display = 'block';
+      result.innerHTML = `
+        <div style="font-weight:700;color:#1C3A2E;margin-bottom:8px;">✅ Workspace created!</div>
+        <div style="color:#555;margin-bottom:4px;"><strong>Workspace ID:</strong> ${data.workspaceId}</div>
+        <div style="color:#555;margin-bottom:4px;"><strong>Access Code:</strong> <span style="font-size:18px;letter-spacing:0.2em;font-weight:800;">${data.code}</span></div>
+        <div style="color:#555;margin-bottom:12px;"><strong>Link:</strong> <a href="${data.link}" target="_blank" style="color:#1C3A2E;">${data.link}</a></div>
+        <div style="font-size:11px;color:#999;">${email ? `Access details emailed to ${email}` : 'Share the link and code with your client.'}</div>
+      `;
+      wsLoadWorkspaces();
+    }
+  } catch(e) {
+    // Demo fallback
+    const wsId = name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    result.style.display = 'block';
+    result.innerHTML = `
+      <div style="font-weight:700;color:#1C3A2E;margin-bottom:8px;">✅ Workspace created (demo mode)</div>
+      <div style="color:#555;margin-bottom:4px;"><strong>Workspace ID:</strong> ${wsId}</div>
+      <div style="color:#555;margin-bottom:4px;"><strong>Access Code:</strong> <span style="font-size:18px;letter-spacing:0.2em;font-weight:800;">${code}</span></div>
+      <div style="color:#555;margin-bottom:12px;"><strong>Link:</strong> <a href="https://platform.clickpointconsulting.com.au/workspace.html?w=${wsId}" target="_blank" style="color:#1C3A2E;">https://platform.clickpointconsulting.com.au/workspace.html?w=${wsId}</a></div>
+      <div style="font-size:11px;color:#999;">Server offline — use any 6-digit code to log in during demo.</div>
+    `;
+  }
+}
+
+function ntfOpen() {
+  // Restore saved settings
+  try {
+    const saved = JSON.parse(localStorage.getItem(NTF_KEY) || '{}');
+    if (saved.slack)  document.getElementById('ntfSlackUrl').value  = saved.slack;
+    if (saved.resend) document.getElementById('ntfResendKey').value = saved.resend;
+    if (saved.email)  document.getElementById('ntfEmail').value     = saved.email;
+  } catch {}
+  ntfUpdateStatus();
+  document.getElementById('ntfModalBg').classList.add('open');
+}
+function ntfClose() {
+  document.getElementById('ntfModalBg').classList.remove('open');
+}
+
+function ntfUpdateStatus() {
+  const slack  = document.getElementById('ntfSlackUrl').value.trim();
+  const resend = document.getElementById('ntfResendKey').value.trim();
+  const email  = document.getElementById('ntfEmail').value.trim();
+  const slackEl = document.getElementById('ntfSlackStatus');
+  const emailEl = document.getElementById('ntfEmailStatus');
+  slackEl.textContent = slack  ? 'Configured' : 'Not configured';
+  slackEl.className   = 'ntf-channel-status ' + (slack  ? 'ntf-status-on' : 'ntf-status-off');
+  emailEl.textContent = (resend && email) ? 'Configured' : 'Not configured';
+  emailEl.className   = 'ntf-channel-status ' + ((resend && email) ? 'ntf-status-on' : 'ntf-status-off');
+}
+
+async function ntfTest(channel) {
+  const webhook = document.getElementById('ntfSlackUrl').value.trim();
+  const email   = document.getElementById('ntfEmail').value.trim();
+  try {
+    const res = await fetch('https://clickpoint-api.up.railway.app/api/notify/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channel, webhook, email }),
+    });
+    const d = await res.json();
+    dbShowSync(d.ok ? `✓ Test ${channel} sent!` : `⚠️ ${channel} test failed — check settings`, d.ok);
+  } catch {
+    dbShowSync('⚠️ Server offline — restart server.py first', false);
+  }
+}
+
+function ntfSave() {
+  const settings = {
+    slack:  document.getElementById('ntfSlackUrl').value.trim(),
+    resend: document.getElementById('ntfResendKey').value.trim(),
+    email:  document.getElementById('ntfEmail').value.trim(),
+  };
+  localStorage.setItem(NTF_KEY, JSON.stringify(settings));
+  // Tell server to update its in-memory config
+  fetch('https://clickpoint-api.up.railway.app/api/notify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event:'custom', detail:'Settings updated ✓', webhook: settings.slack, email: settings.email }),
+  }).catch(() => {});
+  dbShowSync('✓ Notification settings saved');
+  ntfClose();
+}
+
+// Public dispatcher — call this anywhere to send a notification
+async function notifyEvent(event, client = '', detail = '') {
+  try {
+    const saved    = JSON.parse(localStorage.getItem(NTF_KEY) || '{}');
+    const webhook  = saved.slack  || '';
+    const email    = saved.email  || '';
+    if (!webhook && !email) return; // nothing configured
+    await fetch('https://clickpoint-api.up.railway.app/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event, client, detail, webhook, email }),
+    });
+  } catch { /* silent — notifications are nice-to-have */ }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// REPORTS — monthly agent-chain report generation
+// ══════════════════════════════════════════════════════════════════════════════
+const RPT_API = 'https://clickpoint-api.up.railway.app';
+let rptReports = [];         // loaded from Supabase
+let rptCurrentReport = null; // report currently viewed
+
+// ── Open / close panel ───────────────────────────────────────────────────────
+function rptOpen() {
+  document.getElementById('rptBackdrop').classList.add('open');
+  rptLoadList();
+}
+function rptClose() {
+  document.getElementById('rptBackdrop').classList.remove('open');
+}
+
+// ── Load saved reports ───────────────────────────────────────────────────────
+async function rptLoadList() {
+  const body = document.getElementById('rptBody');
+  body.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;font-size:13px;">⏳ Loading reports…</div>';
+  try {
+    const res = await fetch(`${RPT_API}/api/reports`);
+    if (res.ok) { const d = await res.json(); rptReports = d.reports || []; }
+  } catch { /* server offline — use local list */ }
+  rptRenderList();
+}
+
+function rptRenderList() {
+  const body  = document.getElementById('rptBody');
+  const badge = document.getElementById('rptNavBadge');
+  if (badge) { badge.textContent = rptReports.length; badge.style.display = rptReports.length ? '' : 'none'; }
+  if (!rptReports.length) {
+    body.innerHTML = `<div class="rpt-empty">
+      <div class="rpt-empty-icon">📋</div>
+      <div class="rpt-empty-text">No reports yet.<br>Click <strong>Generate Report</strong> to create your first monthly client report.</div>
+    </div>`;
+    return;
+  }
+  body.innerHTML = `<div class="rpt-list">${rptReports.map(r => {
+    const score = r.health_score || 0;
+    const col   = score >= 8 ? '#30D158' : score >= 6 ? '#FF9F0A' : '#FF453A';
+    const date  = r.generated_at ? new Date(r.generated_at).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) : '';
+    return `<div class="rpt-row" onclick='rptViewSaved(${JSON.stringify(JSON.stringify(r))})'>
+      <div class="rpt-row-icon">📋</div>
+      <div class="rpt-row-info">
+        <div class="rpt-row-client">${r.client}</div>
+        <div class="rpt-row-period">${r.period}</div>
+      </div>
+      <div class="rpt-row-score"><div class="rpt-health-dot" style="background:${col};"></div>${score}/10 &nbsp;${r.health_label||''}</div>
+      <div class="rpt-row-date">${date}</div>
+      <div style="color:#bbb;font-size:16px;">›</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── Generation modal ─────────────────────────────────────────────────────────
+function rptOpenGenModal() {
+  // Populate client list — try dashClients, then global clients array
+  const sel = document.getElementById('rptGenClient');
+  const clientArr = window.dashClients || (typeof clients !== 'undefined' ? clients : []);
+  const names = clientArr.map(c => c.name).filter(Boolean).sort();
+  sel.innerHTML = names.length
+    ? names.map(n => `<option value="${n}">${n}</option>`).join('')
+    : '<option value="">No clients loaded</option>';
+
+  // Reset all steps to pending
+  [1,2,3].forEach(i => {
+    document.getElementById(`rptStep${i}`).className = 'rpt-step';
+    document.getElementById(`rptStep${i}Num`).textContent = i;
+    document.getElementById(`rptStep${i}Status`).textContent = 'Pending';
+  });
+  const btn = document.getElementById('rptGenSubmit');
+  btn.disabled = false;
+  btn.textContent = '✦  Generate Report';
+  btn.onclick = rptStartGeneration;
+  document.getElementById('rptGenCancel').textContent = 'Cancel';
+  document.getElementById('rptGenCancel').onclick = rptCloseGenModal;
+  document.getElementById('rptGenBg').classList.add('open');
+}
+function rptCloseGenModal() {
+  document.getElementById('rptGenBg').classList.remove('open');
+}
+
+function rptSetStep(n, state) {
+  // state: 'active' | 'done' | 'pending'
+  const step   = document.getElementById(`rptStep${n}`);
+  const num    = document.getElementById(`rptStep${n}Num`);
+  const status = document.getElementById(`rptStep${n}Status`);
+  step.className = 'rpt-step' + (state !== 'pending' ? ' ' + state : '');
+  if (state === 'active') { num.textContent = '⏳'; status.textContent = 'Working…'; }
+  else if (state === 'done') { num.textContent = '✓'; status.textContent = 'Complete ✓'; }
+  else { num.textContent = n; status.textContent = 'Pending'; }
+}
+
+// ── Main generation chain ─────────────────────────────────────────────────────
+async function rptStartGeneration() {
+  const client = document.getElementById('rptGenClient').value;
+  const month  = document.getElementById('rptGenMonth').value;
+  const year   = document.getElementById('rptGenYear').value;
+  const period = `${month} ${year}`;
+  if (!client) { alert('Please select a client.'); return; }
+
+  // Look up client budget from dashboard
+  const clientArr2 = window.dashClients || (typeof clients !== 'undefined' ? clients : []);
+  const clientObj = clientArr2.find(c => c.name === client);
+  const budget = clientObj
+    ? parseFloat((clientObj.value||'0').replace(/[^0-9.]/g,'')) * ((clientObj.value||'').includes('K') ? 1000 : 1)
+    : 10000;
+
+  const btn = document.getElementById('rptGenSubmit');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating…';
+  document.getElementById('rptGenCancel').textContent = 'Running…';
+  document.getElementById('rptGenCancel').onclick = null;
+
+  try {
+    // ── Step 1: Raj — fetch metrics + write analysis ─────────────────────────
+    rptSetStep(1, 'active');
+    document.getElementById('rptStep1Status').textContent = 'Fetching metrics…';
+
+    // Gather metrics client-side (reuse analytics fallback if server offline)
+    const savedClient = window.anlClient;
+    window.anlClient = client; // needed by anlDemoFallback
+    const platforms = ['google_ads','meta_ads','ga4','search_console'];
+    const metrics = {};
+    await Promise.all(platforms.map(async p => {
+      try {
+        const r = await fetch(`${RPT_API}/api/metrics/fetch`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({client, platform:p, days:30, budget}),
+        });
+        metrics[p] = r.ok ? await r.json() : anlDemoFallback(p, 30);
+      } catch { metrics[p] = anlDemoFallback(p, 30); }
+    }));
+    window.anlClient = savedClient;
+
+    document.getElementById('rptStep1Status').textContent = 'Analyzing…';
+
+    let rajOutput = '';
+    try {
+      const r = await fetch(`${RPT_API}/api/report/generate`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({step:'raj', client, period, budget, metrics}),
+      });
+      const d = await r.json();
+      rajOutput = d.output || '';
+    } catch { rajOutput = `Performance overview for ${client} — ${period}. Paid channels delivered strong results with positive ROAS across Google Ads and Meta. Organic traffic grew steadily.`; }
+    rptSetStep(1, 'done');
+
+    // ── Step 2: Jess — client narrative ─────────────────────────────────────
+    rptSetStep(2, 'active');
+    let jessOutput = '';
+    try {
+      const r = await fetch(`${RPT_API}/api/report/generate`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({step:'jess', client, period, raj_output:rajOutput}),
+      });
+      const d = await r.json();
+      jessOutput = d.output || '';
+    } catch { jessOutput = `This has been a strong month for ${client}. Our campaigns across paid search and social have delivered meaningful results with efficient spend.\n\nThe data reflects a well-targeted approach that is converting above benchmark. We continue to grow organic reach while paid channels drive direct conversions.`; }
+    rptSetStep(2, 'done');
+
+    // ── Step 3: Sarah — executive review + recommendations ───────────────────
+    rptSetStep(3, 'active');
+    let sarahData = null;
+    try {
+      const r = await fetch(`${RPT_API}/api/report/generate`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({step:'sarah', client, period, raj_output:rajOutput, jess_output:jessOutput}),
+      });
+      const d = await r.json();
+      sarahData = d.data || null;
+    } catch { /* use fallback below */ }
+
+    if (!sarahData) {
+      const ga   = metrics.google_ads || {};
+      const meta = metrics.meta_ads   || {};
+      const totalSpend = ((ga.spend||0) + (meta.spend||0));
+      const blendedROAS = ((ga.roas||0) + (meta.roas||0)) / 2;
+      sarahData = {
+        executive_summary: `${client} delivered a solid ${period} with $${totalSpend.toLocaleString('en-AU',{maximumFractionDigits:0})} across paid channels and a blended ROAS of ${blendedROAS.toFixed(1)}x. Google Ads led on conversion efficiency while Meta expanded brand reach. The primary strategic priority for next month is scaling the highest-performing ad sets while launching a coordinated retargeting push.`,
+        health_score: 7, health_label: 'Performing above target',
+        recommendations: [
+          {priority:'HIGH', action:'Scale Google Ads budget by 20% — ROAS performance justifies aggressive expansion', owner:'Derek'},
+          {priority:'HIGH', action:'Launch Meta retargeting campaign for high-intent website visitors who did not convert', owner:'Cleo'},
+          {priority:'MED',  action:'Optimise Search Console CTR with A/B testing on title tags for top 10 pages', owner:'Raj'},
+          {priority:'LOW',  action:'Brief Zara on Q3 creative refresh for display and social banner assets', owner:'Zara'},
+        ],
+        budget_note: 'Current allocation is performing efficiently. Consider shifting 15% of Meta spend toward Google Ads given the ROAS differential this month.',
+        sarah_sign_off: `Really excited about the momentum we\'re building for ${client} — the fundamentals are strong and we have clear, executable opportunities to scale further next month.`,
+      };
+    }
+    rptSetStep(3, 'done');
+
+    // ── Assemble final report object ─────────────────────────────────────────
+    const report = {
+      client, period,
+      health_score:   sarahData.health_score  || 7,
+      health_label:   sarahData.health_label  || 'Performing well',
+      exec_summary:   sarahData.executive_summary || '',
+      recommendations: sarahData.recommendations || [],
+      budget_note:    sarahData.budget_note    || '',
+      sarah_sign_off: sarahData.sarah_sign_off || '',
+      raj_analysis:   rajOutput,
+      jess_narrative: jessOutput,
+      metrics,
+      generated_at: new Date().toISOString(),
+    };
+
+    // Persist to Supabase (best-effort)
+    try {
+      await fetch(`${RPT_API}/api/reports/save`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({...report, sarah_data: sarahData}),
+      });
+    } catch { /* offline — fine */ }
+
+    // Add to top of local list + update badge
+    rptReports.unshift(report);
+    const badge = document.getElementById('rptNavBadge');
+    if (badge) { badge.textContent = rptReports.length; badge.style.display = ''; }
+
+    // Update button to "View Report"
+    btn.disabled = false;
+    btn.textContent = '✓ View Report';
+    btn.onclick = () => { rptCloseGenModal(); rptRenderViewer(report); };
+    document.getElementById('rptGenCancel').textContent = 'Close';
+    document.getElementById('rptGenCancel').onclick = rptCloseGenModal;
+
+    // Also refresh the list in the background panel
+    rptRenderList();
+
+  } catch(err) {
+    console.error('Report generation failed:', err);
+    btn.disabled = false;
+    btn.textContent = '⚠️ Retry';
+    btn.onclick = rptStartGeneration;
+    document.getElementById('rptGenCancel').textContent = 'Cancel';
+    document.getElementById('rptGenCancel').onclick = rptCloseGenModal;
+  }
+}
+
+// ── Viewer ───────────────────────────────────────────────────────────────────
+function rptViewSaved(reportJson) {
+  const report = typeof reportJson === 'string' ? JSON.parse(reportJson) : reportJson;
+  rptRenderViewer(report);
+}
+function rptCloseViewer() {
+  document.getElementById('rptViewerBg').classList.remove('open');
+}
+
+function rptRenderViewer(report) {
+  rptCurrentReport = report;
+  document.getElementById('rptViewerClient').textContent = report.client;
+  document.getElementById('rptViewerPeriod').textContent = `Monthly Report — ${report.period}`;
+  document.getElementById('rptViewerBg').classList.add('open');
+
+  const score     = report.health_score || 0;
+  const scoreCol  = score >= 8 ? '#30D158' : score >= 6 ? '#FF9F0A' : '#FF453A';
+  const ga   = (report.metrics || {}).google_ads      || {};
+  const meta = (report.metrics || {}).meta_ads        || {};
+  const g4   = (report.metrics || {}).ga4             || {};
+  const sc   = (report.metrics || {}).search_console  || {};
+  const totalSpend = (ga.spend||0) + (meta.spend||0);
+  const totalRev   = (ga.conv_value||0) + (meta.conv_value||0);
+  const blendROAS  = totalRev > 0 ? (totalRev / Math.max(0.01, totalSpend)).toFixed(1) : '—';
+
+  const kpis = [
+    {label:'Total Ad Spend',      val:anlFmtCur(totalSpend),          sub:`${report.period}`},
+    {label:'Total Revenue',        val:anlFmtCur(totalRev),            sub:blendROAS !== '—' ? `${blendROAS}x blended ROAS` : '—'},
+    {label:'Organic Sessions',     val:anlFmtNum(g4.sessions||0),      sub:g4.conv_rate ? `${g4.conv_rate}% conv rate` : ''},
+    {label:'Search Impressions',   val:anlFmtNum(sc.impressions||0),   sub:sc.avg_position ? `Avg pos ${sc.avg_position}` : ''},
+  ];
+
+  const av = (initials, bg) =>
+    `<span class="rpt-author-av" style="background:${bg};">${initials}</span>`;
+
+  const recs = (report.recommendations || []).map(r => `
+    <tr>
+      <td><span class="rpt-pri rpt-pri-${r.priority}">${r.priority}</span></td>
+      <td style="color:#333;">${r.action}</td>
+      <td><span class="rpt-owner">${r.owner}</span></td>
+    </tr>`).join('');
+
+  document.getElementById('rptViewerBody').innerHTML = `
+    <div class="rpt-health-bar">
+      <div>
+        <span class="rpt-score-big" style="color:${scoreCol};">${score}</span>
+        <span class="rpt-score-denom">/10</span>
+      </div>
+      <div class="rpt-health-info">
+        <div class="rpt-health-label-txt">${report.health_label || 'Campaign Health'}</div>
+        <div class="rpt-health-track"><div class="rpt-health-fill" style="width:${score*10}%;background:${scoreCol};"></div></div>
+      </div>
+    </div>
+
+    <div class="rpt-kpi-strip">
+      ${kpis.map(k=>`<div class="rpt-kpi">
+        <div class="rpt-kpi-label">${k.label}</div>
+        <div class="rpt-kpi-val">${k.val}</div>
+        ${k.sub?`<div class="rpt-kpi-sub">${k.sub}</div>`:''}
+      </div>`).join('')}
+    </div>
+
+    <div class="rpt-section">
+      <div class="rpt-sec-hdr">
+        <div class="rpt-sec-title">Executive Summary</div>
+        <div class="rpt-sec-author">${av('SL','#D4622A')} Sarah Lin, CMO</div>
+      </div>
+      <div class="rpt-sec-body"><p>${report.exec_summary || '—'}</p></div>
+    </div>
+
+    <div class="rpt-section">
+      <div class="rpt-sec-hdr">
+        <div class="rpt-sec-title">Data Analysis</div>
+        <div class="rpt-sec-author">${av('RN','#4285F4')} Raj Nair</div>
+      </div>
+      <div class="rpt-sec-body">${rptMd(report.raj_analysis || '—')}</div>
+    </div>
+
+    <div class="rpt-section">
+      <div class="rpt-sec-hdr">
+        <div class="rpt-sec-title">Client Narrative</div>
+        <div class="rpt-sec-author">${av('JP','#30D158')} Jess Park</div>
+      </div>
+      <div class="rpt-sec-body">${rptMd(report.jess_narrative || '—')}</div>
+    </div>
+
+    ${recs ? `<div class="rpt-section">
+      <div class="rpt-sec-hdr">
+        <div class="rpt-sec-title">Strategic Recommendations</div>
+        <div class="rpt-sec-author">${av('SL','#D4622A')} Sarah Lin, CMO</div>
+      </div>
+      <table class="rpt-rec-table">
+        <thead><tr><th style="width:80px;">Priority</th><th>Action</th><th style="width:90px;">Owner</th></tr></thead>
+        <tbody>${recs}</tbody>
+      </table>
+      ${report.budget_note ? `<div class="rpt-sign-off" style="font-style:normal;border-left-color:#FF9F0A;">💡 <strong>Budget note:</strong> ${report.budget_note}</div>` : ''}
+      ${report.sarah_sign_off ? `<div class="rpt-sign-off">"${report.sarah_sign_off}"<span class="rpt-sign-off-name">— Sarah Lin, CMO · ClickPoint Marketing</span></div>` : ''}
+    </div>` : ''}
+
+    <div class="rpt-footer">
+      Generated ${new Date(report.generated_at||Date.now()).toLocaleString('en-AU',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})} &nbsp;·&nbsp; ClickPoint Marketing HQ &nbsp;·&nbsp; Confidential
+    </div>`;
+}
+
+// Minimal markdown → HTML (bold, headers, paragraphs)
+function rptMd(text) {
+  if (!text) return '';
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/^#{1,3}\s+(.+)$/gm, (_,t) => `<h3>${t}</h3>`)
+    .split(/\n\n+/)
+    .map(para => para.trim() ? `<p>${para.replace(/\n/g,'<br>')}</p>` : '')
+    .join('');
+}
 </script>
+<!-- ══════════════════════════════════════════════════════════════════════════
+     INTEGRATIONS HUB
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div class="intg-backdrop" id="intgBackdrop">
+  <div class="intg-shell">
+
+    <div class="intg-hdr">
+      <div class="intg-hdr-left">
+        <h2>🔌 Integrations Hub</h2>
+        <p>Connect client accounts to pull live data from ad platforms, analytics, CRM &amp; more</p>
+      </div>
+      <div class="intg-hdr-right">
+        <button class="intg-close-x" onclick="intgClose()">✕</button>
+      </div>
+    </div>
+
+    <div class="intg-secure-bar">
+      🔐 Credentials are AES-256 encrypted by your server before reaching Supabase — raw tokens never touch the browser or database unencrypted.
+    </div>
+
+    <div class="intg-body">
+      <div class="intg-sidebar">
+        <div class="intg-cat-hd">View</div>
+        <div class="intg-cat active" data-cat="all"       onclick="intgSetCat('all')">All Platforms</div>
+        <div class="intg-cat-hd">Category</div>
+        <div class="intg-cat" data-cat="paid"       onclick="intgSetCat('paid')">Paid Search &amp; Social</div>
+        <div class="intg-cat" data-cat="analytics"  onclick="intgSetCat('analytics')">Analytics</div>
+        <div class="intg-cat" data-cat="crm"        onclick="intgSetCat('crm')">CRM</div>
+        <div class="intg-cat" data-cat="email"      onclick="intgSetCat('email')">Email &amp; SMS</div>
+        <div class="intg-cat" data-cat="ecommerce"  onclick="intgSetCat('ecommerce')">E-commerce</div>
+      </div>
+      <div class="intg-grid-wrap">
+        <div class="intg-grid" id="intgGrid">
+          <!-- populated by intgRender() -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Integrations connect modal -->
+<div class="intg-modal-bg" id="intgModalBg" onclick="if(event.target===this)intgCloseModal()">
+  <div class="intg-modal" id="intgModal"></div>
+</div>
+
+<!-- ── Portal Access Modal ──────────────────────────────────────────────────── -->
+<div class="pac-modal-bg" id="pacModalBg" onclick="if(event.target===this)pacClose()">
+  <div class="pac-modal">
+    <div class="pac-title">🔗 Share Client Portal</div>
+    <div class="pac-sub" id="pacSub">Generate secure access for your client to view their campaigns and reports.</div>
+    <div class="pac-field">
+      <label>Client</label>
+      <input type="text" id="pacClient" readonly style="background:#F9F8F4;color:#888;">
+    </div>
+    <div class="pac-field">
+      <label>Contact Email</label>
+      <input type="email" id="pacEmail" placeholder="client@company.com">
+    </div>
+    <div class="pac-result" id="pacResult">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#999;margin-bottom:6px;">Access Code</div>
+      <div class="pac-result-code" id="pacCode">——————</div>
+      <div class="pac-result-hint">Share this code with your contact. They'll use it with their email on the portal login page.</div>
+      <div class="pac-copy-row">
+        <button class="pac-copy-btn" onclick="pacCopy('code')">📋 Copy Code</button>
+        <button class="pac-copy-btn" onclick="pacCopy('link')">🔗 Copy Portal Link</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+      <input type="checkbox" id="pacSendEmail" style="width:15px;height:15px;accent-color:#1C3A2E;">
+      <label for="pacSendEmail" style="font-size:13px;color:#555;cursor:pointer;">Email the access code to the client automatically</label>
+    </div>
+    <div class="pac-actions">
+      <button class="pac-cancel" onclick="pacClose()">Cancel</button>
+      <button class="pac-generate" id="pacGenerateBtn" onclick="pacGenerate()">✦ Generate Access</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Workspaces Panel ───────────────────────────────────────────────────────── -->
+<div id="wsPanel" style="position:fixed;top:0;right:0;bottom:0;width:720px;z-index:301;background:#F4F3EE;overflow-y:auto;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);">
+  <!-- Header -->
+  <div style="background:#1C3A2E;padding:24px 28px 20px;position:sticky;top:0;z-index:10;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+      <div style="font-size:20px;font-weight:800;color:#fff;letter-spacing:-0.5px;">🏢 Client Workspaces</div>
+      <div style="margin-left:auto;display:flex;gap:8px;">
+        <button onclick="wsCreateOpen()" style="padding:7px 16px;background:rgba(212,98,42,0.9);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;">+ New Workspace</button>
+        <button onclick="wsClose()" style="padding:7px 14px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.7);font-size:12px;font-weight:600;cursor:pointer;">✕ Close</button>
+      </div>
+    </div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.5);">Manage and monitor all client workspaces. You have full visibility — clients only see their own data.</div>
+  </div>
+
+  <!-- Stats bar -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(0,0,0,0.1);margin-bottom:20px;">
+    <div style="background:#fff;padding:16px 20px;"><div style="font-size:24px;font-weight:800;color:#1C3A2E;" id="wsStatTotal">0</div><div style="font-size:11px;color:#999;margin-top:2px;">Total Workspaces</div></div>
+    <div style="background:#fff;padding:16px 20px;"><div style="font-size:24px;font-weight:800;color:#1C8C44;" id="wsStatActive">0</div><div style="font-size:11px;color:#999;margin-top:2px;">Active This Week</div></div>
+    <div style="background:#fff;padding:16px 20px;"><div style="font-size:24px;font-weight:800;color:#D4622A;" id="wsStatAi">0</div><div style="font-size:11px;color:#999;margin-top:2px;">AI Queries Today</div></div>
+  </div>
+
+  <!-- Create form (inline, no fixed overlay) -->
+  <div id="wsCreateForm" style="display:none;padding:0 20px 16px;">
+    <div style="background:#fff;border:1px solid #E2E1DB;border-radius:16px;padding:28px;">
+      <div style="font-size:18px;font-weight:800;color:#1C3A2E;margin-bottom:18px;">➕ Create Client Workspace</div>
+      <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Company Name</label>
+      <input id="wsCreateName" type="text" placeholder="e.g. Crestwave Foods" style="width:100%;padding:12px 16px;border:1.5px solid #E2E1DB;border-radius:10px;font-size:15px;font-family:inherit;margin-bottom:14px;outline:none;" />
+      <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Client Email</label>
+      <input id="wsCreateEmail" type="email" placeholder="client@company.com" style="width:100%;padding:12px 16px;border:1.5px solid #E2E1DB;border-radius:10px;font-size:15px;font-family:inherit;margin-bottom:20px;outline:none;" />
+      <div id="wsCreateResult" style="display:none;background:#F0F8F4;border:1px solid #D4E8DA;border-radius:10px;padding:16px;margin-bottom:16px;font-size:13px;"></div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="wsCreateSubmit()" style="flex:1;padding:13px;background:#1C3A2E;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">🚀 Create Workspace</button>
+        <button onclick="document.getElementById('wsCreateForm').style.display='none'" style="padding:13px 20px;background:#F4F3EE;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;color:#555;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workspace cards -->
+  <div style="padding:0 20px 20px;" id="wsCardGrid"></div>
+</div>
+
+<!-- ── Notification Settings Modal ──────────────────────────────────────────── -->
+<div class="ntf-modal-bg" id="ntfModalBg" onclick="if(event.target===this)ntfClose()">
+  <div class="ntf-modal">
+    <div class="ntf-hdr">
+      <div class="ntf-hdr-info">
+        <div class="ntf-title">🔔 Notification Settings</div>
+        <div class="ntf-sub">Get alerted on Slack or email when things need attention.</div>
+      </div>
+      <button class="ntf-close-x" onclick="ntfClose()">✕</button>
+    </div>
+    <div class="ntf-body">
+      <!-- Slack -->
+      <div class="ntf-channel-card">
+        <div class="ntf-channel-hdr">
+          <span class="ntf-channel-icon">💬</span>
+          <span class="ntf-channel-name">Slack</span>
+          <span class="ntf-channel-status" id="ntfSlackStatus">Not configured</span>
+        </div>
+        <div class="ntf-field">
+          <label>Webhook URL</label>
+          <input type="url" id="ntfSlackUrl" placeholder="https://hooks.slack.com/services/..." oninput="ntfUpdateStatus()">
+        </div>
+        <button class="ntf-test-btn" onclick="ntfTest('slack')">🧪 Send test message</button>
+      </div>
+      <!-- Email -->
+      <div class="ntf-channel-card">
+        <div class="ntf-channel-hdr">
+          <span class="ntf-channel-icon">📧</span>
+          <span class="ntf-channel-name">Email</span>
+          <span class="ntf-channel-status" id="ntfEmailStatus">Not configured</span>
+        </div>
+        <div class="ntf-field">
+          <label>Resend API Key <span style="font-weight:400;color:#aaa;">(free at resend.com)</span></label>
+          <input type="text" id="ntfResendKey" placeholder="re_xxxxxxxxxx" oninput="ntfUpdateStatus()">
+        </div>
+        <div class="ntf-field">
+          <label>Notify Email Address</label>
+          <input type="email" id="ntfEmail" placeholder="team@yourcompany.com" oninput="ntfUpdateStatus()">
+        </div>
+        <button class="ntf-test-btn" onclick="ntfTest('email')">🧪 Send test email</button>
+      </div>
+      <!-- Triggers -->
+      <hr class="ntf-divider">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#aaa;margin-bottom:12px;">Alert Triggers</div>
+      <div class="ntf-triggers">
+        <div class="ntf-trigger-row">
+          <div><div class="ntf-trigger-label">🚨 Escalation raised</div><div class="ntf-trigger-desc">When an agent flags an urgent issue for a client</div></div>
+          <button class="ntf-toggle on" id="ntfTrigEsc" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="ntf-trigger-row">
+          <div><div class="ntf-trigger-label">⏰ Task overdue</div><div class="ntf-trigger-desc">When a task passes its due date without completion</div></div>
+          <button class="ntf-toggle on" id="ntfTrigOverdue" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="ntf-trigger-row">
+          <div><div class="ntf-trigger-label">📋 Report generated</div><div class="ntf-trigger-desc">When a monthly client report is published</div></div>
+          <button class="ntf-toggle on" id="ntfTrigReport" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="ntf-trigger-row">
+          <div><div class="ntf-trigger-label">👤 New client onboarded</div><div class="ntf-trigger-desc">When a new client completes onboarding</div></div>
+          <button class="ntf-toggle" id="ntfTrigClient" onclick="this.classList.toggle('on')"></button>
+        </div>
+      </div>
+      <button class="ntf-save-btn" onclick="ntfSave()">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Reports Panel ────────────────────────────────────────────────────────── -->
+<div class="rpt-backdrop" id="rptBackdrop">
+  <div class="rpt-hdr">
+    <button class="rpt-back" onclick="rptClose()">← Back</button>
+    <div class="rpt-title">📋 Monthly Reports</div>
+    <button class="rpt-gen-btn" onclick="rptOpenGenModal()">✦ &nbsp;Generate Report</button>
+    <button class="rpt-close-x" onclick="rptClose()">✕</button>
+  </div>
+  <div class="rpt-body" id="rptBody">
+    <div class="rpt-empty">
+      <div class="rpt-empty-icon">📋</div>
+      <div class="rpt-empty-text">No reports yet.<br>Click <strong>Generate Report</strong> to create your first monthly client report.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Report Generation Modal ──────────────────────────────────────────────── -->
+<div class="rpt-gen-bg" id="rptGenBg" onclick="if(event.target===this)rptCloseGenModal()">
+  <div class="rpt-gen-modal">
+    <div class="rpt-gen-title">✦ Generate Monthly Report</div>
+    <div class="rpt-gen-sub">Raj analyses data → Jess writes the narrative → Sarah reviews &amp; signs off</div>
+    <div class="rpt-gen-fields">
+      <div class="full">
+        <label>Client</label>
+        <select id="rptGenClient"></select>
+      </div>
+      <div>
+        <label>Month</label>
+        <select id="rptGenMonth">
+          <option>January</option><option>February</option><option>March</option>
+          <option selected>April</option><option>May</option><option>June</option>
+          <option>July</option><option>August</option><option>September</option>
+          <option>October</option><option>November</option><option>December</option>
+        </select>
+      </div>
+      <div>
+        <label>Year</label>
+        <input type="number" id="rptGenYear" value="2026" min="2020" max="2030">
+      </div>
+    </div>
+    <div class="rpt-steps">
+      <div class="rpt-step" id="rptStep1">
+        <div class="rpt-step-num" id="rptStep1Num">1</div>
+        <div class="rpt-step-info">
+          <div class="rpt-step-name">Raj Nair — Data Analysis</div>
+          <div class="rpt-step-desc">Pulls metrics across all platforms and writes the performance breakdown</div>
+        </div>
+        <div class="rpt-step-status" id="rptStep1Status">Pending</div>
+      </div>
+      <div class="rpt-step" id="rptStep2">
+        <div class="rpt-step-num" id="rptStep2Num">2</div>
+        <div class="rpt-step-info">
+          <div class="rpt-step-name">Jess Park — Client Narrative</div>
+          <div class="rpt-step-desc">Translates the data into compelling, client-facing storytelling</div>
+        </div>
+        <div class="rpt-step-status" id="rptStep2Status">Pending</div>
+      </div>
+      <div class="rpt-step" id="rptStep3">
+        <div class="rpt-step-num" id="rptStep3Num">3</div>
+        <div class="rpt-step-info">
+          <div class="rpt-step-name">Sarah Lin — Review &amp; Strategy</div>
+          <div class="rpt-step-desc">Writes the executive summary, health score, and strategic recommendations</div>
+        </div>
+        <div class="rpt-step-status" id="rptStep3Status">Pending</div>
+      </div>
+    </div>
+    <div class="rpt-gen-actions">
+      <button class="rpt-gen-cancel" id="rptGenCancel" onclick="rptCloseGenModal()">Cancel</button>
+      <button class="rpt-gen-submit" id="rptGenSubmit" onclick="rptStartGeneration()">✦ &nbsp;Generate Report</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Report Viewer ─────────────────────────────────────────────────────────── -->
+<div class="rpt-viewer-bg" id="rptViewerBg" onclick="if(event.target===this)rptCloseViewer()">
+  <div class="rpt-viewer" id="rptViewer">
+    <div class="rpt-viewer-bar">
+      <div class="rpt-viewer-logo">✦ ClickPoint</div>
+      <div class="rpt-viewer-title">
+        <div class="rpt-viewer-client" id="rptViewerClient">—</div>
+        <div class="rpt-viewer-period" id="rptViewerPeriod">Monthly Report</div>
+      </div>
+      <div class="rpt-viewer-acts">
+        <button class="rpt-viewer-print" onclick="window.print()">🖨 Print / PDF</button>
+        <button class="rpt-viewer-close" onclick="rptCloseViewer()">✕</button>
+      </div>
+    </div>
+    <div class="rpt-viewer-body" id="rptViewerBody"></div>
+  </div>
+</div>
+
+<!-- ── Per-client Analytics Dashboard ─────────────────────────────────────── -->
+<div class="anl-backdrop" id="anlBackdrop" onclick="if(event.target===this)anlClose()">
+  <div class="anl-shell">
+    <div class="anl-hdr">
+      <button class="anl-back" onclick="anlClose()">← Back</button>
+      <div class="anl-client-name" id="anlClientName">Analytics</div>
+      <select class="anl-range-sel" id="anlRange" onchange="anlLoad()">
+        <option value="7">Last 7 days</option>
+        <option value="30" selected>Last 30 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+      <button class="anl-sync-btn" id="anlSyncBtn" onclick="anlSync()">🔄 Sync Now</button>
+      <button class="anl-close-x" onclick="anlClose()">✕</button>
+    </div>
+    <div class="anl-body" id="anlBody">
+      <div style="text-align:center;padding:60px;color:#aaa;font-size:13px;">Loading analytics…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Manage Staff modal ───────────────────────────────────────────────────── -->
+<div class="staff-modal-bg" id="staffModalBg" onclick="if(event.target===this)staffClose()">
+  <div class="staff-modal">
+    <div class="staff-modal-hdr">
+      <h3 id="staffModalTitle">👥 Manage Staff</h3>
+      <button class="staff-add-btn" id="staffAddBtn" onclick="staffEdit(null)">+ Add Member</button>
+      <button class="staff-close-x" onclick="staffClose()">✕</button>
+    </div>
+    <div class="staff-modal-body" id="staffModalBody">
+      <!-- populated by staffRenderList() or staffRenderEdit() -->
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

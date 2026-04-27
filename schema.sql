@@ -103,6 +103,18 @@ create table if not exists cmd_escalations (
   created_at  timestamptz default now()
 );
 
+create table if not exists campaigns (
+  id          bigint generated always as identity primary key,
+  name        text not null,
+  client      text,
+  types       text,
+  audience    text,
+  brief       text,
+  assigned    text,
+  status      text default 'Active',
+  created_at  timestamptz default now()
+);
+
 -- ── Enable Row Level Security (read-only for anon) ────────────────────────────
 
 alter table clients          enable row level security;
@@ -113,6 +125,7 @@ alter table cmd_feed         enable row level security;
 alter table cmd_threads      enable row level security;
 alter table cmd_messages     enable row level security;
 alter table cmd_escalations  enable row level security;
+alter table campaigns        enable row level security;
 
 -- Allow anon full access (you can tighten this later with auth)
 create policy "anon_all" on clients          for all using (true) with check (true);
