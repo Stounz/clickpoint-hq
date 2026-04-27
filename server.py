@@ -37,6 +37,12 @@ def _load_env() -> dict:
     # System env overrides file
     for k in list(result):
         result[k] = os.getenv(k, result[k])
+    # Also pick up env vars that weren't in .env (e.g. set via Railway/Heroku dashboard)
+    for k in ('ANTHROPIC_API_KEY', 'SUPABASE_URL', 'SUPABASE_SERVICE_KEY',
+               'INTEGRATION_ENCRYPTION_KEY', 'SLACK_WEBHOOK_URL', 'RESEND_API_KEY', 'NOTIFY_EMAIL'):
+        env_val = os.getenv(k, '')
+        if env_val:
+            result[k] = env_val
     return result
 
 _ENV = _load_env()
