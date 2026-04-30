@@ -69,7 +69,9 @@ def _load_env() -> dict:
         'HQ_ADMIN_PASS':   _d('YWRtaW5fMTIzIQ=='),
         'HUBSPOT_TOKEN':   _d('cGF0LWFwMS0wMGMwMGEzNy1mNDM0LTQ4NWUtOGI0Zi03YTQ3M2FiZWQ0NjU='),
         'RESEND_API_KEY':  _d('cmVfYW1tRkg0czFfTGVualNuOUI5c0FhYjVkR2hRcDYxOEV5'),
-        'STRIPE_SECRET_KEY': _d('c2tfbGl2ZV81MUNOaVhsSDJJSHZVNmlVNUZaa3JZUTVNa3dQQzd6RmVLY21RckZQY3FWUHlBd0IyQ3NMRlBGblhrekhSNVhpMUtaeU1XTzFnaDFLQnJFUklodzNPd2hacTAwekNhVzlWczg='),
+        'STRIPE_SECRET_KEY':  _d('c2tfbGl2ZV81MUNOaVhsSDJJSHZVNmlVNUZaa3JZUTVNa3dQQzd6RmVLY21RckZQY3FWUHlBd0IyQ3NMRlBGblhrekhSNVhpMUtaeU1XTzFnaDFLQnJFUklodzNPd2hacTAwekNhVzlWczg='),
+        'SUPABASE_URL':       _d('aHR0cHM6Ly9iYW5lbHZ6anR0ZHFrd21idnlibS5zdXBhYmFzZS5jbw=='),
+        'SUPABASE_SERVICE_KEY': _d('c2Jfc2VjcmV0X0NKekNfaW9FUTJERUJNZDRhV3g5eFFfcGZrUmp0V3U='),
         # STRIPE_PRICE_GROWTH, STRIPE_PRICE_PRO, STRIPE_WEBHOOK_SECRET — set once Stripe products are created
     }
     for k, v in _baked.items():
@@ -745,6 +747,12 @@ def _push_to_hubspot(contact_props: dict, company_props: dict = None, note: str 
             print(f'  ⚠️  HubSpot note error: {e}')
 
     return bool(contact_id)
+
+def _hash_password(password: str, email: str) -> str:
+    """Deterministic password hash — pbkdf2_hmac with email-derived salt."""
+    import hashlib
+    salt = hashlib.sha256(email.lower().encode()).hexdigest()[:16]
+    return hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000).hex()
 
 def _get_stripe_customer_email(customer_id: str) -> str:
     """Look up a Stripe customer's email by their customer ID."""
@@ -2231,6 +2239,36 @@ class AgentHandler(BaseHTTPRequestHandler):
             note=f'Partner registration — ID: {partner_id} | Registered: {ts}',
         )
 
+        # ── Save credentials to Supabase ─────────────────────────────────────
+        sb_url = os.getenv('SUPABASE_URL', '') or SUPABASE_URL
+        sb_key = os.getenv('SUPABASE_SERVICE_KEY', '') or SUPABASE_SERVICE_KEY
+        if sb_url and sb_key:
+            try:
+                pw_hash = _hash_password(password, email)
+                row = {
+                    'partner_id':    partner_id,
+                    'email':         email,
+                    'password_hash': pw_hash,
+                    'name':          name,
+                    'agency_name':   agency_name,
+                    'website':       website,
+                }
+                req = urllib.request.Request(
+                    f'{sb_url}/rest/v1/partner_accounts',
+                    data=json.dumps(row).encode(),
+                    headers={
+                        'apikey':        sb_key,
+                        'Authorization': f'Bearer {sb_key}',
+                        'Content-Type':  'application/json',
+                        'Prefer':        'return=minimal,resolution=merge-duplicates',
+                    },
+                    method='POST',
+                )
+                urllib.request.urlopen(req, timeout=6)
+                print(f'  ✅ Partner credentials saved to Supabase: {email}')
+            except Exception as e:
+                print(f'  ⚠️  Supabase partner save error: {e}')
+
         print(f'  🤝 Partner registered: {name} <{email}> ({agency_name}) — id:{partner_id} email_sent:{email_sent}')
         self._json(200, {
             'ok': True,
@@ -2390,6 +2428,40 @@ class AgentHandler(BaseHTTPRequestHandler):
                     'name': 'Agency Partner', 'initials': 'AP',
                     'email': email, 'partnerId': 'partner-demo',
                 }); return
+
+        # ── Supabase partner_accounts lookup ─────────────────────────────────
+        sb_url = os.getenv('SUPABASE_URL', '') or SUPABASE_URL
+        sb_key = os.getenv('SUPABASE_SERVICE_KEY', '') or SUPABASE_SERVICE_KEY
+        if sb_url and sb_key:
+            try:
+                import urllib.parse as _up
+                qurl = (f'{sb_url}/rest/v1/partner_accounts'
+                        f'?email=eq.{_up.quote(email)}&active=eq.true&select=*&limit=1')
+                req = urllib.request.Request(qurl, headers={
+                    'apikey':        sb_key,
+                    'Authorization': f'Bearer {sb_key}',
+                })
+                with urllib.request.urlopen(req, timeout=6) as r:
+                    rows = json.loads(r.read())
+                if rows:
+                    row = rows[0]
+                    expected_hash = _hash_password(password, email)
+                    if row.get('password_hash') == expected_hash:
+                        name        = row.get('name', 'Partner')
+                        agency_name = row.get('agency_name', '')
+                        partner_id  = row.get('partner_id', '')
+                        initials    = ''.join(p[0].upper() for p in name.split()[:2]) or 'PA'
+                        self._json(200, {
+                            'success':   True,
+                            'role':      'partner',
+                            'name':      name,
+                            'initials':  initials,
+                            'email':     email,
+                            'partnerId': partner_id,
+                            'agencyName': agency_name,
+                        }); return
+            except Exception as e:
+                print(f'  ⚠️  Supabase partner auth error: {e}')
 
         self._json(200, {'success': False, 'error': 'Invalid email or password'})
 
