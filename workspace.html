@@ -238,9 +238,172 @@
   /* Admin banner */
   .ws-admin-banner { background:linear-gradient(90deg,rgba(212,98,42,0.12),rgba(212,98,42,0.06)); border:1.5px solid rgba(212,98,42,0.25); border-radius:12px; padding:12px 16px; margin-bottom:20px; display:flex; align-items:center; gap:12px; font-size:13px; color:var(--orange); font-weight:600; }
   .ws-admin-banner a { color:var(--orange); text-decoration:underline; margin-left:auto; font-size:12px; }
+
+  /* ── Onboarding Modal ── */
+  .ws-onboard-overlay { position:fixed; inset:0; background:rgba(10,18,14,0.72); z-index:1000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+  .ws-onboard-modal { background:#fff; border-radius:20px; padding:40px; max-width:520px; width:calc(100% - 40px); box-shadow:0 24px 80px rgba(0,0,0,0.22); }
+  .ws-onboard-logo { font-size:28px; margin-bottom:12px; }
+  .ws-onboard-title { font-size:22px; font-weight:800; color:var(--dark); margin-bottom:6px; }
+  .ws-onboard-sub { font-size:14px; color:var(--muted); margin-bottom:28px; line-height:1.5; }
+  .ws-onboard-label { font-size:12px; font-weight:700; color:var(--dark); margin-bottom:6px; display:block; }
+  .ws-onboard-input { width:100%; padding:11px 14px; border:1.5px solid #E2E1DB; border-radius:10px; font-size:14px; font-family:inherit; outline:none; box-sizing:border-box; margin-bottom:16px; transition:border 0.15s; }
+  .ws-onboard-input:focus { border-color:var(--teal); }
+  .ws-onboard-select { width:100%; padding:11px 14px; border:1.5px solid #E2E1DB; border-radius:10px; font-size:14px; font-family:inherit; outline:none; background:#fff; box-sizing:border-box; margin-bottom:16px; }
+  .ws-onboard-btn { width:100%; padding:14px; background:var(--teal); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; margin-top:8px; font-family:inherit; transition:background 0.15s; }
+  .ws-onboard-btn:hover { background:#254d3a; }
+  .ws-onboard-steps { display:flex; gap:6px; margin-bottom:28px; }
+  .ws-onboard-step { height:4px; flex:1; border-radius:2px; background:#E2E1DB; }
+  .ws-onboard-step.done { background:var(--teal); }
+
+  /* ── Deliverables Library ── */
+  .ws-lib-empty { text-align:center; padding:48px 20px; color:var(--muted); }
+  .ws-lib-empty-icon { font-size:40px; margin-bottom:12px; }
+  .ws-lib-empty-text { font-size:14px; }
+  .ws-lib-item { border:1.5px solid var(--border); border-radius:14px; padding:18px 20px; margin-bottom:12px; background:#fff; transition:box-shadow 0.15s; }
+  .ws-lib-item:hover { box-shadow:0 4px 16px rgba(0,0,0,0.06); }
+  .ws-lib-item-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .ws-lib-type-badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; background:rgba(28,58,46,0.08); color:var(--teal); }
+  .ws-lib-item-title { font-size:14px; font-weight:700; color:var(--dark); flex:1; }
+  .ws-lib-item-date { font-size:11px; color:var(--muted); }
+  .ws-lib-item-preview { font-size:13px; color:#555; line-height:1.6; margin-bottom:14px; max-height:80px; overflow:hidden; position:relative; }
+  .ws-lib-item-preview::after { content:''; position:absolute; bottom:0; left:0; right:0; height:30px; background:linear-gradient(transparent,#fff); }
+  .ws-lib-actions { display:flex; gap:8px; align-items:center; }
+  .ws-lib-approve { padding:7px 16px; background:var(--teal); color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+  .ws-lib-approve:hover { background:#254d3a; }
+  .ws-lib-changes { padding:7px 16px; background:#fff; color:var(--dark); border:1.5px solid var(--border); border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+  .ws-lib-changes:hover { border-color:#aaa; }
+  .ws-lib-status { padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; margin-left:auto; }
+  .ws-lib-status.approved { background:rgba(48,209,88,0.1); color:#1a8a3c; }
+  .ws-lib-status.changes { background:rgba(212,98,42,0.1); color:var(--orange); }
+  .ws-lib-status.pending { background:rgba(28,58,46,0.08); color:var(--teal); }
+  .ws-save-btn { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; background:rgba(28,58,46,0.06); border:1px solid rgba(28,58,46,0.15); border-radius:8px; font-size:11px; font-weight:600; color:var(--teal); cursor:pointer; margin-top:8px; transition:all 0.15s; font-family:inherit; }
+  .ws-save-btn:hover { background:rgba(28,58,46,0.12); }
+  .ws-save-btn.saved { color:#aaa; border-color:#ddd; background:#fafafa; cursor:default; }
+
+  /* ── Brand Hub ── */
+  .ws-brand-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+  .ws-brand-field { }
+  .ws-brand-label { font-size:12px; font-weight:700; color:var(--dark); margin-bottom:6px; display:block; }
+  .ws-brand-input { width:100%; padding:10px 13px; border:1.5px solid #E2E1DB; border-radius:10px; font-size:13px; font-family:inherit; outline:none; box-sizing:border-box; transition:border 0.15s; }
+  .ws-brand-input:focus { border-color:var(--teal); }
+  .ws-brand-textarea { width:100%; padding:10px 13px; border:1.5px solid #E2E1DB; border-radius:10px; font-size:13px; font-family:inherit; outline:none; box-sizing:border-box; resize:vertical; min-height:80px; transition:border 0.15s; }
+  .ws-brand-textarea:focus { border-color:var(--teal); }
+  .ws-brand-color-wrap { display:flex; align-items:center; gap:10px; }
+  .ws-brand-color-swatch { width:36px; height:36px; border-radius:8px; border:1.5px solid #E2E1DB; cursor:pointer; flex-shrink:0; }
+  .ws-brand-save { padding:11px 28px; background:var(--teal); color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+  .ws-brand-save:hover { background:#254d3a; }
+  .ws-brand-saved-toast { display:none; color:#1a8a3c; font-size:13px; font-weight:600; margin-left:12px; }
+
+  /* ── Budget Pacing ── */
+  .ws-pacing-wrap { margin-top:16px; }
+  .ws-pacing-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .ws-pacing-label { font-size:12px; font-weight:700; color:var(--dark); }
+  .ws-pacing-vals { font-size:12px; color:var(--muted); }
+  .ws-pacing-track { height:8px; background:#F0EFE9; border-radius:4px; overflow:hidden; position:relative; }
+  .ws-pacing-bar { height:100%; border-radius:4px; transition:width 0.8s ease; }
+  .ws-pacing-bar.green { background:#30D158; }
+  .ws-pacing-bar.amber { background:#FF9500; }
+  .ws-pacing-bar.red { background:#FF453A; }
+  .ws-pacing-marker { position:absolute; top:-3px; height:14px; width:2px; background:var(--dark); border-radius:1px; }
+  .ws-pacing-legend { display:flex; gap:14px; margin-top:8px; }
+  .ws-pacing-legend-item { font-size:10px; color:var(--muted); display:flex; align-items:center; gap:4px; }
+  .ws-pacing-dot { width:8px; height:8px; border-radius:50%; }
+
+  /* ── Rank Tracking ── */
+  .ws-rank-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .ws-rank-table th { text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted); padding:8px 10px; border-bottom:1.5px solid var(--border); }
+  .ws-rank-table td { padding:11px 10px; border-bottom:1px solid var(--border); color:var(--dark); vertical-align:middle; }
+  .ws-rank-table tr:last-child td { border-bottom:none; }
+  .ws-rank-up { color:#30D158; font-weight:700; font-size:12px; }
+  .ws-rank-down { color:#FF453A; font-weight:700; font-size:12px; }
+  .ws-rank-same { color:var(--muted); font-size:12px; }
+  .ws-rank-pos { font-weight:800; font-size:15px; color:var(--dark); }
+  .ws-rank-pos.top3 { color:var(--teal); }
+  .ws-rank-pos.top10 { color:#30D158; }
+  .ws-gsc-connect { background:linear-gradient(135deg,#F0F8F4,#E8F5EE); border:1.5px solid #C8E6D4; border-radius:14px; padding:18px 20px; margin-bottom:20px; display:flex; align-items:center; gap:16px; }
+  .ws-gsc-icon { width:40px; height:40px; background:#fff; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .ws-gsc-text { flex:1; }
+  .ws-gsc-title { font-size:13px; font-weight:700; color:var(--dark); margin-bottom:2px; }
+  .ws-gsc-sub { font-size:12px; color:var(--muted); }
+  .ws-gsc-btn { padding:8px 16px; background:var(--teal); color:#fff; border:none; border-radius:9px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
 </style>
 </head>
 <body>
+
+<!-- ── Onboarding Modal ── -->
+<div id="wsOnboardOverlay" class="ws-onboard-overlay" style="display:none;">
+  <div class="ws-onboard-modal">
+    <div class="ws-onboard-steps">
+      <div class="ws-onboard-step done" id="obStep1"></div>
+      <div class="ws-onboard-step" id="obStep2"></div>
+      <div class="ws-onboard-step" id="obStep3"></div>
+    </div>
+    <div class="ws-onboard-logo">👋</div>
+    <div class="ws-onboard-title" id="obTitle">Welcome to your workspace</div>
+    <div class="ws-onboard-sub" id="obSub">Let's set up your account so your ClickPoint team knows exactly what you're working towards. Takes 60 seconds.</div>
+    <!-- Step 1 -->
+    <div id="obPanel1">
+      <label class="ws-onboard-label">What's your primary marketing goal right now?</label>
+      <select class="ws-onboard-select" id="obGoal">
+        <option value="">Select a goal…</option>
+        <option>Generate more leads</option>
+        <option>Increase brand awareness</option>
+        <option>Grow e-commerce revenue</option>
+        <option>Reduce cost per acquisition</option>
+        <option>Launch a new product or service</option>
+        <option>Improve SEO and organic traffic</option>
+        <option>Scale existing campaigns</option>
+      </select>
+      <label class="ws-onboard-label">Monthly marketing budget (approx.)</label>
+      <select class="ws-onboard-select" id="obBudget">
+        <option value="">Select a range…</option>
+        <option>Under £2,000/mo</option>
+        <option>£2,000 – £5,000/mo</option>
+        <option>£5,000 – £10,000/mo</option>
+        <option>£10,000 – £25,000/mo</option>
+        <option>£25,000+/mo</option>
+      </select>
+      <button class="ws-onboard-btn" onclick="wsOnboardNext(2)">Continue →</button>
+    </div>
+    <!-- Step 2 -->
+    <div id="obPanel2" style="display:none;">
+      <label class="ws-onboard-label">Do you have a peak season?</label>
+      <select class="ws-onboard-select" id="obPeak">
+        <option value="">Select…</option>
+        <option>No strong seasonality</option>
+        <option>Q1 (Jan–Mar)</option>
+        <option>Q2 (Apr–Jun)</option>
+        <option>Q3 (Jul–Sep)</option>
+        <option>Q4 / Christmas (Oct–Dec)</option>
+        <option>Black Friday / Cyber Monday</option>
+        <option>Summer</option>
+        <option>Multiple peaks</option>
+      </select>
+      <label class="ws-onboard-label">What channels are you currently running? (tick all that apply)</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="obChGoogle" style="accent-color:var(--teal);"> Google Ads</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="obChMeta" style="accent-color:var(--teal);"> Meta Ads</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="obChLinkedIn" style="accent-color:var(--teal);"> LinkedIn Ads</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="obChTikTok" style="accent-color:var(--teal);"> TikTok Ads</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="obChSEO" style="accent-color:var(--teal);"> SEO / Organic</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="obChEmail" style="accent-color:var(--teal);"> Email</label>
+      </div>
+      <button class="ws-onboard-btn" onclick="wsOnboardNext(3)">Continue →</button>
+    </div>
+    <!-- Step 3 -->
+    <div id="obPanel3" style="display:none;">
+      <label class="ws-onboard-label">Anything your team should know upfront? (optional)</label>
+      <textarea class="ws-onboard-input" id="obNotes" rows="3" placeholder="e.g. We're launching a new product in July. Our main competitor is XYZ. CFO reviews all spend over £10K…" style="resize:vertical;min-height:90px;"></textarea>
+      <label class="ws-onboard-label">Connect Google Search Console? (recommended)</label>
+      <div style="background:#F0F8F4;border:1.5px solid #C8E6D4;border-radius:10px;padding:14px;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
+        <span style="font-size:20px;">🔍</span>
+        <div style="flex:1;font-size:12px;color:#555;">Connecting GSC lets Raj track your keyword rankings, impressions, and clicks per article automatically.</div>
+        <button style="padding:7px 14px;background:var(--teal);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;" onclick="alert('GSC OAuth integration will be available shortly. Your account manager will reach out to connect it for you.')">Connect GSC</button>
+      </div>
+      <button class="ws-onboard-btn" onclick="wsOnboardComplete()">🚀 Take me to my workspace</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── Login ── -->
 <div id="loginScreen">
@@ -333,9 +496,11 @@
       <div class="ws-nav-item" data-view="campaigns" onclick="wsSetView('campaigns')">🚀 &nbsp;Campaigns <span class="ws-nav-badge" id="wsNavCampaignBadge" style="display:none"></span></div>
       <div class="ws-nav-item" data-view="analytics" onclick="wsSetView('analytics')">📈 &nbsp;Analytics</div>
       <div class="ws-nav-item" data-view="reports" onclick="wsSetView('reports')">📋 &nbsp;Reports</div>
+      <div class="ws-nav-item" data-view="library" onclick="wsSetView('library')">📁 &nbsp;Library <span class="ws-nav-badge" id="wsNavLibBadge" style="display:none"></span></div>
       <div class="ws-nav-section">AI Assistant</div>
       <div class="ws-nav-item" data-view="ai" onclick="wsSetView('ai')">🎯 &nbsp;Your CMO</div>
       <div class="ws-nav-section">Account</div>
+      <div class="ws-nav-item" data-view="brand" onclick="wsSetView('brand')">🎨 &nbsp;Brand Hub</div>
       <div class="ws-nav-item" data-view="settings" onclick="wsSetView('settings')">⚙️ &nbsp;Settings</div>
     </div>
 
@@ -610,6 +775,106 @@
         </div>
       </div>
 
+      <!-- ── Library View ── -->
+      <div class="ws-view" id="view-library">
+        <div class="ws-page-title">📁 Deliverables Library</div>
+        <div class="ws-page-sub">All work produced by your agency team — approve, request changes, or download.</div>
+        <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+          <button onclick="wsLibFilter('all',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--teal);background:var(--teal);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn active-filter">All</button>
+          <button onclick="wsLibFilter('Content',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--dark);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">Content</button>
+          <button onclick="wsLibFilter('Strategy',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--dark);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">Strategy</button>
+          <button onclick="wsLibFilter('SEO',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--dark);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">SEO</button>
+          <button onclick="wsLibFilter('Ads',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--dark);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">Ads</button>
+        </div>
+        <div id="wsLibraryList"></div>
+      </div>
+
+      <!-- ── Brand Hub View ── -->
+      <div class="ws-view" id="view-brand">
+        <div class="ws-page-title">🎨 Brand Hub</div>
+        <div class="ws-page-sub">Your brand assets and guidelines — used by the team across all content, ads, and creative.</div>
+        <div style="max-width:680px;">
+          <div class="ws-card" style="margin-bottom:20px;">
+            <div class="ws-card-title">Brand Identity</div>
+            <div class="ws-brand-grid">
+              <div class="ws-brand-field">
+                <label class="ws-brand-label">Brand Name</label>
+                <input class="ws-brand-input" id="bBrandName" placeholder="e.g. Apex Dynamics" />
+              </div>
+              <div class="ws-brand-field">
+                <label class="ws-brand-label">Tagline</label>
+                <input class="ws-brand-input" id="bTagline" placeholder="e.g. Built for speed." />
+              </div>
+              <div class="ws-brand-field">
+                <label class="ws-brand-label">Primary Colour</label>
+                <div class="ws-brand-color-wrap">
+                  <input type="color" class="ws-brand-color-swatch" id="bColor1" value="#1C3A2E" />
+                  <input class="ws-brand-input" id="bColor1Hex" placeholder="#1C3A2E" style="margin-bottom:0;" oninput="document.getElementById('bColor1').value=this.value" />
+                </div>
+              </div>
+              <div class="ws-brand-field">
+                <label class="ws-brand-label">Secondary Colour</label>
+                <div class="ws-brand-color-wrap">
+                  <input type="color" class="ws-brand-color-swatch" id="bColor2" value="#D4622A" />
+                  <input class="ws-brand-input" id="bColor2Hex" placeholder="#D4622A" style="margin-bottom:0;" oninput="document.getElementById('bColor2').value=this.value" />
+                </div>
+              </div>
+              <div class="ws-brand-field">
+                <label class="ws-brand-label">Primary Font</label>
+                <input class="ws-brand-input" id="bFont" placeholder="e.g. Inter, Helvetica Neue" />
+              </div>
+              <div class="ws-brand-field">
+                <label class="ws-brand-label">Logo URL</label>
+                <input class="ws-brand-input" id="bLogoUrl" placeholder="https://…" />
+              </div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <label class="ws-brand-label">Tone of Voice</label>
+              <select class="ws-onboard-select" id="bTone" style="margin-bottom:0;">
+                <option value="">Select…</option>
+                <option>Professional & authoritative</option>
+                <option>Friendly & conversational</option>
+                <option>Bold & direct</option>
+                <option>Empathetic & human</option>
+                <option>Technical & precise</option>
+                <option>Playful & creative</option>
+                <option>Luxury & aspirational</option>
+              </select>
+            </div>
+          </div>
+          <div class="ws-card" style="margin-bottom:20px;">
+            <div class="ws-card-title">Messaging</div>
+            <div style="margin-bottom:16px;">
+              <label class="ws-brand-label">Value Proposition (1–2 sentences)</label>
+              <textarea class="ws-brand-textarea" id="bValueProp" placeholder="What does your brand do and for who? What's the key benefit?"></textarea>
+            </div>
+            <div style="margin-bottom:16px;">
+              <label class="ws-brand-label">Words We Use ✅</label>
+              <input class="ws-brand-input" id="bWordsUse" placeholder="e.g. innovative, proven, trusted, fast, results" />
+            </div>
+            <div>
+              <label class="ws-brand-label">Words We Avoid ❌</label>
+              <input class="ws-brand-input" id="bWordsAvoid" placeholder="e.g. cheap, basic, simple, just, easy" />
+            </div>
+          </div>
+          <div class="ws-card" style="margin-bottom:20px;">
+            <div class="ws-card-title">Target Audience</div>
+            <div style="margin-bottom:16px;">
+              <label class="ws-brand-label">Primary Audience</label>
+              <input class="ws-brand-input" id="bAudience" placeholder="e.g. B2B SaaS founders, 30–50, Series A–C companies" />
+            </div>
+            <div>
+              <label class="ws-brand-label">Key Pain Points</label>
+              <textarea class="ws-brand-textarea" id="bPainPoints" placeholder="What problems does your audience have that you solve?"></textarea>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;">
+            <button class="ws-brand-save" onclick="wsSaveBrandHub()">Save Brand Hub</button>
+            <span class="ws-brand-saved-toast" id="bSavedToast">✓ Saved</span>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /ws-main -->
   </div><!-- /ws-layout -->
 </div><!-- /appShell -->
@@ -767,6 +1032,7 @@ function wsInitApp() {
     `Hi! I'm Sarah, CMO here at ClickPoint. I have full visibility into your ${s.companyName} account — campaigns, spend, performance, all of it. Think of this as a direct line to me. Ask me anything: what's working, where to push harder, what your numbers actually mean, or what I'd prioritise this month.`;
 
   wsLoadDashboard();
+  wsCheckOnboarding();
   wsLogActivity('workspace_open', `Workspace opened by ${s.email}`);
 }
 
@@ -819,7 +1085,20 @@ function wsDemoAnalytics(platform) {
   const platforms = {
     search:  { impressions:'124K', clicks:'3,842', ctr:'3.1%', cpc:'£2.40', spend:'£9,220', conv:'187', cpa:'£49', change: '+12%', bars:[40,55,48,62,58,70,65,72,68,80,75,82] },
     social:  { reach:'48K', clicks:'1,204', ctr:'2.5%', cpm:'£8.20', spend:'£5,100', leads:'94', cpl:'£54', change: '+8%',  bars:[30,38,35,45,42,50,48,55,52,58,60,62] },
-    organic: { sessions:'8,420', pageviews:'22K', keywords:'342', topPos:'14', organic_leads:'62', blog_posts:'12', dr:'41', change: '+18%', bars:[50,52,55,58,60,65,62,68,70,72,74,78] },
+    organic: { sessions:'8,420', pageviews:'22K', keywords:'342', topPos:'14', organic_leads:'62', blog_posts:'12', dr:'41', change: '+18%', bars:[50,52,55,58,60,65,62,68,70,72,74,78],
+      rankings:[
+        { kw:'marketing agency london',       pos:7,  prev:11, vol:'1.9K' },
+        { kw:'google ads management',         pos:4,  prev:4,  vol:'2.4K' },
+        { kw:'paid search agency',            pos:12, prev:15, vol:'880'  },
+        { kw:'seo agency for startups',       pos:3,  prev:5,  vol:'590'  },
+        { kw:'b2b lead generation agency',    pos:18, prev:14, vol:'1.1K' },
+        { kw:'ppc management services',       pos:9,  prev:12, vol:'720'  },
+        { kw:'content marketing strategy',    pos:5,  prev:5,  vol:'3.2K' },
+        { kw:'meta ads management',           pos:21, prev:24, vol:'480'  },
+        { kw:'marketing agency pricing',      pos:2,  prev:3,  vol:'390'  },
+        { kw:'digital marketing for saas',    pos:14, prev:19, vol:'260'  },
+      ]
+    },
     email:   { sent:'4,200', opens:'1,134', open_rate:'27%', clicks:'380', ctr:'9%', unsubs:'12', revenue:'£3,800', change: '+5%',  bars:[20,25,22,28,26,32,30,35,33,38,36,40] },
   };
   return platforms[platform] || platforms.search;
@@ -1052,6 +1331,67 @@ function wsRenderAnalytics(platform) {
   };
   const metrics = labels[platform];
   const peak = Math.max(...d.bars);
+
+  let extraHtml = '';
+  if (platform === 'organic' && d.rankings) {
+    const rankRows = d.rankings.map(r => {
+      const diff = r.prev - r.pos; // positive = moved up
+      const cls = diff > 0 ? 'ws-rank-up' : diff < 0 ? 'ws-rank-down' : 'ws-rank-same';
+      const arrow = diff > 0 ? `↑${diff}` : diff < 0 ? `↓${Math.abs(diff)}` : '—';
+      const posCls = r.pos <= 3 ? 'top3' : r.pos <= 10 ? 'top10' : '';
+      return `<tr>
+        <td>${r.kw}</td>
+        <td><span class="ws-rank-pos ${posCls}">#${r.pos}</span></td>
+        <td><span class="${cls}">${arrow}</span></td>
+        <td style="color:var(--muted);">${r.vol}/mo</td>
+      </tr>`;
+    }).join('');
+    extraHtml = `
+      <div class="ws-gsc-connect">
+        <div class="ws-gsc-icon">🔍</div>
+        <div class="ws-gsc-text">
+          <div class="ws-gsc-title">Connect Google Search Console</div>
+          <div class="ws-gsc-sub">See real impressions, clicks, and position data per article — updated weekly.</div>
+        </div>
+        <button class="ws-gsc-btn" onclick="alert('Your account manager will reach out to connect GSC. You can also ask in the Your CMO chat.')">Connect GSC</button>
+      </div>
+      <div class="ws-card">
+        <div class="ws-card-title">🎯 Priority Keyword Rankings — Weekly Snapshot</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Tracked weekly via Ahrefs &amp; Search Console. <span style="color:#30D158;">●</span> Top 3 &nbsp;<span style="color:#30D158;">●</span> Top 10</div>
+        <table class="ws-rank-table">
+          <thead><tr><th>Keyword</th><th>Position</th><th>Change</th><th>Volume</th></tr></thead>
+          <tbody>${rankRows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  if (platform === 'search') {
+    const dayOfMonth = new Date().getDate();
+    const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth()+1, 0).getDate();
+    const budgetPct = Math.round(parseInt(d.spend.replace(/[^0-9]/g,'')) / 9220 * 70); // demo pacing
+    const dayPct = Math.round(dayOfMonth / daysInMonth * 100);
+    const pacingCls = Math.abs(budgetPct - dayPct) < 10 ? 'green' : budgetPct > dayPct + 15 ? 'red' : 'amber';
+    const pacingLabel = pacingCls === 'green' ? 'On pace' : pacingCls === 'red' ? 'Overpacing — monitor closely' : 'Slightly ahead of pace';
+    extraHtml = `
+      <div class="ws-card">
+        <div class="ws-card-title">💰 Budget Pacing — This Month</div>
+        <div class="ws-pacing-wrap">
+          <div class="ws-pacing-header">
+            <span class="ws-pacing-label">${pacingLabel}</span>
+            <span class="ws-pacing-vals">Day ${dayOfMonth} of ${daysInMonth} &nbsp;·&nbsp; ${budgetPct}% spent</span>
+          </div>
+          <div class="ws-pacing-track">
+            <div class="ws-pacing-bar ${pacingCls}" style="width:${budgetPct}%"></div>
+            <div class="ws-pacing-marker" style="left:${dayPct}%"></div>
+          </div>
+          <div class="ws-pacing-legend">
+            <div class="ws-pacing-legend-item"><div class="ws-pacing-dot" style="background:#30D158;"></div> Budget spent</div>
+            <div class="ws-pacing-legend-item"><div class="ws-pacing-dot" style="background:var(--dark);"></div> Days elapsed</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
   document.getElementById('wsAnalyticsContent').innerHTML = `
     <div class="ws-metrics-grid">
       ${metrics.map(m => `
@@ -1069,6 +1409,7 @@ function wsRenderAnalytics(platform) {
       </div>
       <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:6px;"><span>12 weeks ago</span><span>This week</span></div>
     </div>
+    ${extraHtml}
   `;
 }
 
@@ -1176,12 +1517,14 @@ async function wsAiSend() {
   }
 
   document.getElementById(typingId).remove();
+  const msgId = 'wsMsg_' + Date.now();
   msgs.innerHTML += `
-    <div class="ws-msg">
+    <div class="ws-msg" id="${msgId}">
       <div class="ws-msg-avatar" style="background:#D4622A;font-size:11px;font-weight:900;">SL</div>
-      <div>
+      <div style="flex:1;">
         <div class="ws-msg-name">Sarah Lin <span style="font-weight:400;color:#aaa;font-size:11px;">· CMO</span></div>
         <div class="ws-msg-bubble">${reply}</div>
+        <button class="ws-save-btn" onclick="wsSaveToLibrary('Strategy','Sarah Lin — CMO','${reply.replace(/'/g,"\\'").replace(/\n/g,' ')}','${msgId}',this)">💾 Save to Library</button>
       </div>
     </div>
   `;
@@ -1201,6 +1544,8 @@ function wsSetView(view) {
   if (view === 'campaigns') wsLoadCampaigns();
   if (view === 'analytics') { wsRenderAnalytics('search'); }
   if (view === 'reports')   wsLoadReports();
+  if (view === 'library')   wsLoadLibrary();
+  if (view === 'brand')     wsLoadBrandHub();
 }
 
 // ── Activity logging (syncs to agency HQ) ────────────────────────────────────
@@ -1221,6 +1566,150 @@ function wsCopyWorkspaceLink() {
     btn.textContent = 'Copied!';
     setTimeout(() => btn.textContent = orig, 1500);
   });
+}
+
+// ── Onboarding ────────────────────────────────────────────────────────────────
+function wsCheckOnboarding() {
+  const key = 'cp_onboarded_' + wsSession.workspaceId;
+  if (!localStorage.getItem(key)) {
+    document.getElementById('wsOnboardOverlay').style.display = 'flex';
+  }
+}
+
+function wsOnboardNext(step) {
+  document.getElementById('obPanel' + (step-1)).style.display = 'none';
+  document.getElementById('obPanel' + step).style.display = 'block';
+  document.getElementById('obStep' + step).classList.add('done');
+  if (step === 2) {
+    document.getElementById('obTitle').textContent = 'Your channels & seasonality';
+    document.getElementById('obSub').textContent = 'This helps Derek and Cleo plan your paid media strategy correctly.';
+  } else if (step === 3) {
+    document.getElementById('obTitle').textContent = 'Almost done';
+    document.getElementById('obSub').textContent = 'Any final context for your team, and connect Google Search Console to unlock rank tracking.';
+    document.getElementById('obStep3').classList.add('done');
+  }
+}
+
+function wsOnboardComplete() {
+  const data = {
+    goal:     document.getElementById('obGoal').value,
+    budget:   document.getElementById('obBudget').value,
+    peak:     document.getElementById('obPeak').value,
+    channels: ['Google','Meta','LinkedIn','TikTok','SEO','Email'].filter((_,i) =>
+      document.getElementById(['obChGoogle','obChMeta','obChLinkedIn','obChTikTok','obChSEO','obChEmail'][i]).checked),
+    notes:    document.getElementById('obNotes').value,
+    completedAt: new Date().toISOString(),
+  };
+  localStorage.setItem('cp_onboarded_' + wsSession.workspaceId, JSON.stringify(data));
+  document.getElementById('wsOnboardOverlay').style.display = 'none';
+  wsLogActivity('onboarding_complete', `Onboarding completed. Goal: ${data.goal}. Budget: ${data.budget}. Channels: ${data.channels.join(', ')}.`);
+}
+
+// ── Deliverables Library ──────────────────────────────────────────────────────
+function wsLibKey() { return 'cp_library_' + wsSession.workspaceId; }
+function wsGetLibrary() { return JSON.parse(localStorage.getItem(wsLibKey()) || '[]'); }
+function wsSaveLib(items) { localStorage.setItem(wsLibKey(), JSON.stringify(items)); }
+
+function wsSaveToLibrary(type, author, content, msgId, btn) {
+  if (btn.classList.contains('saved')) return;
+  const item = {
+    id: 'lib_' + Date.now(),
+    type, author, content,
+    savedAt: new Date().toISOString(),
+    status: 'pending',
+  };
+  const items = wsGetLibrary();
+  items.unshift(item);
+  wsSaveLib(items);
+  btn.textContent = '✓ Saved to Library';
+  btn.classList.add('saved');
+  // Update badge
+  const badge = document.getElementById('wsNavLibBadge');
+  badge.textContent = items.filter(i => i.status === 'pending').length;
+  badge.style.display = 'inline';
+}
+
+function wsLibFilter(type, btn) {
+  document.querySelectorAll('.ws-lib-filter-btn').forEach(b => {
+    b.style.background = '#fff'; b.style.color = 'var(--dark)'; b.style.borderColor = 'var(--border)';
+  });
+  btn.style.background = 'var(--teal)'; btn.style.color = '#fff'; btn.style.borderColor = 'var(--teal)';
+  wsLoadLibrary(type);
+}
+
+function wsLoadLibrary(filter = 'all') {
+  const items = wsGetLibrary();
+  const el = document.getElementById('wsLibraryList');
+  const filtered = filter === 'all' ? items : items.filter(i => i.type === filter);
+
+  // Update badge
+  const pending = items.filter(i => i.status === 'pending').length;
+  const badge = document.getElementById('wsNavLibBadge');
+  badge.textContent = pending; badge.style.display = pending ? 'inline' : 'none';
+
+  if (!filtered.length) {
+    el.innerHTML = `<div class="ws-lib-empty">
+      <div class="ws-lib-empty-icon">📁</div>
+      <div class="ws-lib-empty-text">${filter === 'all' ? 'No deliverables saved yet.<br>Use the <strong>💾 Save to Library</strong> button in your CMO chat.' : 'No ' + filter + ' deliverables saved yet.'}</div>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = filtered.map(item => {
+    const date = new Date(item.savedAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+    const preview = item.content.length > 200 ? item.content.substring(0,200) + '…' : item.content;
+    const statusLabel = { pending:'Pending Review', approved:'Approved ✓', changes:'Changes Requested' }[item.status] || 'Pending';
+    const actionBtns = item.status === 'pending' ? `
+      <button class="ws-lib-approve" onclick="wsLibApprove('${item.id}')">✓ Approve</button>
+      <button class="ws-lib-changes" onclick="wsLibRequestChanges('${item.id}')">Request Changes</button>
+    ` : '';
+    return `<div class="ws-lib-item" id="libitem_${item.id}">
+      <div class="ws-lib-item-header">
+        <span class="ws-lib-type-badge">${item.type}</span>
+        <span class="ws-lib-item-title">${item.author}</span>
+        <span class="ws-lib-item-date">${date}</span>
+      </div>
+      <div class="ws-lib-item-preview">${preview}</div>
+      <div class="ws-lib-actions">
+        ${actionBtns}
+        <span class="ws-lib-status ${item.status}">${statusLabel}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function wsLibApprove(id) {
+  const items = wsGetLibrary();
+  const item = items.find(i => i.id === id);
+  if (item) { item.status = 'approved'; wsSaveLib(items); wsLoadLibrary(); wsLogActivity('deliverable_approved', `Deliverable approved: ${item.author} — ${item.type}`); }
+}
+
+function wsLibRequestChanges(id) {
+  const items = wsGetLibrary();
+  const item = items.find(i => i.id === id);
+  if (item) { item.status = 'changes'; wsSaveLib(items); wsLoadLibrary(); wsLogActivity('changes_requested', `Changes requested on: ${item.author} — ${item.type}`); }
+}
+
+// ── Brand Hub ─────────────────────────────────────────────────────────────────
+function wsBrandKey() { return 'cp_brand_' + wsSession.workspaceId; }
+
+function wsLoadBrandHub() {
+  const saved = JSON.parse(localStorage.getItem(wsBrandKey()) || '{}');
+  const fields = ['bBrandName','bTagline','bColor1Hex','bColor2Hex','bFont','bLogoUrl','bTone','bValueProp','bWordsUse','bWordsAvoid','bAudience','bPainPoints'];
+  fields.forEach(id => { if (saved[id]) document.getElementById(id).value = saved[id]; });
+  if (saved.bColor1Hex) document.getElementById('bColor1').value = saved.bColor1Hex;
+  if (saved.bColor2Hex) document.getElementById('bColor2').value = saved.bColor2Hex;
+}
+
+function wsSaveBrandHub() {
+  const fields = ['bBrandName','bTagline','bColor1Hex','bColor2Hex','bFont','bLogoUrl','bTone','bValueProp','bWordsUse','bWordsAvoid','bAudience','bPainPoints'];
+  const data = {};
+  fields.forEach(id => { data[id] = document.getElementById(id).value; });
+  localStorage.setItem(wsBrandKey(), JSON.stringify(data));
+  const toast = document.getElementById('bSavedToast');
+  toast.style.display = 'inline';
+  setTimeout(() => toast.style.display = 'none', 2500);
+  wsLogActivity('brand_hub_updated', 'Brand Hub updated by client.');
 }
 
 // ── Auto-restore session ──────────────────────────────────────────────────────
