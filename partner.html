@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Partner Portal — ClickPoint</title>
+<link rel="icon" type="image/png" href="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/cropped-clickpoint-logo-header-2x.png">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --teal:#1C3A2E; --teal-md:#2A5240; --orange:#D4622A;
+    --dark:#1A1A1A; --muted:#888; --border:#E2E1DB; --bg:#F5F4EF;
+    --green:#30D158; --red:#FF453A; --amber:#FF9500; --blue:#0A84FF;
+  }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--dark); min-height:100vh; }
+
+  /* ── Login ── */
+  .pt-login { position:fixed; inset:0; background:#0E1F17; display:flex; align-items:center; justify-content:center; z-index:9999; }
+  .pt-login-card { width:100%; max-width:400px; padding:48px 40px; }
+  .pt-login-logo { margin-bottom:28px; }
+  .pt-login-logo img { height:30px; width:auto; }
+  .pt-login-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; background:rgba(212,98,42,0.15); border:1px solid rgba(212,98,42,0.3); font-size:11px; color:var(--orange); font-weight:700; margin-bottom:24px; }
+  .pt-login-title { font-size:26px; font-weight:800; color:#fff; margin-bottom:6px; }
+  .pt-login-sub { font-size:14px; color:rgba(255,255,255,0.4); margin-bottom:32px; }
+  .pt-login-label { display:block; font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-bottom:8px; }
+  .pt-login-input { width:100%; padding:13px 16px; background:rgba(255,255,255,0.06); border:1.5px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; font-size:14px; font-family:inherit; outline:none; box-sizing:border-box; margin-bottom:16px; transition:border 0.15s; }
+  .pt-login-input:focus { border-color:rgba(212,98,42,0.6); }
+  .pt-login-input::placeholder { color:rgba(255,255,255,0.2); }
+  .pt-login-btn { width:100%; padding:14px; background:var(--orange); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+  .pt-login-btn:hover { background:#C0541E; }
+  .pt-login-btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .pt-login-err { color:var(--red); font-size:13px; margin-top:12px; display:none; }
+  .pt-login-foot { margin-top:24px; font-size:12px; color:rgba(255,255,255,0.25); text-align:center; }
+  .pt-login-foot a { color:rgba(255,255,255,0.4); text-decoration:none; }
+  .pt-login-foot a:hover { color:rgba(255,255,255,0.7); }
+
+  /* ── Onboarding Modal ── */
+  .pt-ob-overlay { position:fixed; inset:0; background:rgba(10,18,14,0.75); z-index:1000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+  .pt-ob-modal { background:#fff; border-radius:20px; padding:40px; max-width:540px; width:calc(100% - 40px); box-shadow:0 24px 80px rgba(0,0,0,0.2); }
+  .pt-ob-steps { display:flex; gap:6px; margin-bottom:28px; }
+  .pt-ob-step { height:4px; flex:1; border-radius:2px; background:#E2E1DB; transition:background 0.3s; }
+  .pt-ob-step.done { background:var(--orange); }
+  .pt-ob-icon { font-size:28px; margin-bottom:12px; }
+  .pt-ob-title { font-size:20px; font-weight:800; color:var(--dark); margin-bottom:6px; }
+  .pt-ob-sub { font-size:13px; color:var(--muted); margin-bottom:24px; line-height:1.5; }
+  .pt-ob-label { font-size:12px; font-weight:700; color:var(--dark); margin-bottom:6px; display:block; }
+  .pt-ob-input { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:10px; font-size:14px; font-family:inherit; outline:none; box-sizing:border-box; margin-bottom:14px; transition:border 0.15s; }
+  .pt-ob-input:focus { border-color:var(--orange); }
+  .pt-ob-select { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:10px; font-size:14px; font-family:inherit; outline:none; background:#fff; box-sizing:border-box; margin-bottom:14px; }
+  .pt-ob-btn { width:100%; padding:13px; background:var(--orange); color:#fff; border:none; border-radius:11px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; margin-top:8px; transition:background 0.15s; }
+  .pt-ob-btn:hover { background:#C0541E; }
+
+  /* ── App Shell ── */
+  .pt-shell { display:flex; min-height:100vh; }
+
+  /* ── Sidebar ── */
+  .pt-sidebar { width:220px; flex-shrink:0; background:var(--teal); display:flex; flex-direction:column; position:sticky; top:0; height:100vh; }
+  .pt-sidebar-head { padding:20px; border-bottom:1px solid rgba(255,255,255,0.08); }
+  .pt-sidebar-head img { height:24px; width:auto; display:block; }
+  .pt-sidebar-badge { margin-top:8px; display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:20px; background:rgba(212,98,42,0.2); font-size:10px; font-weight:700; color:var(--orange); letter-spacing:0.04em; }
+  .pt-nav { flex:1; overflow-y:auto; padding:8px 0; }
+  .pt-nav-section { font-size:9px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.3); padding:12px 20px 4px; }
+  .pt-nav-item { display:flex; align-items:center; gap:10px; padding:9px 20px; font-size:13px; font-weight:500; color:rgba(255,255,255,0.55); cursor:pointer; transition:all 0.15s; border-left:3px solid transparent; }
+  .pt-nav-item:hover { color:#fff; background:rgba(255,255,255,0.06); }
+  .pt-nav-item.active { color:#fff; background:rgba(212,98,42,0.15); border-left-color:var(--orange); font-weight:600; }
+  .pt-nav-badge { margin-left:auto; background:rgba(255,255,255,0.15); color:#fff; font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; }
+  .pt-sidebar-foot { padding:14px 16px; border-top:1px solid rgba(255,255,255,0.08); }
+  .pt-user-row { display:flex; align-items:center; gap:9px; margin-bottom:10px; }
+  .pt-user-av { width:30px; height:30px; border-radius:9px; background:var(--orange); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#fff; flex-shrink:0; }
+  .pt-user-name { font-size:12px; font-weight:600; color:rgba(255,255,255,0.8); }
+  .pt-user-role { font-size:10px; color:rgba(255,255,255,0.35); margin-top:1px; }
+  .pt-signout { width:100%; padding:7px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:rgba(255,255,255,0.4); font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+  .pt-signout:hover { background:rgba(255,59,48,0.15); border-color:rgba(255,59,48,0.3); color:var(--red); }
+
+  /* ── Main ── */
+  .pt-main { flex:1; display:flex; flex-direction:column; min-width:0; }
+  .pt-topbar { padding:14px 32px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:#fff; position:sticky; top:0; z-index:10; }
+  .pt-topbar-title { font-size:16px; font-weight:700; color:var(--dark); }
+  .pt-topbar-sub { font-size:12px; color:var(--muted); margin-top:1px; }
+  .pt-topbar-right { display:flex; align-items:center; gap:10px; }
+  .pt-live-badge { display:flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px; background:rgba(48,209,88,0.1); border:1px solid rgba(48,209,88,0.25); font-size:11px; font-weight:700; color:var(--green); }
+  .pt-live-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .pt-content { padding:28px 32px; flex:1; }
+
+  /* ── Views ── */
+  .pt-view { display:none; }
+  .pt-view.active { display:block; }
+  .pt-page-title { font-size:22px; font-weight:800; color:var(--dark); margin-bottom:4px; }
+  .pt-page-sub { font-size:13px; color:var(--muted); margin-bottom:24px; }
+
+  /* ── KPI Grid ── */
+  .pt-kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
+  .pt-kpi { background:#fff; border-radius:14px; padding:20px; border:1px solid var(--border); }
+  .pt-kpi-val { font-size:26px; font-weight:800; color:var(--dark); margin-bottom:2px; }
+  .pt-kpi-val.green { color:var(--green); }
+  .pt-kpi-val.orange { color:var(--orange); }
+  .pt-kpi-label { font-size:12px; color:var(--muted); font-weight:500; }
+  .pt-kpi-delta { font-size:11px; font-weight:700; color:var(--green); margin-top:4px; }
+
+  /* ── Cards ── */
+  .pt-card { background:#fff; border-radius:14px; border:1px solid var(--border); padding:20px; margin-bottom:20px; }
+  .pt-card-title { font-size:13px; font-weight:700; color:var(--dark); margin-bottom:16px; }
+
+  /* ── Client Table ── */
+  .pt-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .pt-table th { text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted); padding:8px 12px; border-bottom:1.5px solid var(--border); }
+  .pt-table td { padding:13px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .pt-table tr:last-child td { border-bottom:none; }
+  .pt-table tr:hover td { background:#FAFAF8; }
+  .pt-health-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+  .pt-health-badge.high { background:rgba(48,209,88,0.1); color:#1a8a3c; }
+  .pt-health-badge.mid { background:rgba(255,149,0,0.1); color:#c07000; }
+  .pt-health-badge.low { background:rgba(255,69,58,0.1); color:var(--red); }
+  .pt-open-btn { padding:6px 14px; background:var(--teal); color:#fff; border:none; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; white-space:nowrap; }
+  .pt-open-btn:hover { background:var(--teal-md); }
+  .pt-copy-btn { padding:6px 12px; background:#fff; color:var(--dark); border:1px solid var(--border); border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+  .pt-copy-btn:hover { border-color:#aaa; }
+  .pt-status-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:5px; }
+  .pt-status-dot.active { background:var(--green); }
+  .pt-status-dot.inactive { background:#ccc; }
+
+  /* ── Revenue ── */
+  .pt-rev-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+  .pt-rev-highlight { background:linear-gradient(135deg,var(--teal),var(--teal-md)); border-radius:14px; padding:24px; color:#fff; }
+  .pt-rev-highlight-val { font-size:32px; font-weight:800; margin-bottom:4px; }
+  .pt-rev-highlight-label { font-size:13px; opacity:0.6; }
+  .pt-rev-card { background:#fff; border-radius:14px; border:1px solid var(--border); padding:20px; }
+  .pt-rev-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:13px; }
+  .pt-rev-row:last-child { border-bottom:none; }
+  .pt-rev-client { font-weight:600; color:var(--dark); }
+  .pt-rev-mrr { font-weight:700; color:var(--dark); }
+  .pt-rev-commission { font-size:12px; color:var(--green); font-weight:700; }
+
+  /* ── Settings / White-label ── */
+  .pt-settings-section { margin-bottom:28px; }
+  .pt-settings-title { font-size:13px; font-weight:800; color:var(--dark); margin-bottom:16px; padding-bottom:10px; border-bottom:1.5px solid var(--border); }
+  .pt-settings-row { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .pt-settings-label { font-size:12px; font-weight:700; color:var(--dark); width:160px; flex-shrink:0; }
+  .pt-settings-label-sub { font-size:11px; color:var(--muted); font-weight:400; display:block; }
+  .pt-settings-input { flex:1; padding:9px 12px; border:1.5px solid var(--border); border-radius:9px; font-size:13px; font-family:inherit; outline:none; transition:border 0.15s; }
+  .pt-settings-input:focus { border-color:var(--orange); }
+  .pt-settings-save { padding:10px 24px; background:var(--orange); color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+  .pt-settings-save:hover { background:#C0541E; }
+  .pt-saved-toast { display:none; color:var(--green); font-size:13px; font-weight:600; margin-left:12px; }
+  .pt-link-box { background:#F5F4EF; border:1.5px solid var(--border); border-radius:10px; padding:12px 16px; font-size:12px; font-family:monospace; color:var(--dark); word-break:break-all; margin-bottom:12px; }
+  .pt-link-note { font-size:12px; color:var(--muted); margin-bottom:16px; line-height:1.5; }
+  .pt-color-wrap { display:flex; align-items:center; gap:8px; flex:1; }
+  .pt-color-swatch { width:34px; height:34px; border-radius:8px; border:1.5px solid var(--border); cursor:pointer; flex-shrink:0; }
+
+  /* ── Activity ── */
+  .pt-activity-item { display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+  .pt-activity-item:last-child { border-bottom:none; }
+  .pt-activity-av { width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#fff; flex-shrink:0; }
+  .pt-activity-text { font-size:13px; color:var(--dark); line-height:1.4; }
+  .pt-activity-meta { font-size:11px; color:var(--muted); margin-top:3px; }
+
+  /* ── Reports ── */
+  .pt-report-row { display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.12s; }
+  .pt-report-row:last-child { border-bottom:none; }
+  .pt-report-row:hover { background:#FAFAF8; border-radius:8px; }
+  .pt-report-icon { width:38px; height:38px; border-radius:10px; background:rgba(28,58,46,0.08); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  .pt-report-name { font-size:13px; font-weight:700; color:var(--dark); }
+  .pt-report-meta { font-size:11px; color:var(--muted); margin-top:2px; }
+  .pt-report-badge { margin-left:auto; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+  .pt-report-badge.good { background:rgba(48,209,88,0.1); color:#1a8a3c; }
+  .pt-report-badge.avg { background:rgba(255,149,0,0.1); color:#c07000; }
+
+  @media (max-width:900px) {
+    .pt-kpi-grid { grid-template-columns:1fr 1fr; }
+    .pt-sidebar { width:200px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Login Screen ── -->
+<div class="pt-login" id="ptLoginScreen">
+  <div class="pt-login-card">
+    <div class="pt-login-logo">
+      <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" alt="ClickPoint">
+    </div>
+    <div class="pt-login-badge">🤝 Partner Portal</div>
+    <div class="pt-login-title">Welcome back</div>
+    <div class="pt-login-sub">Sign in to manage your client workspaces and view performance.</div>
+    <label class="pt-login-label">Email address</label>
+    <input class="pt-login-input" id="ptEmail" type="email" placeholder="you@youragency.com" autocomplete="email" onkeydown="if(event.key==='Enter')ptLogin()" />
+    <label class="pt-login-label">Password</label>
+    <input class="pt-login-input" id="ptPass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')ptLogin()" />
+    <button class="pt-login-btn" id="ptLoginBtn" onclick="ptLogin()">Sign in to Partner Portal →</button>
+    <div class="pt-login-err" id="ptLoginErr"></div>
+    <div class="pt-login-foot">
+      Agency HQ? <a href="org-chart.html">Sign in here →</a> &nbsp;|&nbsp;
+      Client workspace? <a href="workspace.html">Sign in here →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── Partner Onboarding Modal ── -->
+<div class="pt-ob-overlay" id="ptObOverlay" style="display:none;">
+  <div class="pt-ob-modal">
+    <div class="pt-ob-steps">
+      <div class="pt-ob-step done" id="ptObStep1"></div>
+      <div class="pt-ob-step" id="ptObStep2"></div>
+    </div>
+    <div class="pt-ob-icon" id="ptObIcon">🤝</div>
+    <div class="pt-ob-title" id="ptObTitle">Set up your partner account</div>
+    <div class="pt-ob-sub" id="ptObSub">Tell us about your agency so we can configure your portal and white-label settings correctly.</div>
+    <!-- Step 1 -->
+    <div id="ptObPanel1">
+      <label class="pt-ob-label">Agency name</label>
+      <input class="pt-ob-input" id="ptObAgency" placeholder="e.g. Acme Digital Agency" />
+      <label class="pt-ob-label">Agency website</label>
+      <input class="pt-ob-input" id="ptObWebsite" placeholder="https://youragency.com" />
+      <label class="pt-ob-label">Your name</label>
+      <input class="pt-ob-input" id="ptObContactName" placeholder="First and last name" />
+      <label class="pt-ob-label">How many clients are you managing with us?</label>
+      <select class="pt-ob-select" id="ptObClientCount">
+        <option value="">Select…</option>
+        <option>1–3</option>
+        <option>4–10</option>
+        <option>11–25</option>
+        <option>25+</option>
+      </select>
+      <button class="pt-ob-btn" onclick="ptObNext()">Continue →</button>
+    </div>
+    <!-- Step 2 -->
+    <div id="ptObPanel2" style="display:none;">
+      <label class="pt-ob-label">White-label display name <span style="font-weight:400;color:var(--muted);">(shown to your clients in the workspace portal)</span></label>
+      <input class="pt-ob-input" id="ptObWlName" placeholder="e.g. Acme Marketing Team" />
+      <label class="pt-ob-label">Your logo URL <span style="font-weight:400;color:var(--muted);">(shows in place of ClickPoint logo for your clients)</span></label>
+      <input class="pt-ob-input" id="ptObLogoUrl" placeholder="https://youragency.com/logo.png" />
+      <label class="pt-ob-label">Primary colour <span style="font-weight:400;color:var(--muted);">(your brand colour)</span></label>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <input type="color" id="ptObColor" value="#1C3A2E" style="width:36px;height:36px;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;" />
+        <input class="pt-ob-input" id="ptObColorHex" placeholder="#1C3A2E" style="margin-bottom:0;" oninput="document.getElementById('ptObColor').value=this.value" />
+      </div>
+      <button class="pt-ob-btn" onclick="ptObComplete()">🚀 Take me to my portal</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── App Shell ── -->
+<div class="pt-shell" id="ptAppShell" style="display:none;">
+
+  <!-- Sidebar -->
+  <aside class="pt-sidebar">
+    <div class="pt-sidebar-head">
+      <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" alt="ClickPoint" id="ptSidebarLogo">
+      <div class="pt-sidebar-badge">Partner Portal</div>
+    </div>
+    <nav class="pt-nav">
+      <div class="pt-nav-section">Overview</div>
+      <div class="pt-nav-item active" data-view="dashboard" onclick="ptSetView('dashboard')">📊 &nbsp;Dashboard</div>
+      <div class="pt-nav-section">Clients</div>
+      <div class="pt-nav-item" data-view="clients" onclick="ptSetView('clients')">🎯 &nbsp;All Clients <span class="pt-nav-badge" id="ptClientBadge">0</span></div>
+      <div class="pt-nav-item" data-view="revenue" onclick="ptSetView('revenue')">💰 &nbsp;Revenue</div>
+      <div class="pt-nav-section">Reports</div>
+      <div class="pt-nav-item" data-view="reports" onclick="ptSetView('reports')">📋 &nbsp;Monthly Reports</div>
+      <div class="pt-nav-section">Account</div>
+      <div class="pt-nav-item" data-view="settings" onclick="ptSetView('settings')">🎨 &nbsp;White-label & Settings</div>
+    </nav>
+    <div class="pt-sidebar-foot">
+      <div class="pt-user-row">
+        <div class="pt-user-av" id="ptUserAv">AP</div>
+        <div>
+          <div class="pt-user-name" id="ptUserName">Agency Partner</div>
+          <div class="pt-user-role">Partner Account</div>
+        </div>
+      </div>
+      <button class="pt-signout" onclick="ptSignOut()">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="pt-main">
+    <div class="pt-topbar">
+      <div>
+        <div class="pt-topbar-title" id="ptTopbarTitle">Partner Dashboard</div>
+        <div class="pt-topbar-sub" id="ptTopbarSub">Welcome back — here's your client portfolio overview.</div>
+      </div>
+      <div class="pt-topbar-right">
+        <div class="pt-live-badge"><div class="pt-live-dot"></div> Live</div>
+      </div>
+    </div>
+    <div class="pt-content">
+
+      <!-- ── Dashboard View ── -->
+      <div class="pt-view active" id="pt-view-dashboard">
+        <div class="pt-page-title" id="ptDashTitle">Good morning</div>
+        <div class="pt-page-sub">Here's your client portfolio at a glance.</div>
+
+        <div class="pt-kpi-grid">
+          <div class="pt-kpi">
+            <div class="pt-kpi-val green" id="ptKpiClients">8</div>
+            <div class="pt-kpi-label">Active Clients</div>
+            <div class="pt-kpi-delta">↑ All workspaces live</div>
+          </div>
+          <div class="pt-kpi">
+            <div class="pt-kpi-val orange" id="ptKpiMrr">$4,960</div>
+            <div class="pt-kpi-label">Your Monthly Commission</div>
+            <div class="pt-kpi-delta">↑ +12% vs last month</div>
+          </div>
+          <div class="pt-kpi">
+            <div class="pt-kpi-val" id="ptKpiHealth">7.4</div>
+            <div class="pt-kpi-label">Avg Account Health</div>
+            <div class="pt-kpi-delta" style="color:var(--amber);">2 accounts need attention</div>
+          </div>
+          <div class="pt-kpi">
+            <div class="pt-kpi-val" id="ptKpiCampaigns">34</div>
+            <div class="pt-kpi-label">Active Campaigns</div>
+            <div class="pt-kpi-delta">↑ Across all clients</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:20px;">
+          <div class="pt-card">
+            <div class="pt-card-title">🎯 Client Health Overview</div>
+            <div id="ptDashClientList"></div>
+          </div>
+          <div class="pt-card">
+            <div class="pt-card-title">📡 Recent Activity</div>
+            <div id="ptDashActivity"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Clients View ── -->
+      <div class="pt-view" id="pt-view-clients">
+        <div class="pt-page-title">All Clients</div>
+        <div class="pt-page-sub">Every client workspace under your partner account. Click Open Workspace to view their portal.</div>
+        <div class="pt-card" style="padding:0;overflow:hidden;">
+          <table class="pt-table" id="ptClientsTable">
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Workspace ID</th>
+                <th>Health</th>
+                <th>MRR</th>
+                <th>Commission</th>
+                <th>Last Active</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ptClientsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Revenue View ── -->
+      <div class="pt-view" id="pt-view-revenue">
+        <div class="pt-page-title">Revenue</div>
+        <div class="pt-page-sub">Your monthly commission breakdown across all managed clients.</div>
+        <div class="pt-rev-grid">
+          <div class="pt-rev-highlight">
+            <div style="font-size:12px;opacity:0.6;margin-bottom:12px;font-weight:600;letter-spacing:0.05em;">YOUR MONTHLY COMMISSION</div>
+            <div class="pt-rev-highlight-val" id="ptRevTotal">$4,960</div>
+            <div class="pt-rev-highlight-label">20% of $24,800 client MRR</div>
+            <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.15);display:flex;gap:24px;">
+              <div><div style="font-size:20px;font-weight:800;">$24,800</div><div style="font-size:11px;opacity:0.5;margin-top:2px;">Total Client MRR</div></div>
+              <div><div style="font-size:20px;font-weight:800;">20%</div><div style="font-size:11px;opacity:0.5;margin-top:2px;">Commission Rate</div></div>
+              <div><div style="font-size:20px;font-weight:800;">8</div><div style="font-size:11px;opacity:0.5;margin-top:2px;">Clients</div></div>
+            </div>
+          </div>
+          <div class="pt-rev-card">
+            <div class="pt-card-title">📈 Trends</div>
+            <div class="pt-rev-row"><span class="pt-rev-client">This month</span><span class="pt-rev-mrr">$4,960</span></div>
+            <div class="pt-rev-row"><span class="pt-rev-client">Last month</span><span style="font-size:13px;color:var(--muted);">$4,430</span></div>
+            <div class="pt-rev-row"><span class="pt-rev-client">3 months ago</span><span style="font-size:13px;color:var(--muted);">$3,800</span></div>
+            <div class="pt-rev-row"><span class="pt-rev-client">YTD</span><span class="pt-rev-mrr">$13,190</span></div>
+          </div>
+        </div>
+        <div class="pt-card">
+          <div class="pt-card-title">💰 Commission by Client — This Month</div>
+          <div id="ptRevBreakdown"></div>
+        </div>
+      </div>
+
+      <!-- ── Reports View ── -->
+      <div class="pt-view" id="pt-view-reports">
+        <div class="pt-page-title">Monthly Reports</div>
+        <div class="pt-page-sub">Performance reports for all your clients. Generated on the 1st of each month by the ClickPoint team.</div>
+        <div class="pt-card" id="ptReportsList"></div>
+      </div>
+
+      <!-- ── Settings / White-label View ── -->
+      <div class="pt-view" id="pt-view-settings">
+        <div class="pt-page-title">White-label & Settings</div>
+        <div class="pt-page-sub">Configure how your clients experience the workspace portal under your brand.</div>
+        <div style="max-width:680px;">
+          <div class="pt-card">
+            <div class="pt-settings-section">
+              <div class="pt-settings-title">Agency Branding</div>
+              <div class="pt-settings-row">
+                <div class="pt-settings-label">Agency name <span class="pt-settings-label-sub">Shown to your clients</span></div>
+                <input class="pt-settings-input" id="ptSetAgency" placeholder="e.g. Acme Digital Agency" />
+              </div>
+              <div class="pt-settings-row">
+                <div class="pt-settings-label">Display name <span class="pt-settings-label-sub">Used in agent intros</span></div>
+                <input class="pt-settings-input" id="ptSetWlName" placeholder="e.g. Acme Marketing Team" />
+              </div>
+              <div class="pt-settings-row">
+                <div class="pt-settings-label">Logo URL <span class="pt-settings-label-sub">Replaces ClickPoint logo</span></div>
+                <input class="pt-settings-input" id="ptSetLogoUrl" placeholder="https://youragency.com/logo.png" />
+              </div>
+              <div class="pt-settings-row">
+                <div class="pt-settings-label">Primary colour <span class="pt-settings-label-sub">Accent colour in portal</span></div>
+                <div class="pt-color-wrap">
+                  <input type="color" class="pt-color-swatch" id="ptSetColor" value="#1C3A2E" oninput="document.getElementById('ptSetColorHex').value=this.value" />
+                  <input class="pt-settings-input" id="ptSetColorHex" placeholder="#1C3A2E" oninput="document.getElementById('ptSetColor').value=this.value" />
+                </div>
+              </div>
+            </div>
+            <div class="pt-settings-section">
+              <div class="pt-settings-title">Account</div>
+              <div class="pt-settings-row">
+                <div class="pt-settings-label">Email <span class="pt-settings-label-sub">Your login email</span></div>
+                <div style="font-size:13px;color:var(--muted);" id="ptSetEmail">—</div>
+              </div>
+              <div class="pt-settings-row">
+                <div class="pt-settings-label">Partner ID <span class="pt-settings-label-sub">Reference ID</span></div>
+                <div style="font-size:13px;color:var(--muted);font-family:monospace;" id="ptSetPartnerId">—</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:12px;">
+              <button class="pt-settings-save" onclick="ptSaveSettings()">Save settings</button>
+              <span class="pt-saved-toast" id="ptSavedToast">✓ Saved</span>
+            </div>
+          </div>
+
+          <div class="pt-card">
+            <div class="pt-settings-title">White-label Client Workspace Link</div>
+            <p class="pt-link-note">Send this link to your clients. Their workspace will display your agency branding instead of ClickPoint.</p>
+            <div class="pt-link-box" id="ptWlLink">Generate your white-label link by saving your settings above.</div>
+            <button class="pt-open-btn" onclick="ptCopyLink()">Copy Link</button>
+            <span class="pt-saved-toast" id="ptLinkCopied" style="margin-left:10px;">✓ Copied!</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /pt-content -->
+  </div><!-- /pt-main -->
+</div><!-- /pt-shell -->
+
+<script>
+const PT_API = 'https://web-production-c959ce.up.railway.app';
+
+// ── Demo data ─────────────────────────────────────────────────────────────────
+const PT_CLIENTS = [
+  { name:'Apex Dynamics',    id:'apex-dynamics',    health:8, mrr:4200, lastActive:'2h ago',  campaigns:6, status:'active' },
+  { name:'Orbital Labs',     id:'orbital-labs',     health:7, mrr:3100, lastActive:'1d ago',  campaigns:4, status:'active' },
+  { name:'Crestwave Foods',  id:'crestwave-foods',  health:9, mrr:5800, lastActive:'3h ago',  campaigns:7, status:'active' },
+  { name:'DataForge AI',     id:'dataforge-ai',     health:6, mrr:2900, lastActive:'2d ago',  campaigns:3, status:'active' },
+  { name:'Helix Biomedical', id:'helix-biomedical', health:8, mrr:3400, lastActive:'5h ago',  campaigns:5, status:'active' },
+  { name:'Luminary Health',  id:'luminary-health',  health:5, mrr:1800, lastActive:'3d ago',  campaigns:3, status:'active' },
+  { name:'Cobalt Security',  id:'cobalt-security',  health:7, mrr:2200, lastActive:'1d ago',  campaigns:4, status:'active' },
+  { name:'Meridian Retail',  id:'meridian-retail',  health:8, mrr:1400, lastActive:'6h ago',  campaigns:2, status:'active' },
+];
+
+const PT_ACTIVITY = [
+  { client:'Crestwave Foods',  text:'SEO audit completed — 14 issues resolved, organic traffic up 18%.', time:'2h ago', color:'#30D158' },
+  { client:'Apex Dynamics',    text:'Google Ads bid strategy updated to tROAS 4.0x — expect improved efficiency.', time:'5h ago', color:'#0A84FF' },
+  { client:'Helix Biomedical', text:'3 new blog posts published targeting "biomedical device compliance" cluster.', time:'1d ago', color:'#BF5AF2' },
+  { client:'Luminary Health',  text:'Meta campaign frequency high (4.8) — creative refresh needed. Zara briefed.', time:'2d ago', color:'#FF9500' },
+  { client:'DataForge AI',     text:'Monthly report generated and ready to review.', time:'2d ago', color:'#D4622A' },
+];
+
+// ── Session ──────────────────────────────────────────────────────────────────
+let ptSession = null;
+
+function ptCheckSession() {
+  const saved = sessionStorage.getItem('pt_session');
+  if (saved) {
+    try {
+      ptSession = JSON.parse(saved);
+      ptShowApp();
+      return;
+    } catch(e) {}
+  }
+  document.getElementById('ptLoginScreen').style.display = 'flex';
+}
+
+async function ptLogin() {
+  const email = document.getElementById('ptEmail').value.trim().toLowerCase();
+  const pass  = document.getElementById('ptPass').value;
+  const err   = document.getElementById('ptLoginErr');
+  const btn   = document.getElementById('ptLoginBtn');
+  err.style.display = 'none';
+
+  if (!email || !pass) {
+    err.textContent = 'Please enter your email and password.';
+    err.style.display = 'block'; return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+
+  try {
+    const res = await fetch(`${PT_API}/api/hq/auth`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email, password: pass }),
+    });
+    const d = await res.json();
+    if (d.success && (d.role === 'partner' || d.role === 'superadmin')) {
+      ptSession = { email:d.email, name:d.name, initials:d.initials, role:d.role, partnerId:d.partnerId || 'partner-1', loginAt: new Date().toISOString() };
+      sessionStorage.setItem('pt_session', JSON.stringify(ptSession));
+      ptShowApp();
+    } else if (d.success && d.role === 'superadmin') {
+      // Superadmins can also access partner portal
+      ptSession = { email:d.email, name:d.name, initials:'CP', role:'superadmin', partnerId:'cp-internal', loginAt: new Date().toISOString() };
+      sessionStorage.setItem('pt_session', JSON.stringify(ptSession));
+      ptShowApp();
+    } else {
+      err.textContent = d.error || 'Access denied. Partner credentials required.';
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Sign in to Partner Portal →';
+    }
+  } catch(e) {
+    err.textContent = 'Could not reach the server. Please try again.';
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Sign in to Partner Portal →';
+  }
+}
+
+function ptShowApp() {
+  document.getElementById('ptLoginScreen').style.display = 'none';
+  document.getElementById('ptAppShell').style.display = 'flex';
+  // User info
+  document.getElementById('ptUserAv').textContent   = ptSession.initials || 'AP';
+  document.getElementById('ptUserName').textContent = ptSession.name || ptSession.email;
+  document.getElementById('ptSetEmail').textContent = ptSession.email;
+  document.getElementById('ptSetPartnerId').textContent = ptSession.partnerId || '—';
+  // Load saved config
+  ptLoadSavedConfig();
+  // Greeting
+  const h = new Date().getHours();
+  const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('ptDashTitle').textContent = g;
+  // Client badge
+  document.getElementById('ptClientBadge').textContent = PT_CLIENTS.length;
+  // Check onboarding
+  ptCheckOnboarding();
+  // Load initial view
+  ptLoadDashboard();
+}
+
+function ptSignOut() {
+  sessionStorage.removeItem('pt_session');
+  location.reload();
+}
+
+// ── Onboarding ────────────────────────────────────────────────────────────────
+function ptCheckOnboarding() {
+  const key = 'cp_pt_onboarded_' + ptSession.partnerId;
+  if (!localStorage.getItem(key)) {
+    document.getElementById('ptObOverlay').style.display = 'flex';
+  }
+}
+
+function ptObNext() {
+  document.getElementById('ptObPanel1').style.display = 'none';
+  document.getElementById('ptObPanel2').style.display = 'block';
+  document.getElementById('ptObStep2').classList.add('done');
+  document.getElementById('ptObTitle').textContent = 'Set up your white-label';
+  document.getElementById('ptObSub').textContent = 'Your clients will see your agency branding in their workspace portal, not ClickPoint\'s.';
+  document.getElementById('ptObIcon').textContent = '🎨';
+}
+
+function ptObComplete() {
+  const config = {
+    agencyName:  document.getElementById('ptObAgency').value || 'My Agency',
+    wlName:      document.getElementById('ptObWlName').value || 'My Agency Marketing Team',
+    logoUrl:     document.getElementById('ptObLogoUrl').value || '',
+    color:       document.getElementById('ptObColorHex').value || '#1C3A2E',
+    contactName: document.getElementById('ptObContactName').value || '',
+    website:     document.getElementById('ptObWebsite').value || '',
+  };
+  localStorage.setItem('cp_pt_config_' + ptSession.partnerId, JSON.stringify(config));
+  localStorage.setItem('cp_pt_onboarded_' + ptSession.partnerId, '1');
+  document.getElementById('ptObOverlay').style.display = 'none';
+  // Pre-fill settings
+  ptLoadSavedConfig();
+  ptUpdateWlLink();
+}
+
+// ── Config ────────────────────────────────────────────────────────────────────
+function ptLoadSavedConfig() {
+  const key = 'cp_pt_config_' + (ptSession?.partnerId || 'partner-1');
+  const config = JSON.parse(localStorage.getItem(key) || '{}');
+  if (config.agencyName) document.getElementById('ptSetAgency').value  = config.agencyName;
+  if (config.wlName)     document.getElementById('ptSetWlName').value   = config.wlName;
+  if (config.logoUrl)    document.getElementById('ptSetLogoUrl').value  = config.logoUrl;
+  if (config.color)      { document.getElementById('ptSetColor').value = config.color; document.getElementById('ptSetColorHex').value = config.color; }
+  ptUpdateWlLink();
+}
+
+function ptSaveSettings() {
+  const config = {
+    agencyName: document.getElementById('ptSetAgency').value,
+    wlName:     document.getElementById('ptSetWlName').value,
+    logoUrl:    document.getElementById('ptSetLogoUrl').value,
+    color:      document.getElementById('ptSetColorHex').value || document.getElementById('ptSetColor').value,
+  };
+  localStorage.setItem('cp_pt_config_' + ptSession.partnerId, JSON.stringify(config));
+  const toast = document.getElementById('ptSavedToast');
+  toast.style.display = 'inline';
+  setTimeout(() => toast.style.display = 'none', 2500);
+  ptUpdateWlLink();
+}
+
+function ptUpdateWlLink() {
+  const config = JSON.parse(localStorage.getItem('cp_pt_config_' + (ptSession?.partnerId || 'partner-1')) || '{}');
+  const base = location.origin + location.pathname.replace('partner.html','workspace.html');
+  const params = new URLSearchParams({
+    p: ptSession?.partnerId || 'partner',
+    agencyName: config.wlName || config.agencyName || '',
+    color: config.color || '',
+    logo: config.logoUrl || '',
+  });
+  document.getElementById('ptWlLink').textContent = `${base}?${params.toString()}`;
+}
+
+function ptCopyLink() {
+  const link = document.getElementById('ptWlLink').textContent;
+  navigator.clipboard.writeText(link).then(() => {
+    const t = document.getElementById('ptLinkCopied');
+    t.style.display = 'inline';
+    setTimeout(() => t.style.display = 'none', 2000);
+  });
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function ptSetView(view) {
+  document.querySelectorAll('.pt-view').forEach(v => v.classList.remove('active'));
+  document.getElementById('pt-view-' + view).classList.add('active');
+  document.querySelectorAll('.pt-nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
+  const titles = { dashboard:'Partner Dashboard', clients:'All Clients', revenue:'Revenue', reports:'Monthly Reports', settings:'White-label & Settings' };
+  document.getElementById('ptTopbarTitle').textContent = titles[view] || 'Partner Portal';
+  if (view === 'clients') ptLoadClients();
+  if (view === 'revenue') ptLoadRevenue();
+  if (view === 'reports') ptLoadReports();
+  if (view === 'settings') ptLoadSavedConfig();
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+function ptLoadDashboard() {
+  // Client health list
+  const sorted = [...PT_CLIENTS].sort((a,b) => a.health - b.health);
+  document.getElementById('ptDashClientList').innerHTML = sorted.map(c => {
+    const hcls = c.health >= 8 ? 'high' : c.health >= 6 ? 'mid' : 'low';
+    const hlbl = c.health >= 8 ? '●' : c.health >= 6 ? '●' : '●';
+    const hclr = c.health >= 8 ? 'var(--green)' : c.health >= 6 ? 'var(--amber)' : 'var(--red)';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-size:13px;font-weight:600;">${c.name}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${c.campaigns} campaigns · ${c.lastActive}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:11px;font-weight:700;color:${hclr};">${hlbl} ${c.health}/10</span>
+        <button class="pt-open-btn" onclick="ptOpenWorkspace('${c.id}')">Open</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Activity
+  document.getElementById('ptDashActivity').innerHTML = PT_ACTIVITY.map(a => `
+    <div class="pt-activity-item">
+      <div class="pt-activity-av" style="background:${a.color};font-size:9px;">${a.client.substring(0,2).toUpperCase()}</div>
+      <div>
+        <div class="pt-activity-text">${a.text}</div>
+        <div class="pt-activity-meta">${a.client} · ${a.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Clients ───────────────────────────────────────────────────────────────────
+function ptLoadClients() {
+  document.getElementById('ptClientsBody').innerHTML = PT_CLIENTS.map(c => {
+    const hcls = c.health >= 8 ? 'high' : c.health >= 6 ? 'mid' : 'low';
+    const hlbl = c.health >= 8 ? 'Good' : c.health >= 6 ? 'Average' : 'Needs attention';
+    const commission = Math.round(c.mrr * 0.20);
+    return `<tr>
+      <td><strong>${c.name}</strong></td>
+      <td><span style="font-family:monospace;font-size:12px;color:var(--muted);">${c.id}</span></td>
+      <td><span class="pt-health-badge ${hcls}">${c.health}/10 ${hlbl}</span></td>
+      <td style="font-weight:700;">$${c.mrr.toLocaleString()}</td>
+      <td style="font-weight:700;color:var(--green);">$${commission.toLocaleString()}</td>
+      <td style="color:var(--muted);font-size:12px;">${c.lastActive}</td>
+      <td style="display:flex;gap:6px;align-items:center;">
+        <button class="pt-open-btn" onclick="ptOpenWorkspace('${c.id}')">Open Workspace</button>
+        <button class="pt-copy-btn" onclick="ptCopyWorkspaceLink('${c.id}',this)">Copy Link</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function ptOpenWorkspace(id) {
+  const config = JSON.parse(localStorage.getItem('cp_pt_config_' + (ptSession?.partnerId || 'partner-1')) || '{}');
+  const base = location.href.replace('partner.html','workspace.html');
+  const params = new URLSearchParams({ w:id, p:ptSession.partnerId||'partner', agencyName:config.wlName||config.agencyName||'', color:config.color||'', logo:config.logoUrl||'' });
+  window.open(`${location.href.replace('partner.html','workspace.html')}?${params}`, '_blank');
+}
+
+function ptCopyWorkspaceLink(id, btn) {
+  const config = JSON.parse(localStorage.getItem('cp_pt_config_' + (ptSession?.partnerId || 'partner-1')) || '{}');
+  const params = new URLSearchParams({ w:id, p:ptSession.partnerId||'partner', agencyName:config.wlName||config.agencyName||'', color:config.color||'', logo:config.logoUrl||'' });
+  const link = location.href.replace('partner.html','workspace.html') + '?' + params;
+  navigator.clipboard.writeText(link).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+// ── Revenue ───────────────────────────────────────────────────────────────────
+function ptLoadRevenue() {
+  const sorted = [...PT_CLIENTS].sort((a,b) => b.mrr - a.mrr);
+  document.getElementById('ptRevBreakdown').innerHTML = sorted.map(c => {
+    const commission = Math.round(c.mrr * 0.20);
+    const barPct = Math.round(c.mrr / 5800 * 100);
+    return `<div class="pt-rev-row" style="flex-direction:column;align-items:stretch;gap:6px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="pt-rev-client">${c.name}</span>
+        <div style="display:flex;gap:16px;align-items:center;">
+          <span style="font-size:12px;color:var(--muted);">$${c.mrr.toLocaleString()} MRR</span>
+          <span class="pt-rev-commission">+$${commission.toLocaleString()}</span>
+        </div>
+      </div>
+      <div style="height:4px;background:#F0EFE9;border-radius:2px;overflow:hidden;">
+        <div style="height:100%;width:${barPct}%;background:var(--green);border-radius:2px;transition:width 0.6s ease;"></div>
+      </div>
+    </div>`;
+  }).join('');
+  const total = PT_CLIENTS.reduce((s,c) => s + c.mrr, 0);
+  document.getElementById('ptRevTotal').textContent = '$' + Math.round(total * 0.2).toLocaleString();
+}
+
+// ── Reports ───────────────────────────────────────────────────────────────────
+function ptLoadReports() {
+  const reports = PT_CLIENTS.map(c => ({
+    client: c.name,
+    period: 'April 2026',
+    health: c.health,
+    label: c.health >= 8 ? 'Excellent' : c.health >= 6 ? 'Good' : 'Needs Work',
+    cls: c.health >= 8 ? 'good' : 'avg',
+    date: '1 May 2026',
+  }));
+  document.getElementById('ptReportsList').innerHTML = `
+    <div class="pt-card-title">📋 April 2026 — All Client Reports</div>
+    ${reports.map(r => `
+      <div class="pt-report-row">
+        <div class="pt-report-icon">📋</div>
+        <div>
+          <div class="pt-report-name">${r.client} — ${r.period}</div>
+          <div class="pt-report-meta">Generated ${r.date}</div>
+        </div>
+        <div class="pt-report-badge ${r.cls}">${r.health}/10 ${r.label}</div>
+      </div>
+    `).join('')}
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);">
+      Reports are auto-generated on the 1st of each month. Click any report to open the full PDF.
+    </div>
+  `;
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+ptCheckSession();
+</script>
+</body>
+</html>

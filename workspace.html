@@ -478,7 +478,7 @@
 <div id="appShell">
   <!-- Topbar -->
   <div class="ws-topbar">
-    <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" alt="ClickPoint" style="height:28px;width:auto;display:block;">
+    <img id="wsTopbarLogoImg" src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" alt="ClickPoint" style="height:28px;width:auto;display:block;">
     <div class="ws-topbar-divider"></div>
     <div class="ws-topbar-workspace" id="wsTopbarName">Workspace</div>
     <div class="ws-topbar-spacer"></div>
@@ -1013,11 +1013,48 @@ function wsSignOut() {
   location.reload();
 }
 
+// ── White-label theme (applied from partner URL params) ───────────────────────
+(function wsApplyPartnerTheme() {
+  const p = new URLSearchParams(location.search);
+  const agencyName = p.get('agencyName');
+  const color      = p.get('color');   // hex without '#', e.g. "1C3A2E"
+  const logo       = p.get('logo');    // full URL
+
+  if (!agencyName && !logo && !color) return; // No partner params — skip
+
+  // Store for use by wsInitApp
+  window._ptTheme = { agencyName, color: color ? '#' + color : null, logo };
+
+  // Override CSS primary colour immediately (before paint)
+  if (color) {
+    const hex = '#' + color;
+    document.documentElement.style.setProperty('--teal', hex);
+    // Derive a slightly lighter shade for hover states
+    document.documentElement.style.setProperty('--teal-md', hex + 'CC');
+  }
+
+  // Override logo
+  if (logo) {
+    const img = document.getElementById('wsTopbarLogoImg');
+    if (img) { img.src = logo; img.alt = agencyName || 'Agency'; }
+  }
+})();
+
 // ── Init ─────────────────────────────────────────────────────────────────────
 function wsInitApp() {
   const s = wsSession;
-  document.title = `${s.companyName} — ClickPoint Workspace`;
+  const pt = window._ptTheme || {};
+
+  // White-label: use agency name in title if partner param present
+  const agencyLabel = pt.agencyName || 'ClickPoint';
+  document.title = `${s.companyName} — ${agencyLabel} Workspace`;
   document.getElementById('wsTopbarName').textContent = s.companyName;
+
+  // If logo URL was in params, apply now (in case img wasn't in DOM during IIFE)
+  if (pt.logo) {
+    const img = document.getElementById('wsTopbarLogoImg');
+    if (img) { img.src = pt.logo; img.alt = pt.agencyName || 'Agency'; }
+  }
 
   // Admin banner
   if (s.isAdmin) document.getElementById('wsAdminBanner').style.display = 'flex';
@@ -1027,9 +1064,9 @@ function wsInitApp() {
   document.getElementById('wsSettingsName').textContent = s.companyName;
   document.getElementById('wsSettingsEmail').textContent = s.email;
 
-  // AI welcome — from Sarah, the CMO
+  // AI welcome — from Sarah, personalised to agency if white-labelled
   document.getElementById('wsAiWelcome').textContent =
-    `Hi! I'm Sarah, CMO here at ClickPoint. I have full visibility into your ${s.companyName} account — campaigns, spend, performance, all of it. Think of this as a direct line to me. Ask me anything: what's working, where to push harder, what your numbers actually mean, or what I'd prioritise this month.`;
+    `Hi! I'm Sarah, CMO here at ${agencyLabel}. I have full visibility into your ${s.companyName} account — campaigns, spend, performance, all of it. Think of this as a direct line to me. Ask me anything: what's working, where to push harder, what your numbers actually mean, or what I'd prioritise this month.`;
 
   wsLoadDashboard();
   wsCheckOnboarding();

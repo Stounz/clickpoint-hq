@@ -847,6 +847,10 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_portal_get()
         elif self.path == '/api/workspaces':
             self._handle_workspaces_list()
+        elif self.path.startswith('/api/partner/clients'):
+            self._handle_partner_clients()
+        elif self.path.startswith('/api/partner/summary'):
+            self._handle_partner_summary()
         else:
             # Serve static files from working directory
             import os as _os
@@ -1519,6 +1523,51 @@ class AgentHandler(BaseHTTPRequestHandler):
                 }); return
 
         self._json(200, {'success': False, 'error': 'Invalid email or password'})
+
+    # ── Partner portal endpoints ──────────────────────────────────────────────
+
+    _PARTNER_DEMO_CLIENTS = [
+        {'id': 'apex-dynamics',    'name': 'Apex Dynamics',    'health': 8.2, 'mrr': 4200,  'status': 'active',   'lastActive': '2 hours ago',   'campaigns': 5},
+        {'id': 'orbital-labs',     'name': 'Orbital Labs',     'health': 7.1, 'mrr': 3100,  'status': 'active',   'lastActive': '1 day ago',     'campaigns': 4},
+        {'id': 'crestwave-foods',  'name': 'Crestwave Foods',  'health': 9.0, 'mrr': 5800,  'status': 'active',   'lastActive': '3 hours ago',   'campaigns': 7},
+        {'id': 'dataforge-ai',     'name': 'DataForge AI',     'health': 6.8, 'mrr': 2900,  'status': 'active',   'lastActive': '5 hours ago',   'campaigns': 3},
+        {'id': 'helix-biomedical', 'name': 'Helix Biomedical', 'health': 7.5, 'mrr': 3400,  'status': 'active',   'lastActive': '1 day ago',     'campaigns': 4},
+        {'id': 'luminary-health',  'name': 'Luminary Health',  'health': 5.9, 'mrr': 1800,  'status': 'at-risk',  'lastActive': '3 days ago',    'campaigns': 2},
+        {'id': 'cobalt-security',  'name': 'Cobalt Security',  'health': 7.3, 'mrr': 2200,  'status': 'active',   'lastActive': '2 days ago',    'campaigns': 3},
+        {'id': 'meridian-retail',  'name': 'Meridian Retail',  'health': 6.4, 'mrr': 1400,  'status': 'at-risk',  'lastActive': '4 days ago',    'campaigns': 2},
+    ]
+
+    def _handle_partner_clients(self):
+        """Return list of clients for the authenticated partner."""
+        # In production this would validate a session token and filter by partner_id.
+        # For now returns demo data so the portal works out of the box.
+        commission_rate = 0.20
+        clients = []
+        for c in self._PARTNER_DEMO_CLIENTS:
+            clients.append({**c, 'commission': round(c['mrr'] * commission_rate, 2)})
+        self._json(200, {
+            'success': True,
+            'clients': clients,
+            'total': len(clients),
+        })
+
+    def _handle_partner_summary(self):
+        """Return aggregate KPIs for the partner dashboard."""
+        clients = self._PARTNER_DEMO_CLIENTS
+        total_mrr   = sum(c['mrr'] for c in clients)
+        active      = sum(1 for c in clients if c['status'] == 'active')
+        avg_health  = round(sum(c['health'] for c in clients) / len(clients), 1)
+        total_cmpgn = sum(c['campaigns'] for c in clients)
+        commission  = round(total_mrr * 0.20, 2)
+        self._json(200, {
+            'success':         True,
+            'activeClients':   active,
+            'totalClients':    len(clients),
+            'totalMrr':        total_mrr,
+            'commission':      commission,
+            'avgHealth':       avg_health,
+            'totalCampaigns':  total_cmpgn,
+        })
 
     def _handle_workspace_auth(self):
         """Authenticate a workspace user. Falls back to demo mode."""
