@@ -326,6 +326,56 @@
   .ws-gsc-title { font-size:13px; font-weight:700; color:var(--dark); margin-bottom:2px; }
   .ws-gsc-sub { font-size:12px; color:var(--muted); }
   .ws-gsc-btn { padding:8px 16px; background:var(--teal); color:#fff; border:none; border-radius:9px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+
+  /* ── Plan Selection Overlay ── */
+  #wsPlanOverlay { position:fixed; inset:0; background:rgba(0,0,0,0.88); backdrop-filter:blur(16px); z-index:200; overflow-y:auto; padding:40px 20px; }
+  .ws-plan-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media(max-width:720px){ .ws-plan-grid { grid-template-columns:1fr; } }
+  .ws-plan-card { background:#fff; border-radius:20px; padding:28px 24px; position:relative; }
+  .ws-plan-card.featured { border:2.5px solid var(--orange); }
+  .ws-plan-popular { position:absolute; top:-13px; left:50%; transform:translateX(-50%); background:var(--orange); color:#fff; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; padding:4px 14px; border-radius:20px; white-space:nowrap; }
+  .ws-plan-name { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:10px; }
+  .ws-plan-price { font-size:36px; font-weight:800; color:var(--text); letter-spacing:-1px; margin-bottom:2px; }
+  .ws-plan-price sub { font-size:13px; font-weight:500; color:var(--muted); }
+  .ws-plan-tagline { font-size:13px; color:var(--muted); margin-bottom:20px; line-height:1.5; }
+  .ws-plan-features { list-style:none; margin-bottom:24px; display:flex; flex-direction:column; gap:9px; }
+  .ws-plan-features li { font-size:12px; color:var(--text); display:flex; align-items:flex-start; gap:8px; line-height:1.4; }
+  .ws-plan-features li .ck { color:#1C8C44; font-weight:800; flex-shrink:0; }
+  .ws-plan-features li .cx { color:#DDD; font-weight:800; flex-shrink:0; }
+  .ws-plan-features li.off { color:var(--muted); }
+  .ws-plan-cta { width:100%; padding:13px; border:none; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+  .ws-plan-cta.teal { background:var(--teal); color:#fff; }
+  .ws-plan-cta.teal:hover { background:var(--teal-md); }
+  .ws-plan-cta.orange { background:var(--orange); color:#fff; }
+  .ws-plan-cta.orange:hover { opacity:0.88; }
+  .ws-plan-cta.outline { background:#fff; color:var(--teal); border:1.5px solid var(--border); }
+  .ws-plan-cta.outline:hover { border-color:var(--teal); }
+  .ws-plan-loading { opacity:0.6; pointer-events:none; }
+
+  /* ── Feature Gate ── */
+  .ws-gate-wrap { position:relative; }
+  .ws-gate-overlay { position:absolute; inset:0; background:rgba(244,243,238,0.93); backdrop-filter:blur(3px); border-radius:var(--radius); z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center; padding:28px; }
+  .ws-gate-icon { font-size:28px; }
+  .ws-gate-title { font-size:15px; font-weight:800; color:var(--text); }
+  .ws-gate-sub { font-size:12px; color:var(--muted); line-height:1.5; max-width:280px; }
+  .ws-gate-btn { margin-top:4px; padding:9px 22px; background:var(--teal); color:#fff; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; }
+
+  /* ── Plan badge (used in settings) ── */
+  .ws-badge-plan { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; }
+  .ws-badge-plan.starter { background:rgba(153,153,144,0.12); color:#666; }
+  .ws-badge-plan.growth  { background:rgba(10,132,255,0.1); color:#0A84FF; }
+  .ws-badge-plan.pro     { background:rgba(212,98,42,0.12); color:#D4622A; }
+  .ws-badge-plan.agency  { background:rgba(28,58,46,0.1); color:#1C3A2E; }
+
+  /* ── Campaign Budget Manager ── */
+  .ws-budget-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid #F0EFE9; }
+  .ws-budget-row:last-child { border-bottom:none; }
+  .ws-budget-ch-name { font-size:13px; font-weight:600; color:var(--text); }
+  .ws-budget-ch-type { font-size:10px; color:var(--muted); margin-top:2px; }
+  .ws-budget-input { width:110px; padding:7px 10px; border:1.5px solid var(--border); border-radius:8px; font-size:13px; font-family:inherit; outline:none; text-align:right; }
+  .ws-budget-input:focus { border-color:var(--teal); }
+  .ws-budget-included { font-size:11px; font-weight:600; color:#1C8C44; padding:5px 10px; background:rgba(48,209,88,0.08); border-radius:8px; }
+  .ws-budget-total-row { display:flex; justify-content:space-between; align-items:center; padding:12px 0 0; margin-top:6px; border-top:2px solid var(--border); }
 </style>
 </head>
 <body>
@@ -466,11 +516,79 @@
               <span class="login-creds-val" id="suCredsCode" style="font-size:20px;letter-spacing:0.2em;color:var(--teal);">——</span>
             </div>
           </div>
-          <button class="login-btn" onclick="wsSignupLogin()">Enter my workspace →</button>
+          <button class="login-btn" onclick="wsShowPlanSelection()">Choose your plan →</button>
         </div>
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- ── Plan Selection Overlay (self-signup only) ── -->
+<div id="wsPlanOverlay" style="display:none;">
+  <div style="max-width:960px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:36px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,255,255,0.4);margin-bottom:12px;">One more step</div>
+      <div style="font-size:30px;font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:-0.5px;">Choose your plan</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.5);">All plans include your dedicated ClickPoint agency team. Ad spend is separate.</div>
+    </div>
+    <div class="ws-plan-grid" style="margin-bottom:24px;">
+
+      <!-- Starter -->
+      <div class="ws-plan-card">
+        <div class="ws-plan-name">Starter</div>
+        <div class="ws-plan-price">Free</div>
+        <div class="ws-plan-tagline">Get a feel for the platform before committing.</div>
+        <ul class="ws-plan-features">
+          <li><span class="ck">✓</span> Dashboard & KPI overview</li>
+          <li><span class="ck">✓</span> View active campaigns</li>
+          <li><span class="ck">✓</span> Monthly summary report</li>
+          <li class="off"><span class="cx">✕</span> Create & manage campaigns</li>
+          <li class="off"><span class="cx">✕</span> Analytics & attribution</li>
+          <li class="off"><span class="cx">✕</span> AI marketing assistant</li>
+          <li class="off"><span class="cx">✕</span> Set your own ad budgets</li>
+        </ul>
+        <button class="ws-plan-cta outline" onclick="wsChoosePlan('starter')">Start free</button>
+      </div>
+
+      <!-- Growth -->
+      <div class="ws-plan-card featured">
+        <div class="ws-plan-popular">Most popular</div>
+        <div class="ws-plan-name">Growth</div>
+        <div class="ws-plan-price">$299<sub>/mo AUD</sub></div>
+        <div class="ws-plan-tagline">Full campaign management + deep analytics.</div>
+        <ul class="ws-plan-features">
+          <li><span class="ck">✓</span> Everything in Starter</li>
+          <li><span class="ck">✓</span> Create & manage campaigns</li>
+          <li><span class="ck">✓</span> Full analytics & attribution</li>
+          <li><span class="ck">✓</span> Deliverables library</li>
+          <li><span class="ck">✓</span> Set your own ad budgets per channel</li>
+          <li class="off"><span class="cx">✕</span> AI marketing assistant (Your CMO)</li>
+          <li class="off"><span class="cx">✕</span> Brand Hub</li>
+        </ul>
+        <button class="ws-plan-cta teal" id="wsPlanBtnGrowth" onclick="wsChoosePlan('growth')">Get started →</button>
+      </div>
+
+      <!-- Pro -->
+      <div class="ws-plan-card">
+        <div class="ws-plan-name">Pro</div>
+        <div class="ws-plan-price">$599<sub>/mo AUD</sub></div>
+        <div class="ws-plan-tagline">Full platform access including your AI CMO.</div>
+        <ul class="ws-plan-features">
+          <li><span class="ck">✓</span> Everything in Growth</li>
+          <li><span class="ck">✓</span> AI marketing assistant (Your CMO)</li>
+          <li><span class="ck">✓</span> Brand Hub</li>
+          <li><span class="ck">✓</span> Priority agency support</li>
+          <li><span class="ck">✓</span> Custom reporting</li>
+          <li><span class="ck">✓</span> Dedicated account manager</li>
+        </ul>
+        <button class="ws-plan-cta orange" id="wsPlanBtnPro" onclick="wsChoosePlan('pro')">Get started →</button>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:12px;color:rgba(255,255,255,0.35);">
+      Prices in AUD, billed monthly. Cancel anytime. &nbsp;·&nbsp;
+      <span onclick="wsChoosePlan('starter')" style="color:rgba(255,255,255,0.6);cursor:pointer;text-decoration:underline;">Skip for now (free)</span>
+    </div>
   </div>
 </div>
 
@@ -638,8 +756,12 @@
               </select>
             </div>
             <div>
-              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Monthly Budget</label>
-              <input id="wsCmpBudget" type="text" placeholder="e.g. $2,000 / month" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Monthly Ad Spend Budget</label>
+              <div style="position:relative;">
+                <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;color:#888;font-weight:600;">$</span>
+                <input id="wsCmpBudget" type="number" min="0" placeholder="e.g. 2000" style="width:100%;padding:11px 14px 11px 26px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" oninput="wsUpdateBudgetTotal()" />
+              </div>
+              <div style="font-size:10px;color:#aaa;margin-top:4px;">Your ad spend only — separate from your ClickPoint platform fee.</div>
             </div>
           </div>
 
@@ -770,6 +892,75 @@
             <div class="ws-settings-row">
               <div class="ws-settings-label">Signed in as <span class="ws-settings-sub" id="wsSettingsEmail">—</span></div>
               <button class="ws-copy-btn" style="background:#FF453A;" onclick="wsSignOut()">Sign Out</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Billing Card -->
+        <div class="ws-card" style="max-width:600px;margin-top:20px;" id="wsBillingCard">
+          <div class="ws-settings-section" style="border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:16px;">
+            <div class="ws-settings-title">Subscription</div>
+            <div class="ws-settings-row">
+              <div class="ws-settings-label">Current plan</div>
+              <span id="wsBillingPlanBadge" class="ws-badge-plan starter">Starter</span>
+            </div>
+            <div class="ws-settings-row" id="wsBillingAmountRow" style="display:none;">
+              <div class="ws-settings-label">Billed monthly</div>
+              <div class="ws-settings-val" id="wsBillingAmount">—</div>
+            </div>
+            <div class="ws-settings-row" id="wsBillingManagedRow" style="display:none;">
+              <div class="ws-settings-label">Billing</div>
+              <div class="ws-settings-val">Managed by ClickPoint retainer</div>
+            </div>
+          </div>
+          <div id="wsBillingUpgradeSection">
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;">Upgrade your plan</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;" id="wsBillingUpgradeOptions"></div>
+          </div>
+          <div id="wsBillingProSection" style="display:none;">
+            <div style="background:#F4F3EE;border-radius:12px;padding:16px;font-size:13px;color:var(--muted);line-height:1.6;">
+              ✅ You're on the <strong style="color:var(--text);">Pro</strong> plan — full platform access. Questions about your subscription? Contact <a href="mailto:hello@clickpointconsulting.com.au" style="color:var(--teal);">hello@clickpointconsulting.com.au</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ad Budget Card -->
+        <div class="ws-card" style="max-width:600px;margin-top:20px;" id="wsAdBudgetCard">
+          <div class="ws-settings-section">
+            <div class="ws-settings-title">Monthly Ad Spend Budget</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Set how much you want to spend on each paid channel per month. This is your direct ad spend — separate from your ClickPoint platform fee.</div>
+            <div id="wsAdBudgetChannels">
+              <div class="ws-budget-row">
+                <div><div class="ws-budget-ch-name">Google Ads</div><div class="ws-budget-ch-type">Paid Search</div></div>
+                <div style="display:flex;align-items:center;gap:6px;"><span style="color:#888;font-size:13px;">$</span><input class="ws-budget-input" id="bgt_google" type="number" min="0" placeholder="0" oninput="wsCalcTotalBudget()"></div>
+              </div>
+              <div class="ws-budget-row">
+                <div><div class="ws-budget-ch-name">Meta Ads</div><div class="ws-budget-ch-type">Facebook & Instagram</div></div>
+                <div style="display:flex;align-items:center;gap:6px;"><span style="color:#888;font-size:13px;">$</span><input class="ws-budget-input" id="bgt_meta" type="number" min="0" placeholder="0" oninput="wsCalcTotalBudget()"></div>
+              </div>
+              <div class="ws-budget-row">
+                <div><div class="ws-budget-ch-name">LinkedIn Ads</div><div class="ws-budget-ch-type">Paid Social</div></div>
+                <div style="display:flex;align-items:center;gap:6px;"><span style="color:#888;font-size:13px;">$</span><input class="ws-budget-input" id="bgt_linkedin" type="number" min="0" placeholder="0" oninput="wsCalcTotalBudget()"></div>
+              </div>
+              <div class="ws-budget-row">
+                <div><div class="ws-budget-ch-name">TikTok Ads</div><div class="ws-budget-ch-type">Paid Social</div></div>
+                <div style="display:flex;align-items:center;gap:6px;"><span style="color:#888;font-size:13px;">$</span><input class="ws-budget-input" id="bgt_tiktok" type="number" min="0" placeholder="0" oninput="wsCalcTotalBudget()"></div>
+              </div>
+              <div class="ws-budget-row">
+                <div><div class="ws-budget-ch-name">SEO / Organic</div><div class="ws-budget-ch-type">Included in plan</div></div>
+                <span class="ws-budget-included">Included</span>
+              </div>
+              <div class="ws-budget-row">
+                <div><div class="ws-budget-ch-name">Email Marketing</div><div class="ws-budget-ch-type">Included in plan</div></div>
+                <span class="ws-budget-included">Included</span>
+              </div>
+            </div>
+            <div class="ws-budget-total-row">
+              <div style="font-size:13px;font-weight:700;color:var(--text);">Total monthly ad spend</div>
+              <div style="font-size:20px;font-weight:800;color:var(--teal);">$<span id="wsAdBudgetTotal">0</span><span style="font-size:12px;font-weight:500;color:var(--muted);">/mo</span></div>
+            </div>
+            <div style="margin-top:14px;">
+              <button onclick="wsSaveAdBudget()" style="padding:10px 24px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Save Budget</button>
             </div>
           </div>
         </div>
@@ -1071,6 +1262,20 @@ function wsInitApp() {
   wsLoadDashboard();
   wsCheckOnboarding();
   wsLogActivity('workspace_open', `Workspace opened by ${s.email}`);
+
+  // Check if returning from Stripe — URL param ?plan_success=1
+  const urlParams = new URLSearchParams(location.search);
+  if (urlParams.get('plan_success')) {
+    const pending = sessionStorage.getItem('ws_pending_session');
+    if (pending) {
+      try {
+        const pd = JSON.parse(pending);
+        wsSession.plan = pd.plan;
+        sessionStorage.setItem('ws_session', JSON.stringify(wsSession));
+        sessionStorage.removeItem('ws_pending_session');
+      } catch(e) {}
+    }
+  }
 }
 
 // ── Demo data (deterministic per workspace) ───────────────────────────────────
@@ -1208,6 +1413,13 @@ async function wsLoadReportHealth() {
 let wsPendingCampaigns = JSON.parse(sessionStorage.getItem('ws_pending_campaigns') || '[]');
 
 function wsNewCampaignOpen() {
+  if (!wsPlanAllows('campaigns_create')) {
+    wsSetView('settings');
+    setTimeout(() => {
+      wsShowUpgrade();
+    }, 100);
+    return;
+  }
   const form = document.getElementById('wsNewCampaignForm');
   form.style.display = 'block';
   document.getElementById('wsCmpResult').style.display = 'none';
@@ -1579,10 +1791,45 @@ function wsSetView(view) {
     n.classList.toggle('active', n.dataset.view === view);
   });
   if (view === 'campaigns') wsLoadCampaigns();
-  if (view === 'analytics') { wsRenderAnalytics('search'); }
+  if (view === 'analytics') {
+    if (!wsPlanAllows('analytics')) { wsRenderGate('view-analytics','analytics','growth'); return; }
+    wsRenderAnalytics('search');
+  }
   if (view === 'reports')   wsLoadReports();
-  if (view === 'library')   wsLoadLibrary();
-  if (view === 'brand')     wsLoadBrandHub();
+  if (view === 'library') {
+    if (!wsPlanAllows('library')) { wsRenderGate('view-library','library','growth'); return; }
+    wsLoadLibrary();
+  }
+  if (view === 'ai') {
+    if (!wsPlanAllows('ai')) { wsRenderGate('view-ai','ai','pro'); return; }
+  }
+  if (view === 'brand') {
+    if (!wsPlanAllows('brand')) { wsRenderGate('view-brand','brand','pro'); return; }
+    wsLoadBrandHub();
+  }
+  if (view === 'settings') wsLoadBilling();
+}
+
+function wsRenderGate(viewId, feature, planRequired) {
+  const planNames = { growth:'Growth ($299/mo)', pro:'Pro ($599/mo)' };
+  const featureNames = { analytics:'Analytics & Attribution', library:'Deliverables Library', ai:'AI Marketing Assistant', brand:'Brand Hub' };
+  const el = document.getElementById(viewId);
+  if (!el) return;
+  // Remove old gate if any
+  const old = el.querySelector('.ws-gate-overlay');
+  if (old) old.remove();
+  const gate = document.createElement('div');
+  gate.className = 'ws-gate-overlay';
+  gate.style.cssText = 'position:relative;min-height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:40px;background:#F9F8F4;border-radius:var(--radius);margin-top:24px;';
+  gate.innerHTML = `
+    <div style="font-size:36px;">🔒</div>
+    <div style="font-size:18px;font-weight:800;color:var(--text);">${featureNames[feature] || feature}</div>
+    <div style="font-size:13px;color:var(--muted);max-width:320px;line-height:1.6;">Upgrade to <strong>${planNames[planRequired]}</strong> to unlock this feature.</div>
+    <button onclick="wsShowUpgrade()" style="margin-top:8px;padding:12px 28px;background:var(--teal);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">View plans & upgrade</button>
+    <div style="font-size:12px;color:var(--muted);">Current plan: <strong>${((wsSession&&wsSession.plan)||'starter').charAt(0).toUpperCase()+((wsSession&&wsSession.plan)||'starter').slice(1)}</strong></div>
+  `;
+  el.innerHTML = '';
+  el.appendChild(gate);
 }
 
 // ── Activity logging (syncs to agency HQ) ────────────────────────────────────
@@ -1748,6 +1995,180 @@ function wsSaveBrandHub() {
   setTimeout(() => toast.style.display = 'none', 2500);
   wsLogActivity('brand_hub_updated', 'Brand Hub updated by client.');
 }
+
+// ── Plan Selection ───────────────────────────────────────────────────────────
+
+const WS_PLAN_PRICES = { starter: 'Free', growth: '$299/mo AUD', pro: '$599/mo AUD', agency: 'Managed retainer' };
+
+function wsShowPlanSelection() {
+  // Store the pending signup data so we can start session after plan choice
+  document.getElementById('loginScreen').style.display  = 'none';
+  document.getElementById('wsPlanOverlay').style.display = 'block';
+}
+
+async function wsChoosePlan(plan) {
+  const d = window._suSignupData;
+  if (!d) { wsSignupLogin(); return; } // fallback
+
+  if (plan === 'starter') {
+    // Free — enter workspace immediately
+    document.getElementById('wsPlanOverlay').style.display = 'none';
+    wsStartSession({ workspaceId: d.workspaceId, companyName: d.companyName, email: d.email, isAdmin: false, plan: 'starter' });
+    return;
+  }
+
+  // Paid plan — create Stripe checkout session
+  const btn = document.getElementById(plan === 'growth' ? 'wsPlanBtnGrowth' : 'wsPlanBtnPro');
+  if (btn) { btn.textContent = 'Redirecting…'; btn.classList.add('ws-plan-loading'); }
+
+  try {
+    const res = await fetch(`${WS_API}/api/workspace/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan, workspaceId: d.workspaceId, email: d.email, companyName: d.companyName }),
+    });
+    const j = await res.json();
+    if (j.url) {
+      // Store session data for when Stripe redirects back
+      sessionStorage.setItem('ws_pending_session', JSON.stringify({ ...d, plan }));
+      location.href = j.url;
+    } else if (j.error === 'stripe_not_configured') {
+      // Stripe not set up yet — let them in with chosen plan as preview
+      document.getElementById('wsPlanOverlay').style.display = 'none';
+      wsStartSession({ workspaceId: d.workspaceId, companyName: d.companyName, email: d.email, isAdmin: false, plan });
+    } else {
+      alert('Could not create checkout session. Please try again or contact support.');
+      if (btn) { btn.textContent = 'Get started →'; btn.classList.remove('ws-plan-loading'); }
+    }
+  } catch(e) {
+    // Offline fallback
+    document.getElementById('wsPlanOverlay').style.display = 'none';
+    wsStartSession({ workspaceId: d.workspaceId, companyName: d.companyName, email: d.email, isAdmin: false, plan });
+  }
+}
+
+function wsPlanOverlaySignIn() {
+  document.getElementById('wsPlanOverlay').style.display = 'none';
+  document.getElementById('loginScreen').style.display   = 'flex';
+  wsShowTab('signin');
+}
+
+// ── Feature Gate ─────────────────────────────────────────────────────────────
+
+function wsPlanAllows(feature) {
+  const plan = (wsSession && wsSession.plan) || 'starter';
+  const gates = {
+    campaigns_create: ['growth','pro','agency'],
+    analytics:        ['growth','pro','agency'],
+    library:          ['growth','pro','agency'],
+    ai:               ['pro','agency'],
+    brand:            ['pro','agency'],
+    budget_set:       ['growth','pro','agency'],
+  };
+  return (gates[feature] || []).includes(plan);
+}
+
+function wsGateHTML(feature, planRequired) {
+  const labels = { growth: 'Growth ($299/mo)', pro: 'Pro ($599/mo)' };
+  return `<div class="ws-gate-overlay">
+    <div class="ws-gate-icon">🔒</div>
+    <div class="ws-gate-title">Upgrade to ${labels[planRequired] || planRequired}</div>
+    <div class="ws-gate-sub">This feature requires the ${labels[planRequired] || planRequired} plan.</div>
+    <button class="ws-gate-btn" onclick="wsShowUpgrade()">View plans</button>
+  </div>`;
+}
+
+function wsShowUpgrade() {
+  // Show plan overlay for an existing session (upgrade flow)
+  window._suSignupData = wsSession; // reuse the same choosePlan flow
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('wsPlanOverlay').style.display = 'block';
+}
+
+// ── Billing Settings ─────────────────────────────────────────────────────────
+
+function wsLoadBilling() {
+  const plan = (wsSession && wsSession.plan) || 'starter';
+  const badge = document.getElementById('wsBillingPlanBadge');
+  const amtRow = document.getElementById('wsBillingAmountRow');
+  const managedRow = document.getElementById('wsBillingManagedRow');
+  const upgradeSection = document.getElementById('wsBillingUpgradeSection');
+  const proSection = document.getElementById('wsBillingProSection');
+  const upgradeOpts = document.getElementById('wsBillingUpgradeOptions');
+
+  if (badge) {
+    badge.className = `ws-badge-plan ${plan}`;
+    badge.textContent = { starter:'Starter — Free', growth:'Growth — $299/mo', pro:'Pro — $599/mo', agency:'Agency Managed' }[plan] || plan;
+  }
+
+  if (plan === 'agency') {
+    amtRow.style.display = 'none';
+    managedRow.style.display = '';
+    upgradeSection.style.display = 'none';
+    proSection.style.display = 'none';
+  } else if (plan === 'pro') {
+    amtRow.style.display = '';
+    document.getElementById('wsBillingAmount').textContent = '$599/mo AUD';
+    managedRow.style.display = 'none';
+    upgradeSection.style.display = 'none';
+    proSection.style.display = '';
+  } else {
+    amtRow.style.display = plan === 'growth' ? '' : 'none';
+    if (plan === 'growth') document.getElementById('wsBillingAmount').textContent = '$299/mo AUD';
+    managedRow.style.display = 'none';
+    proSection.style.display = 'none';
+    upgradeSection.style.display = '';
+    upgradeOpts.innerHTML = plan === 'starter' ? `
+      <button onclick="wsShowUpgrade()" style="padding:12px;background:#1C3A2E;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">↑ Upgrade to Growth<br><span style="font-size:11px;font-weight:500;opacity:0.7;">$299/mo — Campaigns + Analytics</span></button>
+      <button onclick="wsShowUpgrade()" style="padding:12px;background:#D4622A;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">↑ Upgrade to Pro<br><span style="font-size:11px;font-weight:500;opacity:0.7;">$599/mo — Full platform + AI CMO</span></button>
+    ` : `
+      <button onclick="wsShowUpgrade()" style="padding:12px;background:#D4622A;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;grid-column:span 2;">↑ Upgrade to Pro — $599/mo<br><span style="font-size:11px;font-weight:500;opacity:0.7;">Add AI CMO + Brand Hub + Priority Support</span></button>
+    `;
+  }
+
+  // Load saved ad budgets
+  const saved = JSON.parse(localStorage.getItem('cp_budgets_' + wsSession.workspaceId) || '{}');
+  ['google','meta','linkedin','tiktok'].forEach(ch => {
+    const el = document.getElementById('bgt_' + ch);
+    if (el && saved[ch]) el.value = saved[ch];
+  });
+  wsCalcTotalBudget();
+
+  // Gate the budget section if on Starter
+  const budgetCard = document.getElementById('wsAdBudgetCard');
+  if (budgetCard) {
+    const existing = budgetCard.querySelector('.ws-gate-overlay');
+    if (!existing && !wsPlanAllows('budget_set')) {
+      budgetCard.style.position = 'relative';
+      const gate = document.createElement('div');
+      gate.innerHTML = wsGateHTML('budget_set','growth');
+      budgetCard.appendChild(gate.firstChild);
+    } else if (existing && wsPlanAllows('budget_set')) {
+      existing.remove();
+    }
+  }
+}
+
+function wsCalcTotalBudget() {
+  const total = ['google','meta','linkedin','tiktok'].reduce((sum, ch) => {
+    const val = parseFloat((document.getElementById('bgt_' + ch) || {}).value) || 0;
+    return sum + val;
+  }, 0);
+  const el = document.getElementById('wsAdBudgetTotal');
+  if (el) el.textContent = total.toLocaleString('en-AU');
+}
+
+function wsSaveAdBudget() {
+  const budgets = {};
+  ['google','meta','linkedin','tiktok'].forEach(ch => {
+    const el = document.getElementById('bgt_' + ch);
+    if (el && el.value) budgets[ch] = parseFloat(el.value);
+  });
+  localStorage.setItem('cp_budgets_' + wsSession.workspaceId, JSON.stringify(budgets));
+  obShowToast ? obShowToast('Ad budgets saved ✓') : alert('Saved!');
+}
+
+function wsUpdateBudgetTotal() {} // stub for campaign form budget input
 
 // ── Auto-restore session ──────────────────────────────────────────────────────
 (function() {

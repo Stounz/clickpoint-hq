@@ -40,7 +40,9 @@ def _load_env() -> dict:
     # Also pick up env vars that weren't in .env (e.g. set via Railway/Heroku dashboard)
     for k in ('ANTHROPIC_API_KEY', 'SUPABASE_URL', 'SUPABASE_SERVICE_KEY',
                'INTEGRATION_ENCRYPTION_KEY', 'SLACK_WEBHOOK_URL', 'RESEND_API_KEY', 'NOTIFY_EMAIL',
-               'HQ_ADMIN_EMAIL', 'HQ_ADMIN_PASS', 'HQ_PARTNER_EMAIL', 'HQ_PARTNER_PASS'):
+               'HQ_ADMIN_EMAIL', 'HQ_ADMIN_PASS', 'HQ_PARTNER_EMAIL', 'HQ_PARTNER_PASS',
+               'STRIPE_SECRET_KEY', 'STRIPE_PRICE_GROWTH', 'STRIPE_PRICE_PRO',
+               'STRIPE_WEBHOOK_SECRET', 'PLATFORM_URL'):
         env_val = os.getenv(k, '')
         if env_val:
             result[k] = env_val
@@ -59,6 +61,11 @@ HQ_ADMIN_EMAIL             = _ENV.get('HQ_ADMIN_EMAIL', '')
 HQ_ADMIN_PASS              = _ENV.get('HQ_ADMIN_PASS', '')
 HQ_PARTNER_EMAIL           = _ENV.get('HQ_PARTNER_EMAIL', '')
 HQ_PARTNER_PASS            = _ENV.get('HQ_PARTNER_PASS', '')
+STRIPE_SECRET_KEY          = _ENV.get('STRIPE_SECRET_KEY', '')
+STRIPE_PRICE_GROWTH        = _ENV.get('STRIPE_PRICE_GROWTH', '')   # price_xxx for $299/mo
+STRIPE_PRICE_PRO           = _ENV.get('STRIPE_PRICE_PRO', '')      # price_xxx for $599/mo
+STRIPE_WEBHOOK_SECRET      = _ENV.get('STRIPE_WEBHOOK_SECRET', '')
+PLATFORM_URL               = _ENV.get('PLATFORM_URL', 'https://platform.clickpointconsulting.com.au')
 
 if not API_KEY:
     print('\n⚠️  No API key found.')
@@ -915,6 +922,10 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_workspace_create()
         elif self.path == '/api/hq/auth':
             self._handle_hq_auth()
+        elif self.path == '/api/workspace/subscribe':
+            self._handle_workspace_subscribe()
+        elif self.path == '/api/stripe/webhook':
+            self._handle_stripe_webhook()
         else:
             self.send_response(404)
             self.end_headers()
@@ -1490,6 +1501,114 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._error(400, 'channel must be slack or email')
 
     # ── Workspace handlers ────────────────────────────────────────────────────
+
+    def _handle_workspace_subscribe(self):
+        """Create a Stripe Checkout Session for a workspace subscription."""
+        if not STRIPE_SECRET_KEY:
+            self._json(200, {'error': 'stripe_not_configured'}); return
+
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+
+        plan         = body.get('plan', '')
+        workspace_id = body.get('workspaceId', '')
+        email        = body.get('email', '')
+        company_name = body.get('companyName', '')
+
+        price_map = {'growth': STRIPE_PRICE_GROWTH, 'pro': STRIPE_PRICE_PRO}
+        price_id  = price_map.get(plan)
+        if not price_id:
+            self._error(400, 'Invalid plan or price not configured'); return
+
+        success_url = f"{PLATFORM_URL}/workspace.html?w={workspace_id}&plan_success=1"
+        cancel_url  = f"{PLATFORM_URL}/workspace.html"
+
+        payload = json.dumps({
+            'mode': 'subscription',
+            'customer_email': email,
+            'line_items': [{'price': price_id, 'quantity': 1}],
+            'success_url': success_url,
+            'cancel_url': cancel_url,
+            'metadata': {'workspace_id': workspace_id, 'company_name': company_name, 'plan': plan},
+            'subscription_data': {
+                'metadata': {'workspace_id': workspace_id, 'plan': plan}
+            },
+        }).encode()
+
+        try:
+            req = urllib.request.Request(
+                'https://api.stripe.com/v1/checkout/sessions',
+                data=payload,
+                headers={
+                    'Authorization': f'Bearer {STRIPE_SECRET_KEY}',
+                    'Content-Type': 'application/json',
+                },
+            )
+            with urllib.request.urlopen(req, timeout=15) as r:
+                session = json.loads(r.read())
+            self._json(200, {'url': session['url'], 'sessionId': session['id']})
+        except Exception as e:
+            print(f'  Stripe error: {e}')
+            self._error(500, 'Stripe checkout failed')
+
+    def _handle_stripe_webhook(self):
+        """Handle Stripe webhook events (payment succeeded → update plan in Supabase)."""
+        import hmac as _hmac, hashlib as _hs
+
+        raw = self.rfile.read(int(self.headers.get('Content-Length', 0)))
+        sig_header = self.headers.get('Stripe-Signature', '')
+
+        # Verify webhook signature if secret is configured
+        if STRIPE_WEBHOOK_SECRET and sig_header:
+            try:
+                parts = {p.split('=')[0]: p.split('=')[1] for p in sig_header.split(',')}
+                ts    = parts.get('t', '')
+                sig   = parts.get('v1', '')
+                payload_to_sign = f"{ts}.{raw.decode()}"
+                expected = _hmac.new(
+                    STRIPE_WEBHOOK_SECRET.encode(),
+                    payload_to_sign.encode(),
+                    _hs.sha256,
+                ).hexdigest()
+                if not _hmac.compare_digest(expected, sig):
+                    self._error(400, 'Invalid signature'); return
+            except Exception:
+                self._error(400, 'Signature verification failed'); return
+
+        try:
+            event = json.loads(raw)
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+
+        event_type = event.get('type', '')
+        if event_type in ('checkout.session.completed', 'invoice.payment_succeeded'):
+            obj = event.get('data', {}).get('object', {})
+            metadata     = obj.get('metadata', {})
+            workspace_id = metadata.get('workspace_id', '')
+            plan         = metadata.get('plan', '')
+
+            if workspace_id and plan and SUPABASE_URL and SUPABASE_SERVICE_KEY:
+                try:
+                    patch_url = f"{SUPABASE_URL}/rest/v1/workspace_access?workspace_id=eq.{workspace_id}"
+                    patch_req = urllib.request.Request(
+                        patch_url,
+                        data=json.dumps({'plan': plan, 'subscription_active': True}).encode(),
+                        headers={
+                            'apikey': SUPABASE_SERVICE_KEY,
+                            'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=minimal',
+                        },
+                        method='PATCH',
+                    )
+                    urllib.request.urlopen(patch_req, timeout=6)
+                    print(f'  ✅ Workspace {workspace_id} upgraded to {plan}')
+                except Exception as e:
+                    print(f'  Supabase plan update error: {e}')
+
+        self._json(200, {'received': True})
 
     def _handle_hq_auth(self):
         """Authenticate an Agency HQ user (superadmin or partner)."""
