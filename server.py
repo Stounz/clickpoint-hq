@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ClickPoint Marketing — Agent API Server v2.3
+ClickPoint Marketing — Agent API Server v2.4
 Proxies requests to the Anthropic Claude API with per-agent system prompts.
 Supports single-agent calls and multi-agent chaining.
 Run: python3 server.py
@@ -929,6 +929,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_stripe_webhook()
         elif self.path == '/api/partner/invite':
             self._handle_partner_invite()
+        elif self.path == '/api/partner/register':
+            self._handle_partner_register()
         else:
             self.send_response(404)
             self.end_headers()
@@ -1770,6 +1772,109 @@ class AgentHandler(BaseHTTPRequestHandler):
             'ok': True,
             'clientEmailSent': client_sent,
             'partnerEmailSent': partner_sent,
+        })
+
+    def _handle_partner_register(self):
+        """Self-serve partner registration — creates account and sends welcome email."""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+
+        agency_name = body.get('agencyName', '').strip()
+        name        = body.get('name', '').strip()
+        email       = body.get('email', '').strip().lower()
+        website     = body.get('website', '').strip()
+        password    = body.get('password', '')
+
+        if not agency_name or not name or not email or not password:
+            self._error(400, 'agencyName, name, email and password are required'); return
+        if len(password) < 8:
+            self._json(200, {'ok': False, 'error': 'Password must be at least 8 characters'}); return
+
+        import hashlib, time as _time
+        partner_id = 'pt-' + hashlib.md5(email.encode()).hexdigest()[:8]
+        initials   = ''.join(p[0].upper() for p in name.split()[:2]) or 'PA'
+        ts         = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
+
+        # ── Welcome email to new partner ──────────────────────────────────────
+        welcome_html = f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#F5F4EF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F4EF;padding:40px 20px;">
+<tr><td align="center">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+  <tr><td style="background:#1C3A2E;padding:28px 36px;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:8px;">ClickPoint Partner Network</div>
+    <div style="font-size:22px;font-weight:800;color:#ffffff;margin-bottom:6px;">Welcome to ClickPoint Partners 🎉</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.6);">Your agency partner account is active</div>
+  </td></tr>
+  <tr><td style="padding:32px 36px;">
+    <p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 20px;">Hi {name},</p>
+    <p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 24px;">
+      Thank you for joining the ClickPoint partner network. Your account for <strong>{agency_name}</strong> is now active and ready to use.
+      Sign in to the partner portal to start onboarding clients, track performance, and earn your 20% commission.
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#0E1F17;border-radius:14px;padding:24px;margin-bottom:28px;">
+      <tr><td>
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:14px;">Your Partner Account</div>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="font-size:12px;color:rgba(255,255,255,0.4);padding:6px 0;width:40%;">Email</td>
+            <td style="font-size:13px;font-weight:700;color:#ffffff;padding:6px 0;">{email}</td>
+          </tr>
+          <tr>
+            <td style="font-size:12px;color:rgba(255,255,255,0.4);padding:6px 0;">Partner ID</td>
+            <td style="font-size:13px;font-weight:700;color:#D4622A;font-family:monospace;padding:6px 0;">{partner_id}</td>
+          </tr>
+          <tr>
+            <td style="font-size:12px;color:rgba(255,255,255,0.4);padding:6px 0;">Agency</td>
+            <td style="font-size:13px;color:rgba(255,255,255,0.8);padding:6px 0;">{agency_name}</td>
+          </tr>
+          <tr>
+            <td style="font-size:12px;color:rgba(255,255,255,0.4);padding:6px 0;">Commission</td>
+            <td style="font-size:13px;font-weight:700;color:#30D158;padding:6px 0;">20% recurring</td>
+          </tr>
+        </table>
+      </td></tr>
+    </table>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+      <tr><td align="center">
+        <a href="https://platform.clickpointconsulting.com.au/partner.html" style="display:inline-block;background:#D4622A;color:#ffffff;text-decoration:none;padding:15px 36px;border-radius:12px;font-weight:700;font-size:15px;">Open Partner Portal →</a>
+      </td></tr>
+    </table>
+    <p style="font-size:13px;color:#999;line-height:1.6;margin:0;">
+      A member of the ClickPoint team will review your application and reach out shortly with onboarding details and access to commission reporting.
+    </p>
+  </td></tr>
+  <tr><td style="background:#F5F4EF;padding:20px 36px;border-top:1px solid #E2E1DB;">
+    <div style="font-size:11px;color:#bbb;text-align:center;">ClickPoint Consulting · Partner Network</div>
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>"""
+
+        email_sent = _send_email(email, 'Welcome to ClickPoint Partners — your account is active', welcome_html)
+
+        # ── Notify HQ ─────────────────────────────────────────────────────────
+        notify_email = _ENV.get('NOTIFY_EMAIL', '')
+        if notify_email:
+            notify_html = f"""<p>New partner self-registration at {ts}:</p>
+<ul>
+  <li><strong>Name:</strong> {name}</li>
+  <li><strong>Agency:</strong> {agency_name}</li>
+  <li><strong>Email:</strong> {email}</li>
+  <li><strong>Website:</strong> {website or '—'}</li>
+  <li><strong>Partner ID:</strong> {partner_id}</li>
+</ul>"""
+            _send_email(notify_email, f'[ClickPoint] New partner registration — {agency_name}', notify_html)
+
+        print(f'  🤝 Partner registered: {name} <{email}> ({agency_name}) — id:{partner_id} email_sent:{email_sent}')
+        self._json(200, {
+            'ok': True,
+            'partnerId': partner_id,
+            'emailSent': email_sent,
         })
 
     def _handle_hq_auth(self):

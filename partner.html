@@ -35,6 +35,22 @@
   .pt-login-foot a { color:rgba(255,255,255,0.4); text-decoration:none; }
   .pt-login-foot a:hover { color:rgba(255,255,255,0.7); }
 
+  /* ── Login tabs ── */
+  .pt-login-tabs { display:flex; gap:4px; margin-bottom:28px; background:rgba(255,255,255,0.05); border-radius:10px; padding:4px; }
+  .pt-login-tab { flex:1; padding:8px; text-align:center; font-size:13px; font-weight:600; color:rgba(255,255,255,0.4); border-radius:8px; cursor:pointer; transition:all 0.15s; }
+  .pt-login-tab.active { background:rgba(255,255,255,0.1); color:#fff; }
+  .pt-login-tab:hover:not(.active) { color:rgba(255,255,255,0.6); }
+  .pt-login-panel { display:none; }
+  .pt-login-panel.active { display:block; }
+  .pt-signup-success { display:none; text-align:center; padding:8px 0; }
+  .pt-signup-success-icon { font-size:36px; margin-bottom:12px; }
+  .pt-signup-success-title { font-size:18px; font-weight:800; color:#fff; margin-bottom:8px; }
+  .pt-signup-success-sub { font-size:13px; color:rgba(255,255,255,0.5); line-height:1.6; margin-bottom:24px; }
+  .pt-signup-creds { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:16px; margin-bottom:20px; text-align:left; }
+  .pt-signup-cred-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; }
+  .pt-signup-cred-label { font-size:11px; color:rgba(255,255,255,0.4); font-weight:600; }
+  .pt-signup-cred-val { font-size:13px; color:#fff; font-weight:700; font-family:monospace; }
+
   /* ── Onboarding Modal ── */
   .pt-ob-overlay { position:fixed; inset:0; background:rgba(10,18,14,0.75); z-index:1000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
   .pt-ob-modal { background:#fff; border-radius:20px; padding:40px; max-width:540px; width:calc(100% - 40px); box-shadow:0 24px 80px rgba(0,0,0,0.2); }
@@ -241,15 +257,55 @@
       <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" alt="ClickPoint">
     </div>
     <div class="pt-login-badge">🤝 Partner Portal</div>
-    <div class="pt-login-title">Welcome back</div>
-    <div class="pt-login-sub">Sign in to manage your client workspaces and view performance.</div>
-    <label class="pt-login-label">Email address</label>
-    <input class="pt-login-input" id="ptEmail" type="email" placeholder="you@youragency.com" autocomplete="email" onkeydown="if(event.key==='Enter')ptLogin()" />
-    <label class="pt-login-label">Password</label>
-    <input class="pt-login-input" id="ptPass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')ptLogin()" />
-    <button class="pt-login-btn" id="ptLoginBtn" onclick="ptLogin()">Sign in to Partner Portal →</button>
-    <div class="pt-login-err" id="ptLoginErr"></div>
-    <div class="pt-login-foot">
+
+    <!-- Tabs -->
+    <div class="pt-login-tabs">
+      <div class="pt-login-tab active" id="ptTabSignIn" onclick="ptShowLoginTab('signin')">Sign In</div>
+      <div class="pt-login-tab" id="ptTabRegister" onclick="ptShowLoginTab('register')">Register as Partner</div>
+    </div>
+
+    <!-- Sign In Panel -->
+    <div class="pt-login-panel active" id="ptPanelSignIn">
+      <div class="pt-login-title">Welcome back</div>
+      <div class="pt-login-sub" style="margin-bottom:24px;">Sign in to manage your client workspaces and view performance.</div>
+      <label class="pt-login-label">Email address</label>
+      <input class="pt-login-input" id="ptEmail" type="email" placeholder="you@youragency.com" autocomplete="email" onkeydown="if(event.key==='Enter')ptLogin()" />
+      <label class="pt-login-label">Password</label>
+      <input class="pt-login-input" id="ptPass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')ptLogin()" />
+      <button class="pt-login-btn" id="ptLoginBtn" onclick="ptLogin()">Sign in to Partner Portal →</button>
+      <div class="pt-login-err" id="ptLoginErr"></div>
+    </div>
+
+    <!-- Register Panel -->
+    <div class="pt-login-panel" id="ptPanelRegister">
+      <!-- Form -->
+      <div id="ptRegisterForm">
+        <div class="pt-login-title">Become a partner</div>
+        <div class="pt-login-sub" style="margin-bottom:24px;">Join the ClickPoint partner network and earn 20% commission on every client you manage.</div>
+        <label class="pt-login-label">Agency name</label>
+        <input class="pt-login-input" id="ptRegAgency" placeholder="e.g. Acme Digital Agency" />
+        <label class="pt-login-label">Your name</label>
+        <input class="pt-login-input" id="ptRegName" placeholder="First and last name" />
+        <label class="pt-login-label">Email address</label>
+        <input class="pt-login-input" id="ptRegEmail" type="email" placeholder="you@youragency.com" />
+        <label class="pt-login-label">Agency website</label>
+        <input class="pt-login-input" id="ptRegWebsite" placeholder="https://youragency.com" />
+        <label class="pt-login-label">Password</label>
+        <input class="pt-login-input" id="ptRegPass" type="password" placeholder="Create a password" />
+        <button class="pt-login-btn" id="ptRegBtn" onclick="ptRegister()">Apply for partner access →</button>
+        <div class="pt-login-err" id="ptRegErr"></div>
+      </div>
+      <!-- Success -->
+      <div class="pt-signup-success" id="ptRegisterSuccess">
+        <div class="pt-signup-success-icon">🎉</div>
+        <div class="pt-signup-success-title">Application submitted!</div>
+        <div class="pt-signup-success-sub">Your partner account has been created. Sign in below with your credentials — the ClickPoint team has been notified and will be in touch shortly.</div>
+        <div class="pt-signup-creds" id="ptRegCreds"></div>
+        <button class="pt-login-btn" onclick="ptShowLoginTab('signin')">Sign in now →</button>
+      </div>
+    </div>
+
+    <div class="pt-login-foot" style="margin-top:20px;">
       Agency HQ? <a href="org-chart.html">Sign in here →</a> &nbsp;|&nbsp;
       Client workspace? <a href="workspace.html">Sign in here →</a>
     </div>
@@ -695,6 +751,66 @@ async function ptLogin() {
     err.textContent = 'Could not reach the server. Please try again.';
     err.style.display = 'block';
     btn.disabled = false; btn.textContent = 'Sign in to Partner Portal →';
+  }
+}
+
+function ptShowLoginTab(tab) {
+  const tabs   = ['signin','register'];
+  tabs.forEach(t => {
+    document.getElementById('ptTab'   + (t==='signin'?'SignIn':'Register')).classList.toggle('active', t===tab);
+    document.getElementById('ptPanel' + (t==='signin'?'SignIn':'Register')).classList.toggle('active', t===tab);
+  });
+}
+
+async function ptRegister() {
+  const agency   = document.getElementById('ptRegAgency').value.trim();
+  const name     = document.getElementById('ptRegName').value.trim();
+  const email    = document.getElementById('ptRegEmail').value.trim().toLowerCase();
+  const website  = document.getElementById('ptRegWebsite').value.trim();
+  const password = document.getElementById('ptRegPass').value;
+  const err      = document.getElementById('ptRegErr');
+  const btn      = document.getElementById('ptRegBtn');
+  err.style.display = 'none';
+
+  if (!agency || !name || !email || !password) {
+    err.textContent = 'Please fill in all required fields.';
+    err.style.display = 'block'; return;
+  }
+  if (password.length < 8) {
+    err.textContent = 'Password must be at least 8 characters.';
+    err.style.display = 'block'; return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Creating account…';
+
+  try {
+    const res = await fetch(`${PT_API}/api/partner/register`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agencyName: agency, name, email, website, password }),
+    });
+    const d = await res.json();
+
+    if (d.ok) {
+      // Show success panel with credentials
+      const credsEl = document.getElementById('ptRegCreds');
+      credsEl.innerHTML = `
+        <div class="pt-signup-cred-row"><span class="pt-signup-cred-label">Email</span><span class="pt-signup-cred-val">${email}</span></div>
+        <div class="pt-signup-cred-row"><span class="pt-signup-cred-label">Partner ID</span><span class="pt-signup-cred-val">${d.partnerId || '—'}</span></div>
+      `;
+      document.getElementById('ptRegisterForm').style.display    = 'none';
+      document.getElementById('ptRegisterSuccess').style.display = 'block';
+
+      // Pre-fill sign-in email for convenience
+      document.getElementById('ptEmail').value = email;
+    } else {
+      err.textContent = d.error || 'Registration failed. Please try again.';
+      err.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Apply for partner access →';
+    }
+  } catch(e) {
+    err.textContent = 'Could not reach the server. Please try again.';
+    err.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Apply for partner access →';
   }
 }
 
