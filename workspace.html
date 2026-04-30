@@ -46,6 +46,11 @@
   .login-btn { width:100%; padding:14px; background:var(--teal); color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; transition:background 0.2s; margin-top:4px; }
   .login-btn:hover { background:var(--teal-md); }
   .login-err { color:var(--red); font-size:13px; margin-top:10px; display:none; }
+  .ws-resend-link { font-size:12px; color:var(--muted); cursor:pointer; text-decoration:underline; text-decoration-style:dotted; }
+  .ws-resend-link:hover { color:var(--teal); }
+  .ws-resend-panel { display:none; background:#F5F4EF; border-radius:12px; padding:16px; margin-top:14px; }
+  .ws-resend-panel.active { display:block; }
+  .ws-resend-ok { font-size:13px; color:var(--teal); font-weight:600; display:none; margin-top:8px; }
   .login-tabs { display:flex; border-bottom:2px solid var(--border); margin-bottom:28px; gap:0; }
   .login-tab { flex:1; padding:10px; text-align:center; font-size:13px; font-weight:700; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; transition:all 0.2s; }
   .login-tab.active { color:var(--teal); border-bottom-color:var(--teal); }
@@ -478,6 +483,16 @@
       <input class="login-input" id="wsCodeInput" type="text" placeholder="6-digit code" maxlength="6" style="letter-spacing:0.3em;font-size:20px;" />
       <button class="login-btn" onclick="wsLogin()">Sign In →</button>
       <div class="login-err" id="wsLoginErr">Invalid workspace ID or access code. Please try again.</div>
+      <div style="text-align:center;margin-top:14px;">
+        <span class="ws-resend-link" onclick="wsShowResend()">Forgot your access code?</span>
+      </div>
+      <div class="ws-resend-panel" id="wsResendPanel">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;">Resend access code</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Enter the email you registered with and we'll resend your code.</div>
+        <input class="login-input" id="wsResendEmail" type="email" placeholder="you@company.com" style="margin-bottom:8px;" onkeydown="if(event.key==='Enter')wsResendCode()" />
+        <button class="login-btn" onclick="wsResendCode()">Send my access code →</button>
+        <div class="ws-resend-ok" id="wsResendOk">✓ If that email is registered, your access code is on its way.</div>
+      </div>
     </div>
 
     <!-- Sign Up Panel -->
@@ -1077,6 +1092,28 @@
 <script>
 // ── Config ──────────────────────────────────────────────────────────────────
 const WS_API = 'https://web-production-c959ce.up.railway.app';
+
+// ── Resend access code ───────────────────────────────────────────────────────
+function wsShowResend() {
+  const panel = document.getElementById('wsResendPanel');
+  panel.classList.toggle('active');
+  if (panel.classList.contains('active')) {
+    const em = document.getElementById('wsEmailInput').value;
+    if (em) document.getElementById('wsResendEmail').value = em;
+    document.getElementById('wsResendEmail').focus();
+  }
+}
+async function wsResendCode() {
+  const email = document.getElementById('wsResendEmail').value.trim();
+  if (!email) return;
+  try {
+    await fetch(WS_API + '/api/workspace/resend-code', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email})
+    });
+  } catch(e) {}
+  document.getElementById('wsResendOk').style.display = 'block';
+}
 const SUPABASE_URL = 'https://placeholder.supabase.co';
 const SUPABASE_ANON_KEY = 'placeholder';
 

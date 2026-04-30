@@ -94,7 +94,7 @@
   .pt-modal-btn-outline:hover { border-color:var(--dark); }
 
   /* ── App Shell ── */
-  .pt-shell { display:flex; min-height:100vh; }
+  .pt-shell { display:flex; height:100vh; overflow:hidden; }
 
   /* ── Sidebar ── */
   .pt-sidebar { width:220px; flex-shrink:0; background:var(--teal); display:flex; flex-direction:column; position:sticky; top:0; height:100vh; }
@@ -116,7 +116,7 @@
   .pt-signout:hover { background:rgba(255,59,48,0.15); border-color:rgba(255,59,48,0.3); color:var(--red); }
 
   /* ── Main ── */
-  .pt-main { flex:1; display:flex; flex-direction:column; min-width:0; }
+  .pt-main { flex:1; display:flex; flex-direction:column; min-width:0; overflow-y:auto; }
   .pt-topbar { padding:14px 32px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:#fff; position:sticky; top:0; z-index:10; }
   .pt-topbar-title { font-size:16px; font-weight:700; color:var(--dark); }
   .pt-topbar-sub { font-size:12px; color:var(--muted); margin-top:1px; }
@@ -236,6 +236,17 @@
   .pt-report-dl { padding:6px 14px; background:#fff; border:1px solid var(--border); border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; white-space:nowrap; margin-left:auto; }
   .pt-report-dl:hover { border-color:var(--teal); color:var(--teal); }
 
+  /* ── Password toggle & forgot ── */
+  .pt-pass-wrap { position:relative; }
+  .pt-pass-wrap .pt-login-input { padding-right:44px; }
+  .pt-pass-eye { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--muted); padding:4px; display:flex; align-items:center; transition:color 0.15s; }
+  .pt-pass-eye:hover { color:var(--dark); }
+  .pt-forgot-link { font-size:12px; color:var(--muted); text-align:right; margin-top:-10px; margin-bottom:14px; cursor:pointer; display:block; }
+  .pt-forgot-link:hover { color:var(--orange); }
+  .pt-forgot-panel { display:none; background:#F5F4EF; border-radius:12px; padding:16px; margin-bottom:14px; }
+  .pt-forgot-panel.active { display:block; }
+  .pt-forgot-ok { font-size:13px; color:#30D158; font-weight:600; display:none; margin-top:8px; }
+
   /* ── Toast ── */
   .pt-toast { position:fixed; bottom:28px; right:28px; background:var(--dark); color:#fff; padding:12px 20px; border-radius:12px; font-size:13px; font-weight:600; z-index:9999; opacity:0; transform:translateY(8px); transition:all 0.25s; pointer-events:none; }
   .pt-toast.show { opacity:1; transform:translateY(0); }
@@ -271,7 +282,18 @@
       <label class="pt-login-label">Email address</label>
       <input class="pt-login-input" id="ptEmail" type="email" placeholder="you@youragency.com" autocomplete="email" onkeydown="if(event.key==='Enter')ptLogin()" />
       <label class="pt-login-label">Password</label>
-      <input class="pt-login-input" id="ptPass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')ptLogin()" />
+      <div class="pt-pass-wrap">
+        <input class="pt-login-input" id="ptPass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')ptLogin()" />
+        <button type="button" class="pt-pass-eye" id="ptPassEye" onclick="ptTogglePass('ptPass','ptPassEye')"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
+      <span class="pt-forgot-link" onclick="ptShowForgot()">Forgot password?</span>
+      <div class="pt-forgot-panel" id="ptForgotPanel">
+        <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:6px;">Reset your password</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Enter your email and we'll send you reset instructions.</div>
+        <input class="pt-login-input" id="ptForgotEmail" type="email" placeholder="you@youragency.com" style="margin-bottom:8px;" onkeydown="if(event.key==='Enter')ptForgotPassword()" />
+        <button class="pt-login-btn" onclick="ptForgotPassword()" style="padding:10px 16px;">Send reset email →</button>
+        <div class="pt-forgot-ok" id="ptForgotOk">✓ Check your email for reset instructions.</div>
+      </div>
       <button class="pt-login-btn" id="ptLoginBtn" onclick="ptLogin()">Sign in to Partner Portal →</button>
       <div class="pt-login-err" id="ptLoginErr"></div>
     </div>
@@ -291,7 +313,10 @@
         <label class="pt-login-label">Agency website</label>
         <input class="pt-login-input" id="ptRegWebsite" placeholder="https://youragency.com" />
         <label class="pt-login-label">Password</label>
-        <input class="pt-login-input" id="ptRegPass" type="password" placeholder="Create a password" />
+        <div class="pt-pass-wrap">
+          <input class="pt-login-input" id="ptRegPass" type="password" placeholder="Create a password" />
+          <button type="button" class="pt-pass-eye" id="ptRegPassEye" onclick="ptTogglePass('ptRegPass','ptRegPassEye')"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
         <button class="pt-login-btn" id="ptRegBtn" onclick="ptRegister()">Apply for partner access →</button>
         <div class="pt-login-err" id="ptRegErr"></div>
       </div>
@@ -679,6 +704,37 @@
 
 <script>
 const PT_API = 'https://web-production-c959ce.up.railway.app';
+
+// ── Password toggle ───────────────────────────────────────────────────────────
+const EYE_OPEN = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF  = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+function ptTogglePass(inputId, btnId) {
+  const inp = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.innerHTML = show ? EYE_OFF : EYE_OPEN;
+}
+function ptShowForgot() {
+  const panel = document.getElementById('ptForgotPanel');
+  panel.classList.toggle('active');
+  if (panel.classList.contains('active')) {
+    const em = document.getElementById('ptEmail').value;
+    if (em) document.getElementById('ptForgotEmail').value = em;
+    document.getElementById('ptForgotEmail').focus();
+  }
+}
+async function ptForgotPassword() {
+  const email = document.getElementById('ptForgotEmail').value.trim();
+  if (!email) return;
+  try {
+    await fetch(PT_API + '/api/partner/forgot-password', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email})
+    });
+  } catch(e) {}
+  document.getElementById('ptForgotOk').style.display = 'block';
+}
 
 // ── Demo fallback data ────────────────────────────────────────────────────────
 const PT_DEMO_CLIENTS = [

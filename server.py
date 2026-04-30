@@ -945,6 +945,10 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_partner_invite()
         elif self.path == '/api/partner/register':
             self._handle_partner_register()
+        elif self.path == '/api/partner/forgot-password':
+            self._handle_partner_forgot_password()
+        elif self.path == '/api/workspace/resend-code':
+            self._handle_workspace_resend_code()
         else:
             self.send_response(404)
             self.end_headers()
@@ -1890,6 +1894,115 @@ class AgentHandler(BaseHTTPRequestHandler):
             'partnerId': partner_id,
             'emailSent': email_sent,
         })
+
+    def _handle_partner_forgot_password(self):
+        """Send password reset instructions to a partner email."""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+
+        email = body.get('email', '').strip().lower()
+        if not email:
+            self._json(200, {'ok': True}); return  # Silent — don't reveal anything
+
+        reset_html = f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#F5F4EF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F4EF;padding:40px 20px;">
+<tr><td align="center">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+  <tr><td style="background:#1C3A2E;padding:28px 36px;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:8px;">ClickPoint Partner Network</div>
+    <div style="font-size:22px;font-weight:800;color:#ffffff;margin-bottom:6px;">Password Reset Request</div>
+  </td></tr>
+  <tr><td style="padding:32px 36px;">
+    <p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 20px;">Hi,</p>
+    <p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 24px;">
+      We received a password reset request for the partner account associated with <strong>{email}</strong>.
+      A member of our team will be in touch shortly to verify your identity and reset your access.
+    </p>
+    <p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 24px;">
+      If you didn't request this, you can safely ignore this email — your account remains secure.
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+      <tr><td align="center">
+        <a href="https://platform.clickpointconsulting.com.au/partner.html" style="display:inline-block;background:#D4622A;color:#ffffff;text-decoration:none;padding:15px 36px;border-radius:12px;font-weight:700;font-size:15px;">Go to Partner Portal →</a>
+      </td></tr>
+    </table>
+  </td></tr>
+  <tr><td style="background:#F5F4EF;padding:20px 36px;border-top:1px solid #E2E1DB;">
+    <div style="font-size:11px;color:#bbb;text-align:center;">ClickPoint Consulting · Partner Network</div>
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>"""
+
+        _send_email(email, 'ClickPoint — Password reset request received', reset_html)
+        # Notify HQ so team can action manually
+        notify_email = _ENV.get('NOTIFY_EMAIL', '')
+        if notify_email:
+            _send_email(notify_email, f'[ClickPoint] Partner password reset request — {email}',
+                        f'<p>Password reset requested for partner account: <strong>{email}</strong></p><p>Please verify and reset their access via the partner portal.</p>')
+
+        print(f'  🔑 Partner forgot-password: {email}')
+        self._json(200, {'ok': True})
+
+    def _handle_workspace_resend_code(self):
+        """Resend a client's access code to their registered email."""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+
+        email = body.get('email', '').strip().lower()
+        if not email:
+            self._json(200, {'ok': True}); return
+
+        code = None
+        workspace_id = None
+        company_name = None
+
+        if SUPABASE_URL and SUPABASE_SERVICE_KEY:
+            try:
+                import urllib.parse as _up
+                qurl = f"{SUPABASE_URL}/rest/v1/workspace_access?email=eq.{_up.quote(email)}&select=workspace_id,company_name,access_code&order=created_at.desc&limit=1"
+                req = urllib.request.Request(qurl, headers={
+                    'apikey': SUPABASE_SERVICE_KEY,
+                    'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                })
+                with urllib.request.urlopen(req, timeout=6) as r:
+                    rows = json.loads(r.read())
+                if rows:
+                    code         = rows[0].get('access_code')
+                    workspace_id = rows[0].get('workspace_id')
+                    company_name = rows[0].get('company_name', workspace_id)
+            except Exception as e:
+                print(f'  ⚠️  resend-code Supabase error: {e}')
+
+        if code and workspace_id:
+            portal_link = f"https://platform.clickpointconsulting.com.au/workspace.html?w={workspace_id}"
+            email_html = f"""<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;">
+<div style="font-size:22px;font-weight:800;color:#1C3A2E;margin-bottom:4px;">ClickPoint</div>
+<div style="font-size:14px;color:#999;margin-bottom:28px;">Your access code</div>
+<h2 style="font-size:20px;color:#1A1A1A;font-weight:700;margin-bottom:8px;">Here's your workspace access code</h2>
+<p style="color:#555;font-size:14px;line-height:1.6;margin-bottom:20px;">As requested, here are your sign-in details for the <strong>{company_name}</strong> workspace.</p>
+<div style="background:#F4F3EE;border-radius:12px;padding:20px;margin-bottom:20px;">
+  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#999;margin-bottom:8px;">Your Access Details</div>
+  <div style="font-size:14px;color:#1A1A1A;margin-bottom:4px;">Workspace ID: <strong>{workspace_id}</strong></div>
+  <div style="font-size:14px;color:#1A1A1A;margin-bottom:4px;">Email: <strong>{email}</strong></div>
+  <div style="font-size:14px;color:#1A1A1A;">Access Code: <strong style="font-size:26px;letter-spacing:0.2em;">{code}</strong></div>
+</div>
+<a href="{portal_link}" style="display:block;background:#1C3A2E;color:#fff;text-decoration:none;padding:14px;border-radius:10px;text-align:center;font-weight:700;font-size:15px;margin-bottom:24px;">Open My Workspace →</a>
+<p style="font-size:12px;color:#999;">Didn't request this? You can safely ignore this email.</p>
+</div>"""
+            _send_email(email, f'Your ClickPoint access code — {company_name}', email_html)
+            print(f'  🔑 Resent access code to {email} for workspace {workspace_id}')
+        else:
+            print(f'  ⚠️  resend-code: no workspace found for {email}')
+
+        self._json(200, {'ok': True})  # Always return ok — don't reveal if email exists
 
     def _handle_hq_auth(self):
         """Authenticate an Agency HQ user (superadmin or partner)."""
