@@ -1504,7 +1504,7 @@ class AgentHandler(BaseHTTPRequestHandler):
         if not email or not password:
             self._json(200, {'success': False, 'error': 'Email and password are required'}); return
 
-        # Superadmin check
+        # Superadmin check (env var takes precedence over demo fallback)
         if HQ_ADMIN_EMAIL and HQ_ADMIN_PASS:
             if email == HQ_ADMIN_EMAIL.lower() and password == HQ_ADMIN_PASS:
                 self._json(200, {
@@ -1512,10 +1512,26 @@ class AgentHandler(BaseHTTPRequestHandler):
                     'name': 'ClickPoint Admin', 'initials': 'CP',
                     'email': email, 'partnerId': None,
                 }); return
+        else:
+            # Demo fallback — works when Railway vars are not yet configured
+            if email == 'admin@clickpoint.com.au' and password == 'demo1234':
+                self._json(200, {
+                    'success': True, 'role': 'superadmin',
+                    'name': 'ClickPoint Admin', 'initials': 'CP',
+                    'email': email, 'partnerId': None,
+                }); return
 
-        # Partner check
+        # Partner check (env var takes precedence over demo fallback)
         if HQ_PARTNER_EMAIL and HQ_PARTNER_PASS:
             if email == HQ_PARTNER_EMAIL.lower() and password == HQ_PARTNER_PASS:
+                self._json(200, {
+                    'success': True, 'role': 'partner',
+                    'name': 'Agency Partner', 'initials': 'AP',
+                    'email': email, 'partnerId': 'partner-demo',
+                }); return
+        else:
+            # Demo fallback — works when Railway vars are not yet configured
+            if email == 'partner@clickpoint.com.au' and password == 'demo1234':
                 self._json(200, {
                     'success': True, 'role': 'partner',
                     'name': 'Agency Partner', 'initials': 'AP',
