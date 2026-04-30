@@ -46,6 +46,21 @@ def _load_env() -> dict:
         env_val = os.getenv(k, '')
         if env_val:
             result[k] = env_val
+
+    # APP_CONFIG fallback — single JSON variable containing all secrets.
+    # Workaround for Railway Runtime V2 only injecting the first variable.
+    # Set in Railway as: APP_CONFIG = {"HQ_ADMIN_EMAIL":"...","RESEND_API_KEY":"...",...}
+    app_config_raw = os.getenv('APP_CONFIG', '')
+    if app_config_raw:
+        try:
+            import json as _j
+            for k, v in _j.loads(app_config_raw).items():
+                if v and not result.get(k):
+                    result[k] = str(v)
+            print('  ✅ APP_CONFIG loaded successfully')
+        except Exception as e:
+            print(f'  ⚠️  APP_CONFIG parse error: {e}')
+
     return result
 
 _ENV = _load_env()
