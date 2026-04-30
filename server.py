@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ClickPoint Marketing — Agent API Server v2.1
+ClickPoint Marketing — Agent API Server v2.2
 Proxies requests to the Anthropic Claude API with per-agent system prompts.
 Supports single-agent calls and multi-agent chaining.
 Run: python3 server.py
