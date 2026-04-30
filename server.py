@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ClickPoint Marketing — Agent API Server v2.2
+ClickPoint Marketing — Agent API Server v2.3
 Proxies requests to the Anthropic Claude API with per-agent system prompts.
 Supports single-agent calls and multi-agent chaining.
 Run: python3 server.py
@@ -39,7 +39,7 @@ def _load_env() -> dict:
         result[k] = os.getenv(k, result[k])
     # Also pick up env vars that weren't in .env (e.g. set via Railway/Heroku dashboard)
     for k in ('ANTHROPIC_API_KEY', 'SUPABASE_URL', 'SUPABASE_SERVICE_KEY',
-               'INTEGRATION_ENCRYPTION_KEY', 'SLACK_WEBHOOK_URL', 'RESEND_API_KEY', 'NOTIFY_EMAIL',
+               'INTEGRATION_ENCRYPTION_KEY', 'SLACK_WEBHOOK_URL', 'RESEND_API_KEY', 'RESEND_FROM', 'NOTIFY_EMAIL',
                'HQ_ADMIN_EMAIL', 'HQ_ADMIN_PASS', 'HQ_PARTNER_EMAIL', 'HQ_PARTNER_PASS',
                'STRIPE_SECRET_KEY', 'STRIPE_PRICE_GROWTH', 'STRIPE_PRICE_PRO',
                'STRIPE_WEBHOOK_SECRET', 'PLATFORM_URL'):
@@ -56,6 +56,7 @@ SUPABASE_SERVICE_KEY       = _ENV.get('SUPABASE_SERVICE_KEY', '')
 INTEGRATION_ENCRYPTION_KEY = _ENV.get('INTEGRATION_ENCRYPTION_KEY', '')
 SLACK_WEBHOOK_URL          = _ENV.get('SLACK_WEBHOOK_URL', '')
 RESEND_API_KEY             = _ENV.get('RESEND_API_KEY', '')
+RESEND_FROM                = _ENV.get('RESEND_FROM', 'ClickPoint <onboarding@resend.dev>')
 NOTIFY_EMAIL               = _ENV.get('NOTIFY_EMAIL', '')
 HQ_ADMIN_EMAIL             = _ENV.get('HQ_ADMIN_EMAIL', '')
 HQ_ADMIN_PASS              = _ENV.get('HQ_ADMIN_PASS', '')
@@ -603,7 +604,7 @@ def _send_email(to: str, subject: str, html: str) -> bool:
         return False
     try:
         payload = json.dumps({
-            'from':    'ClickPoint HQ <noreply@clickpoint.agency>',
+            'from':    RESEND_FROM,
             'to':      [to],
             'subject': subject,
             'html':    html,
