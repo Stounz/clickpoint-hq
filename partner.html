@@ -330,7 +330,7 @@
     <div id="ptInviteResult" class="pt-invite-result">
       <div style="margin-bottom:16px;">
         <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:4px;">✅ Workspace ready for <span id="ptInvResultName"></span></div>
-        <div style="font-size:12px;color:var(--muted);">Share the link and access code below with your client.</div>
+        <div id="ptInvEmailStatus" style="font-size:12px;color:var(--muted);margin-top:4px;">Sending invite email…</div>
       </div>
       <div class="pt-invite-cred-box">
         <div class="pt-invite-cred-row">
@@ -1038,15 +1038,37 @@ async function ptGenerateInvite() {
   });
   const link = `${base}?${params}`;
 
-  // Try to create via API
+  // Try to create workspace record via API
   try {
     await fetch(`${PT_API}/api/workspace/create`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ workspaceId:wsId, email, name, plan, partnerId:ptSession.partnerId, accessCode:code }),
     });
-  } catch(e) { /* continue with local generation */ }
+  } catch(e) { /* continue */ }
 
-  // Save locally so it appears in clients list
+  // Send branded invite email via API
+  let emailSent = false;
+  try {
+    const invRes = await fetch(`${PT_API}/api/partner/invite`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        clientName:    name,
+        email,
+        workspaceId:   wsId,
+        accessCode:    code,
+        plan,
+        workspaceLink: link,
+        agencyName:    config.wlName || config.agencyName || 'ClickPoint',
+        agencyColor:   config.color || '#1C3A2E',
+        agencyLogo:    config.logoUrl || '',
+        partnerEmail:  ptSession.email || '',
+      }),
+    });
+    const invData = await invRes.json();
+    emailSent = invData.clientEmailSent;
+  } catch(e) { /* no email key configured */ }
+
+  // Save locally so it appears in clients list immediately
   const newClient = { name, id:wsId, health:10, mrr: plan==='pro'?599:plan==='growth'?299:0, lastActive:'Just now', campaigns:0, status:'active', plan, email };
   ptClients.unshift(newClient);
   document.getElementById('ptClientBadge').textContent = ptClients.length;
@@ -1060,6 +1082,15 @@ async function ptGenerateInvite() {
   document.getElementById('ptInvResultCode').textContent  = code;
   document.getElementById('ptInvResultPlan').textContent  = plan.charAt(0).toUpperCase() + plan.slice(1);
   document.getElementById('ptInvResultLink').textContent  = link;
+
+  // Show email status
+  const emailStatus = document.getElementById('ptInvEmailStatus');
+  if (emailStatus) {
+    emailStatus.textContent = emailSent
+      ? `✅ Invite email sent to ${email}`
+      : `📋 Copy credentials below — email delivery requires Resend API key`;
+    emailStatus.style.color = emailSent ? 'var(--green)' : 'var(--muted)';
+  }
 }
 
 function ptCopyAllInvite() {

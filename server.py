@@ -926,6 +926,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_workspace_subscribe()
         elif self.path == '/api/stripe/webhook':
             self._handle_stripe_webhook()
+        elif self.path == '/api/partner/invite':
+            self._handle_partner_invite()
         else:
             self.send_response(404)
             self.end_headers()
@@ -1610,6 +1612,164 @@ class AgentHandler(BaseHTTPRequestHandler):
                     print(f'  Supabase plan update error: {e}')
 
         self._json(200, {'received': True})
+
+    def _handle_partner_invite(self):
+        """Send a branded onboarding email to a new client and a copy to the partner."""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+
+        client_name    = body.get('clientName', '').strip()
+        client_email   = body.get('email', '').strip()
+        workspace_id   = body.get('workspaceId', '').strip()
+        access_code    = body.get('accessCode', '').strip()
+        plan           = body.get('plan', 'growth').strip()
+        workspace_link = body.get('workspaceLink', '').strip()
+        agency_name    = body.get('agencyName', 'ClickPoint').strip() or 'ClickPoint'
+        agency_color   = body.get('agencyColor', '#1C3A2E').strip() or '#1C3A2E'
+        agency_logo    = body.get('agencyLogo', '').strip()
+        partner_email  = body.get('partnerEmail', '').strip()
+
+        if not client_name or not client_email or not workspace_id or not access_code:
+            self._error(400, 'clientName, email, workspaceId and accessCode required'); return
+
+        plan_label = {'starter': 'Starter (Free)', 'growth': 'Growth — $299/mo AUD', 'pro': 'Pro — $599/mo AUD', 'agency': 'Agency Managed'}.get(plan, plan.title())
+        logo_html  = f'<img src="{agency_logo}" alt="{agency_name}" style="height:28px;width:auto;display:block;margin-bottom:20px;">' if agency_logo else f'<div style="font-size:18px;font-weight:800;color:{agency_color};margin-bottom:20px;">{agency_name}</div>'
+
+        # ── Client invite email ────────────────────────────────────────────────
+        client_html = f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#F5F4EF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F4EF;padding:40px 20px;">
+<tr><td align="center">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+  <!-- Header -->
+  <tr><td style="background:{agency_color};padding:28px 36px;">
+    {logo_html}
+    <div style="font-size:22px;font-weight:800;color:#ffffff;margin-bottom:6px;">Your marketing workspace is ready</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.65);">Sign in to start managing your campaigns</div>
+  </td></tr>
+
+  <!-- Body -->
+  <tr><td style="padding:32px 36px;">
+    <p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 24px;">Hi {client_name},</p>
+    <p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 24px;">
+      Your dedicated marketing workspace has been set up by <strong>{agency_name}</strong>.
+      Use the access details below to sign in and start exploring your campaigns, AI insights, and performance reports.
+    </p>
+
+    <!-- Credentials box -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#0E1F17;border-radius:14px;padding:24px;margin-bottom:28px;">
+      <tr><td>
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:16px;">Your Access Details</div>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="font-size:12px;color:rgba(255,255,255,0.45);padding:6px 0;width:40%;">Workspace ID</td>
+            <td style="font-size:13px;font-weight:700;color:#ffffff;font-family:monospace;padding:6px 0;">{workspace_id}</td>
+          </tr>
+          <tr>
+            <td style="font-size:12px;color:rgba(255,255,255,0.45);padding:6px 0;">Email</td>
+            <td style="font-size:13px;font-weight:700;color:#ffffff;padding:6px 0;">{client_email}</td>
+          </tr>
+          <tr>
+            <td style="font-size:12px;color:rgba(255,255,255,0.45);padding:6px 0;vertical-align:middle;">Access Code</td>
+            <td style="padding:6px 0;">
+              <span style="font-size:26px;font-weight:800;color:#D4622A;letter-spacing:0.15em;font-family:monospace;">{access_code}</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-size:12px;color:rgba(255,255,255,0.45);padding:6px 0;">Plan</td>
+            <td style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.8);padding:6px 0;">{plan_label}</td>
+          </tr>
+        </table>
+      </td></tr>
+    </table>
+
+    <!-- CTA -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+      <tr><td align="center">
+        <a href="{workspace_link}" style="display:inline-block;background:{agency_color};color:#ffffff;text-decoration:none;padding:15px 36px;border-radius:12px;font-weight:700;font-size:15px;letter-spacing:0.01em;">Open My Workspace →</a>
+      </td></tr>
+    </table>
+
+    <p style="font-size:13px;color:#999;line-height:1.6;margin:0 0 8px;">Keep this email safe — you'll need your access code each time you sign in.</p>
+    <p style="font-size:13px;color:#999;line-height:1.6;margin:0;">Questions? Reply to this email or reach out to your {agency_name} account manager.</p>
+  </td></tr>
+
+  <!-- Footer -->
+  <tr><td style="background:#F5F4EF;padding:20px 36px;border-top:1px solid #E2E1DB;">
+    <div style="font-size:11px;color:#bbb;text-align:center;">
+      Powered by <strong style="color:#888;">ClickPoint</strong> · {agency_name}
+    </div>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body></html>"""
+
+        client_sent = _send_email(client_email, f'Your {agency_name} workspace is ready — sign in now', client_html)
+
+        # ── Partner notification email ─────────────────────────────────────────
+        partner_sent = False
+        if partner_email:
+            partner_html = f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#F5F4EF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F4EF;padding:40px 20px;">
+<tr><td align="center">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+  <tr><td style="background:#1C3A2E;padding:24px 32px;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:8px;">ClickPoint Partner Portal</div>
+    <div style="font-size:20px;font-weight:800;color:#ffffff;">✅ New client onboarded</div>
+  </td></tr>
+  <tr><td style="padding:28px 32px;">
+    <p style="font-size:14px;color:#555;line-height:1.6;margin:0 0 20px;">A workspace invite was just sent to a new client from your partner portal.</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F4EF;border-radius:12px;padding:20px;margin-bottom:24px;">
+      <tr><td>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="font-size:11px;color:#999;padding:5px 0;width:40%;">Client name</td>
+            <td style="font-size:13px;font-weight:700;color:#1A1A1A;padding:5px 0;">{client_name}</td>
+          </tr>
+          <tr>
+            <td style="font-size:11px;color:#999;padding:5px 0;">Email sent to</td>
+            <td style="font-size:13px;font-weight:600;color:#1A1A1A;padding:5px 0;">{client_email}</td>
+          </tr>
+          <tr>
+            <td style="font-size:11px;color:#999;padding:5px 0;">Workspace</td>
+            <td style="font-size:13px;color:#1A1A1A;font-family:monospace;padding:5px 0;">{workspace_id}</td>
+          </tr>
+          <tr>
+            <td style="font-size:11px;color:#999;padding:5px 0;">Access code</td>
+            <td style="font-size:20px;font-weight:800;color:#D4622A;font-family:monospace;padding:5px 0;letter-spacing:0.1em;">{access_code}</td>
+          </tr>
+          <tr>
+            <td style="font-size:11px;color:#999;padding:5px 0;">Plan</td>
+            <td style="font-size:13px;color:#1A1A1A;padding:5px 0;">{plan_label}</td>
+          </tr>
+        </table>
+      </td></tr>
+    </table>
+    <a href="{workspace_link}" style="display:inline-block;background:#1C3A2E;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:700;font-size:13px;">Open client workspace →</a>
+  </td></tr>
+  <tr><td style="background:#F5F4EF;padding:16px 32px;border-top:1px solid #E2E1DB;">
+    <div style="font-size:11px;color:#bbb;text-align:center;">ClickPoint Partner Portal · Automated notification</div>
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>"""
+            partner_sent = _send_email(partner_email, f'[ClickPoint] New client onboarded — {client_name}', partner_html)
+
+        print(f'  📧 Invite sent → client:{client_sent} partner:{partner_sent} | {client_name} <{client_email}>')
+        self._json(200, {
+            'ok': True,
+            'clientEmailSent': client_sent,
+            'partnerEmailSent': partner_sent,
+        })
 
     def _handle_hq_auth(self):
         """Authenticate an Agency HQ user (superadmin or partner)."""
