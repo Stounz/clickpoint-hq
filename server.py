@@ -1533,7 +1533,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             'cancel_url': cancel_url,
             'metadata': {'workspace_id': workspace_id, 'company_name': company_name, 'plan': plan},
             'subscription_data': {
-                'metadata': {'workspace_id': workspace_id, 'plan': plan}
+                'trial_period_days': 14,
+                'metadata': {'workspace_id': workspace_id, 'plan': plan},
             },
         }).encode()
 
