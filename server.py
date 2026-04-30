@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ClickPoint Marketing — Agent API Server v2.4
+ClickPoint Marketing — Agent API Server v2.5
 Proxies requests to the Anthropic Claude API with per-agent system prompts.
 Supports single-agent calls and multi-agent chaining.
 Run: python3 server.py
@@ -600,11 +600,14 @@ def _send_slack(text: str, webhook: str = '') -> bool:
 
 def _send_email(to: str, subject: str, html: str) -> bool:
     """Send an email via Resend API (https://resend.com — free tier)."""
-    if not RESEND_API_KEY or not to:
+    # Read live so Railway env changes take effect without restart
+    api_key  = os.getenv('RESEND_API_KEY', '') or RESEND_API_KEY
+    from_addr = os.getenv('RESEND_FROM', '') or RESEND_FROM
+    if not api_key or not to:
         return False
     try:
         payload = json.dumps({
-            'from':    RESEND_FROM,
+            'from':    from_addr,
             'to':      [to],
             'subject': subject,
             'html':    html,
@@ -613,7 +616,7 @@ def _send_email(to: str, subject: str, html: str) -> bool:
             'https://api.resend.com/emails',
             data=payload,
             headers={
-                'Authorization': f'Bearer {RESEND_API_KEY}',
+                'Authorization': f'Bearer {api_key}',
                 'Content-Type':  'application/json',
             },
         )
@@ -1891,15 +1894,21 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._json(200, {'success': False, 'error': 'Email and password are required'}); return
 
         # Superadmin check (env var takes precedence over demo fallback)
-        if HQ_ADMIN_EMAIL and HQ_ADMIN_PASS:
-            if email == HQ_ADMIN_EMAIL.lower() and password == HQ_ADMIN_PASS:
+        # Read live from os.getenv each request so Railway var changes take effect without redeploy
+        _admin_email = os.getenv('HQ_ADMIN_EMAIL', '') or HQ_ADMIN_EMAIL
+        _admin_pass  = os.getenv('HQ_ADMIN_PASS',  '') or HQ_ADMIN_PASS
+        _pt_email    = os.getenv('HQ_PARTNER_EMAIL', '') or HQ_PARTNER_EMAIL
+        _pt_pass     = os.getenv('HQ_PARTNER_PASS',  '') or HQ_PARTNER_PASS
+
+        if _admin_email and _admin_pass:
+            if email == _admin_email.lower() and password == _admin_pass:
                 self._json(200, {
                     'success': True, 'role': 'superadmin',
                     'name': 'ClickPoint Admin', 'initials': 'CP',
                     'email': email, 'partnerId': None,
                 }); return
-        else:
-            # Demo fallback — works when Railway vars are not yet configured
+        # Demo fallback — only when no env creds configured
+        if not _admin_email:
             if email == 'admin@clickpoint.com.au' and password == 'demo1234':
                 self._json(200, {
                     'success': True, 'role': 'superadmin',
@@ -1907,16 +1916,16 @@ class AgentHandler(BaseHTTPRequestHandler):
                     'email': email, 'partnerId': None,
                 }); return
 
-        # Partner check (env var takes precedence over demo fallback)
-        if HQ_PARTNER_EMAIL and HQ_PARTNER_PASS:
-            if email == HQ_PARTNER_EMAIL.lower() and password == HQ_PARTNER_PASS:
+        # Partner check
+        if _pt_email and _pt_pass:
+            if email == _pt_email.lower() and password == _pt_pass:
                 self._json(200, {
                     'success': True, 'role': 'partner',
                     'name': 'Agency Partner', 'initials': 'AP',
                     'email': email, 'partnerId': 'partner-demo',
                 }); return
-        else:
-            # Demo fallback — works when Railway vars are not yet configured
+        # Demo fallback — only when no env creds configured
+        if not _pt_email:
             if email == 'partner@clickpoint.com.au' and password == 'demo1234':
                 self._json(200, {
                     'success': True, 'role': 'partner',
