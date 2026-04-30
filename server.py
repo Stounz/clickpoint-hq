@@ -2539,7 +2539,8 @@ class AgentHandler(BaseHTTPRequestHandler):
                     rows = json.loads(r.read())
                 if rows and rows[0].get('access_code') == code:
                     row = rows[0]
-                    company_name = row.get('company_name', workspace_id)
+                    company_name  = row.get('company_name', workspace_id)
+                    contact_name  = row.get('contact_name', '')
                     # Update last login
                     try:
                         patch_url = f"{SUPABASE_URL}/rest/v1/workspace_access?id=eq.{row['id']}"
@@ -2551,7 +2552,12 @@ class AgentHandler(BaseHTTPRequestHandler):
                         urllib.request.urlopen(patch_req, timeout=5)
                     except Exception:
                         pass
-                    self._json(200, {'success': True, 'companyName': company_name, 'workspaceId': workspace_id})
+                    self._json(200, {
+                        'success': True,
+                        'companyName': company_name,
+                        'contactName': contact_name,
+                        'workspaceId': workspace_id,
+                    })
                     return
             except Exception:
                 pass
@@ -2599,18 +2605,27 @@ class AgentHandler(BaseHTTPRequestHandler):
         except Exception:
             self._error(400, 'Invalid JSON'); return
 
-        company_name = body.get('companyName', '').strip()
-        email        = body.get('email', '').strip()
+        company_name  = body.get('companyName', '').strip()
+        email         = body.get('email', '').strip()
+        # contactName (self-signup) or name (partner-created) — store as contact_name
+        contact_name  = (body.get('contactName') or body.get('name') or '').strip()
+        # Partner portal may pass a pre-generated workspaceId and accessCode
+        preset_ws_id  = body.get('workspaceId', '').strip()
+        preset_code   = body.get('accessCode', '').strip()
+        # If companyName is missing, derive from the workspace ID
+        if not company_name and preset_ws_id:
+            company_name = ' '.join(w.capitalize() for w in preset_ws_id.split('-'))
         if not company_name or not email:
             self._error(400, 'companyName and email required'); return
 
         import re as _re
-        workspace_id = _re.sub(r'[^a-z0-9]+', '-', company_name.lower()).strip('-')
-        code = _generate_access_code(6)
+        workspace_id = preset_ws_id or _re.sub(r'[^a-z0-9]+', '-', company_name.lower()).strip('-')
+        code = preset_code or _generate_access_code(6)
 
         row = {
             'workspace_id': workspace_id, 'company_name': company_name,
             'email': email, 'access_code': code,
+            'contact_name': contact_name,
             'created_at': datetime.datetime.utcnow().isoformat()
         }
 

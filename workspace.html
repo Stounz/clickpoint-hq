@@ -398,6 +398,10 @@
     <div class="ws-onboard-sub" id="obSub">Let's set up your account so your ClickPoint team knows exactly what you're working towards. Takes 60 seconds.</div>
     <!-- Step 1 -->
     <div id="obPanel1">
+      <label class="ws-onboard-label">Your name</label>
+      <input class="ws-onboard-input" id="obContactName" placeholder="First and last name" />
+      <label class="ws-onboard-label">Company name</label>
+      <input class="ws-onboard-input" id="obCompanyName" placeholder="Your company name" />
       <label class="ws-onboard-label">What's your primary marketing goal right now?</label>
       <select class="ws-onboard-select" id="obGoal">
         <option value="">Select a goal…</option>
@@ -1217,15 +1221,15 @@ function wsLogin() {
   .then(r => r.json())
   .then(d => {
     if (d.success || d.demo) {
-      wsStartSession({ workspaceId: id, companyName: d.companyName || wsIdToName(id), email, isAdmin: d.isAdmin || isAdmin });
+      wsStartSession({ workspaceId: id, companyName: d.companyName || wsIdToName(id), contactName: d.contactName || '', email, isAdmin: d.isAdmin || isAdmin });
     } else {
       // Demo fallback — accept any code for testing
-      wsStartSession({ workspaceId: id, companyName: wsIdToName(id), email, isAdmin });
+      wsStartSession({ workspaceId: id, companyName: wsIdToName(id), contactName: '', email, isAdmin });
     }
   })
   .catch(() => {
     // Offline/demo fallback
-    wsStartSession({ workspaceId: id, companyName: wsIdToName(id), email, isAdmin });
+    wsStartSession({ workspaceId: id, companyName: wsIdToName(id), contactName: '', email, isAdmin });
   });
 }
 
@@ -1899,6 +1903,11 @@ function wsCopyWorkspaceLink() {
 function wsCheckOnboarding() {
   const key = 'cp_onboarded_' + wsSession.workspaceId;
   if (!localStorage.getItem(key)) {
+    // Pre-fill with data already known from login
+    const nameEl    = document.getElementById('obContactName');
+    const companyEl = document.getElementById('obCompanyName');
+    if (nameEl    && wsSession.contactName) nameEl.value    = wsSession.contactName;
+    if (companyEl && wsSession.companyName) companyEl.value = wsSession.companyName;
     document.getElementById('wsOnboardOverlay').style.display = 'flex';
   }
 }
@@ -1919,6 +1928,8 @@ function wsOnboardNext(step) {
 
 function wsOnboardComplete() {
   const data = {
+    contactName: document.getElementById('obContactName').value || wsSession.contactName || '',
+    companyName: document.getElementById('obCompanyName').value || wsSession.companyName || '',
     goal:     document.getElementById('obGoal').value,
     budget:   document.getElementById('obBudget').value,
     peak:     document.getElementById('obPeak').value,
