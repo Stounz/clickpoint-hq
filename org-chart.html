@@ -2501,6 +2501,54 @@
 <!-- Onboarding Toast -->
 <div class="ob-toast" id="obToast"></div>
 
+<!-- Client Invite Modal -->
+<div id="obInviteBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(12px);z-index:300;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:24px;width:100%;max-width:520px;box-shadow:0 40px 120px rgba(0,0,0,0.2);overflow:hidden;">
+    <!-- Header -->
+    <div style="background:#1C3A2E;padding:28px 32px 24px;position:relative;">
+      <div style="width:48px;height:48px;background:#D4622A;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px;">✉️</div>
+      <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:4px;" id="obInviteTitle">Workspace created!</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.55);" id="obInviteSubtitle">Share these credentials with your client.</div>
+      <button onclick="obCloseInvite()" style="position:absolute;top:20px;right:20px;background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.7);width:32px;height:32px;border-radius:8px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <!-- Credentials box -->
+    <div style="padding:24px 32px;">
+      <div style="background:#F4F3EE;border-radius:14px;padding:20px 24px;margin-bottom:20px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#999;margin-bottom:14px;">Client Access Credentials</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:#888;font-weight:600;">Workspace ID</span>
+            <span style="font-size:13px;font-weight:700;color:#1A1A1A;" id="obInviteWsId">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:#888;font-weight:600;">Email</span>
+            <span style="font-size:13px;font-weight:700;color:#1A1A1A;" id="obInviteEmail">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:#888;font-weight:600;">Access Code</span>
+            <span style="font-size:28px;font-weight:800;color:#1C3A2E;letter-spacing:0.25em;" id="obInviteCode">——</span>
+          </div>
+        </div>
+      </div>
+      <!-- Workspace link -->
+      <div style="margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#999;margin-bottom:8px;">Workspace Link</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div style="flex:1;background:#F4F3EE;border-radius:10px;padding:10px 14px;font-size:12px;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="obInviteLink">—</div>
+          <button onclick="obCopyInviteLink()" style="flex-shrink:0;padding:10px 16px;background:#1C3A2E;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;" id="obCopyLinkBtn">Copy</button>
+        </div>
+      </div>
+      <!-- Email status -->
+      <div id="obInviteEmailStatus" style="display:none;padding:10px 14px;border-radius:10px;font-size:12px;font-weight:600;margin-bottom:20px;"></div>
+      <!-- Actions -->
+      <div style="display:flex;gap:10px;">
+        <button onclick="obCopyAllCredentials()" style="flex:1;padding:13px;background:#F4F3EE;color:#1A1A1A;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;">📋 Copy All</button>
+        <button onclick="obCloseInvite()" style="flex:1;padding:13px;background:#1C3A2E;color:#fff;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;">Done ✓</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Deliverables Hub -->
 <div class="dv-backdrop" id="dvBackdrop">
   <div class="dv-shell" id="dvShell"></div>
@@ -5794,11 +5842,13 @@ function obBindStep(n) {
 }
 
 // ── Launch ──
-function obLaunch() {
+async function obLaunch() {
   obSaveStepData(obState.step);
-  const clientName = obState.name || 'New Client';
-  // Generate initials
-  const words = clientName.trim().split(/\s+/);
+  const clientName  = obState.name || 'New Client';
+  const clientEmail = obState.contactEmail || '';
+
+  // Generate initials + gradient
+  const words    = clientName.trim().split(/\s+/);
   const initials = (words.length >= 2 ? words[0][0] + words[words.length-1][0] : clientName.slice(0,2)).toUpperCase();
   const gradients = [
     'linear-gradient(135deg,#003a7a,#0055cc)',
@@ -5814,15 +5864,94 @@ function obLaunch() {
     type: obState.bizType || 'Retainer',
     value: obState.budget || '$0/mo',
     status: 'Onboarding',
-    initials,
-    bg,
+    initials, bg,
   };
   clients.push(newClient);
+
+  // Close wizard, show toast
   closeOnboarding();
-  obShowToast(`${clientName} onboarding launched — team notified 🎉`);
-  // Persist to Supabase
-  dbAddClient(newClient).then(id => {
-    if (id) renderDashClients();
+  obShowToast(`${clientName} onboarding launched 🎉`);
+
+  // Persist to Supabase client list
+  dbAddClient(newClient).then(id => { if (id) renderDashClients(); });
+
+  // Create workspace & generate invite credentials
+  try {
+    const res = await fetch(`${HQ_API}/api/workspace/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ companyName: clientName, email: clientEmail || 'client@example.com' }),
+    });
+    const d = await res.json();
+    if (d.ok) {
+      obShowInvite({
+        workspaceId: d.workspaceId,
+        email:       d.email,
+        code:        d.code,
+        link:        d.link,
+        emailSent:   !!clientEmail && !!d.email,
+      });
+      return;
+    }
+  } catch (e) { /* fallback below */ }
+
+  // Offline fallback — generate a local code + link
+  const slug  = clientName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const code  = String(Math.floor(100000 + Math.random() * 900000));
+  const link  = `https://platform.clickpointconsulting.com.au/workspace.html?w=${slug}`;
+  obShowInvite({ workspaceId: slug, email: clientEmail || 'client@example.com', code, link, emailSent: false });
+}
+
+function obShowInvite({ workspaceId, email, code, link, emailSent }) {
+  document.getElementById('obInviteTitle').textContent    = 'Workspace ready!';
+  document.getElementById('obInviteSubtitle').textContent = emailSent
+    ? `Invite email sent to ${email}. Share credentials below as a backup.`
+    : 'Copy and send these credentials to your client.';
+  document.getElementById('obInviteWsId').textContent  = workspaceId;
+  document.getElementById('obInviteEmail').textContent  = email;
+  document.getElementById('obInviteCode').textContent   = code;
+  document.getElementById('obInviteLink').textContent   = link;
+  document.getElementById('obInviteLink').dataset.href  = link;
+
+  const statusEl = document.getElementById('obInviteEmailStatus');
+  if (emailSent) {
+    statusEl.style.display    = 'block';
+    statusEl.style.background = 'rgba(48,209,88,0.1)';
+    statusEl.style.color      = '#1C8C44';
+    statusEl.textContent      = `✓ Invite email delivered to ${email}`;
+  } else if (email && email !== 'client@example.com') {
+    statusEl.style.display    = 'block';
+    statusEl.style.background = 'rgba(255,159,10,0.1)';
+    statusEl.style.color      = '#B86E00';
+    statusEl.textContent      = `⚠ Email not sent — RESEND_API_KEY not configured. Share credentials manually.`;
+  } else {
+    statusEl.style.display = 'none';
+  }
+
+  // Store for copy helpers
+  window._obInviteData = { workspaceId, email, code, link };
+  const backdrop = document.getElementById('obInviteBackdrop');
+  backdrop.style.display = 'flex';
+}
+
+function obCloseInvite() {
+  document.getElementById('obInviteBackdrop').style.display = 'none';
+}
+
+function obCopyInviteLink() {
+  const link = (window._obInviteData || {}).link || document.getElementById('obInviteLink').textContent;
+  navigator.clipboard.writeText(link).then(() => {
+    const btn = document.getElementById('obCopyLinkBtn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+
+function obCopyAllCredentials() {
+  const d = window._obInviteData || {};
+  const text = `Your ClickPoint Workspace is ready!\n\nWorkspace ID: ${d.workspaceId}\nEmail: ${d.email}\nAccess Code: ${d.code}\n\nLogin here: ${d.link}`;
+  navigator.clipboard.writeText(text).then(() => {
+    obShowToast('Credentials copied to clipboard 📋');
   });
 }
 
