@@ -559,11 +559,7 @@
 
       <!-- ── Clients View ── -->
       <div class="pt-view" id="pt-view-clients">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;">
-          <div>
-            <div class="pt-page-title">All Clients</div>
-            <div class="pt-page-sub" style="margin-bottom:0;">Every client workspace under your partner account.</div>
-          </div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:20px;">
           <button class="pt-topbar-invite" onclick="ptOpenInvite()">+ Invite Client</button>
         </div>
         <div class="pt-search-bar">
@@ -759,7 +755,7 @@ const PT_DEMO_ACTIVITY = [
 // ── State ─────────────────────────────────────────────────────────────────────
 let ptSession  = null;
 let ptClients  = [];
-let ptActivity = PT_DEMO_ACTIVITY;
+let ptActivity = [];
 
 // ── Session ──────────────────────────────────────────────────────────────────
 const PT_SESSION_TTL_MS = 8 * 60 * 60 * 1000; // 8 hours
@@ -897,10 +893,9 @@ async function ptFetchData() {
     });
     if (res.ok) {
       const d = await res.json();
-      if (d.clients && d.clients.length) ptClients = d.clients;
-      else ptClients = PT_DEMO_CLIENTS;
-    } else { ptClients = PT_DEMO_CLIENTS; }
-  } catch(e) { ptClients = PT_DEMO_CLIENTS; }
+      ptClients = (d.clients && d.clients.length) ? d.clients : [];
+    } else { ptClients = []; }
+  } catch(e) { ptClients = []; }
 
   // Update badge
   document.getElementById('ptClientBadge').textContent = ptClients.length;
@@ -1052,15 +1047,17 @@ function ptRenderDashboard() {
   }).join('');
 
   // Activity
-  document.getElementById('ptDashActivity').innerHTML = ptActivity.map(a => `
-    <div class="pt-activity-item">
-      <div class="pt-activity-av" style="background:${a.color};font-size:9px;">${a.client.substring(0,2).toUpperCase()}</div>
-      <div>
-        <div class="pt-activity-text">${a.text}</div>
-        <div class="pt-activity-meta">${a.client} · ${a.time}</div>
-      </div>
-    </div>
-  `).join('');
+  document.getElementById('ptDashActivity').innerHTML = ptActivity.length
+    ? ptActivity.map(a => `
+        <div class="pt-activity-item">
+          <div class="pt-activity-av" style="background:${a.color};font-size:9px;">${a.client.substring(0,2).toUpperCase()}</div>
+          <div>
+            <div class="pt-activity-text">${a.text}</div>
+            <div class="pt-activity-meta">${a.client} · ${a.time}</div>
+          </div>
+        </div>
+      `).join('')
+    : `<div style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Activity will appear here once you have active clients.</div>`;
 }
 
 // ── Clients ───────────────────────────────────────────────────────────────────
@@ -1078,6 +1075,15 @@ function ptRenderClients(filter) {
 
   document.getElementById('ptClientsCount').textContent = `${data.length} of ${ptClients.length} clients`;
 
+  if (!ptClients.length) {
+    document.getElementById('ptClientsBody').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:48px 24px;">
+      <div style="font-size:32px;margin-bottom:12px;">🎯</div>
+      <div style="font-weight:700;color:var(--dark);margin-bottom:6px;">No clients yet</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Invite your first client to get started.</div>
+      <button class="pt-topbar-invite" onclick="ptOpenInvite()">+ Invite Client</button>
+    </td></tr>`;
+    return;
+  }
   if (!data.length) {
     document.getElementById('ptClientsBody').innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">No clients match your filters.</td></tr>`;
     return;
