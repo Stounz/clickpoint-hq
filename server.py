@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ClickPoint Marketing — Agent API Server v2.5
+ClickPoint Marketing — Agent API Server v2.6
 Proxies requests to the Anthropic Claude API with per-agent system prompts.
 Supports single-agent calls and multi-agent chaining.
 Run: python3 server.py
@@ -1904,28 +1904,19 @@ class AgentHandler(BaseHTTPRequestHandler):
         if not email or not password:
             self._json(200, {'success': False, 'error': 'Email and password are required'}); return
 
-        # Superadmin check (env var takes precedence over demo fallback)
-        # Read live from os.getenv each request so Railway var changes take effect without redeploy
-        _admin_email = os.getenv('HQ_ADMIN_EMAIL', '') or HQ_ADMIN_EMAIL
-        _admin_pass  = os.getenv('HQ_ADMIN_PASS',  '') or HQ_ADMIN_PASS
+        # Credentials: env var → hardcoded production default
+        # Railway env injection is unreliable; production creds baked in as default.
+        _admin_email = os.getenv('HQ_ADMIN_EMAIL', '') or 'admin@clickpointconsulting.com.au'
+        _admin_pass  = os.getenv('HQ_ADMIN_PASS',  '') or 'admin_123!'
         _pt_email    = os.getenv('HQ_PARTNER_EMAIL', '') or HQ_PARTNER_EMAIL
         _pt_pass     = os.getenv('HQ_PARTNER_PASS',  '') or HQ_PARTNER_PASS
 
-        if _admin_email and _admin_pass:
-            if email == _admin_email.lower() and password == _admin_pass:
-                self._json(200, {
-                    'success': True, 'role': 'superadmin',
-                    'name': 'ClickPoint Admin', 'initials': 'CP',
-                    'email': email, 'partnerId': None,
-                }); return
-        # Demo fallback — only when no env creds configured
-        if not _admin_email:
-            if email == 'admin@clickpoint.com.au' and password == 'demo1234':
-                self._json(200, {
-                    'success': True, 'role': 'superadmin',
-                    'name': 'ClickPoint Admin', 'initials': 'CP',
-                    'email': email, 'partnerId': None,
-                }); return
+        if email == _admin_email.lower() and password == _admin_pass:
+            self._json(200, {
+                'success': True, 'role': 'superadmin',
+                'name': 'ClickPoint Admin', 'initials': 'CP',
+                'email': email, 'partnerId': None,
+            }); return
 
         # Partner check
         if _pt_email and _pt_pass:
