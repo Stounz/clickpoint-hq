@@ -460,7 +460,7 @@
       <div class="pt-nav-section">Reports</div>
       <div class="pt-nav-item" data-view="reports" onclick="ptSetView('reports')">📋 &nbsp;Monthly Reports</div>
       <div class="pt-nav-section">Account</div>
-      <div class="pt-nav-item" data-view="settings" onclick="ptSetView('settings')">🎨 &nbsp;White-label & Settings</div>
+      <div class="pt-nav-item" data-view="settings" onclick="ptSetView('settings')">🎨 &nbsp;Settings</div>
     </nav>
     <div class="pt-sidebar-foot">
       <div class="pt-user-row">
@@ -642,7 +642,7 @@
 
       <!-- ── Settings / White-label View ── -->
       <div class="pt-view" id="pt-view-settings">
-        <div class="pt-page-title">White-label & Settings</div>
+        <div class="pt-page-title">Settings</div>
         <div class="pt-page-sub">Configure how your clients experience the workspace portal under your brand.</div>
         <div style="max-width:680px;">
           <div class="pt-card">
@@ -795,7 +795,7 @@ async function ptLogin() {
     });
     const d = await res.json();
     if (d.success && (d.role === 'partner' || d.role === 'superadmin')) {
-      ptSession = { email:d.email, name:d.name, initials:d.initials || d.name?.substring(0,2).toUpperCase() || 'AP', role:d.role, partnerId:d.partnerId || 'partner-1', loginAt: new Date().toISOString() };
+      ptSession = { email:d.email, name:d.name, initials:d.initials || d.name?.substring(0,2).toUpperCase() || 'AP', role:d.role, partnerId:d.partnerId || 'partner-1', agencyName:d.agencyName||'', website:d.website||'', loginAt: new Date().toISOString() };
       sessionStorage.setItem('pt_session', JSON.stringify(ptSession));
       ptShowApp();
     } else {
@@ -912,6 +912,16 @@ async function ptFetchData() {
 function ptCheckOnboarding() {
   const key = 'cp_pt_onboarded_' + ptSession.partnerId;
   if (!localStorage.getItem(key)) {
+    // Pre-fill step 1 with registration data so partners don't re-enter it
+    const agencyEl = document.getElementById('ptObAgency');
+    const websiteEl = document.getElementById('ptObWebsite');
+    const contactEl = document.getElementById('ptObContactName');
+    const wlNameEl  = document.getElementById('ptObWlName');
+    if (agencyEl  && ptSession.agencyName) agencyEl.value  = ptSession.agencyName;
+    if (websiteEl && ptSession.website)    websiteEl.value = ptSession.website;
+    if (contactEl && ptSession.name)       contactEl.value = ptSession.name;
+    // Pre-fill white-label name (step 2) with agency name as a sensible default
+    if (wlNameEl  && ptSession.agencyName) wlNameEl.value  = ptSession.agencyName;
     document.getElementById('ptObOverlay').style.display = 'flex';
   }
 }
@@ -1001,7 +1011,7 @@ function ptSetView(view) {
   document.querySelectorAll('.pt-view').forEach(v => v.classList.remove('active'));
   document.getElementById('pt-view-' + view).classList.add('active');
   document.querySelectorAll('.pt-nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
-  const titles = { dashboard:'Partner Dashboard', clients:'All Clients', revenue:'Revenue', reports:'Monthly Reports', settings:'White-label & Settings' };
+  const titles = { dashboard:'Partner Dashboard', clients:'All Clients', revenue:'Revenue', reports:'Monthly Reports', settings:'Settings' };
   document.getElementById('ptTopbarTitle').textContent = titles[view] || 'Partner Portal';
   if (view === 'clients') ptRenderClients();
   if (view === 'revenue') ptRenderRevenue();

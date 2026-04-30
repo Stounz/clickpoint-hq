@@ -2450,6 +2450,7 @@ class AgentHandler(BaseHTTPRequestHandler):
                         name        = row.get('name', 'Partner')
                         agency_name = row.get('agency_name', '')
                         partner_id  = row.get('partner_id', '')
+                        website     = row.get('website', '')
                         initials    = ''.join(p[0].upper() for p in name.split()[:2]) or 'PA'
                         self._json(200, {
                             'success':   True,
@@ -2459,6 +2460,7 @@ class AgentHandler(BaseHTTPRequestHandler):
                             'email':     email,
                             'partnerId': partner_id,
                             'agencyName': agency_name,
+                            'website':   website,
                         }); return
             except Exception as e:
                 print(f'  ⚠️  Supabase partner auth error: {e}')
