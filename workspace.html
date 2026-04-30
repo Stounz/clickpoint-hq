@@ -1127,6 +1127,7 @@ async function wsSignup() {
     if (d.workspaceId && d.code) {
       // Store for auto-login
       window._suSignupData = { workspaceId: d.workspaceId, email, code: d.code, companyName: d.companyName || company };
+      sessionStorage.setItem('ws_pending_session', JSON.stringify(window._suSignupData));
       // Show success panel
       document.getElementById('suCredsId').textContent   = d.workspaceId;
       document.getElementById('suCredsEmail').textContent = email;
@@ -2011,8 +2012,25 @@ function wsShowPlanSelection() {
 }
 
 async function wsChoosePlan(plan) {
-  const d = window._suSignupData;
-  if (!d) { wsSignupLogin(); return; } // fallback
+  let d = window._suSignupData;
+
+  // Fallback: if signup data was lost (page refresh, timeout etc.) try sessionStorage
+  if (!d) {
+    try { d = JSON.parse(sessionStorage.getItem('ws_pending_session')); } catch(e) {}
+  }
+
+  // Still no data — send them to sign-in with a helpful message
+  if (!d) {
+    document.getElementById('wsPlanOverlay').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    wsShowTab('signin');
+    const err = document.getElementById('wsLoginErr');
+    if (err) {
+      err.textContent = 'Session expired — please sign in with the workspace credentials you received.';
+      err.style.display = 'block';
+    }
+    return;
+  }
 
   if (plan === 'starter') {
     // Free — enter workspace immediately
