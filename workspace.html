@@ -1197,6 +1197,7 @@ function wsIdToName(id) {
 }
 
 function wsStartSession(session) {
+  if (!session.loginAt) session.loginAt = new Date().toISOString();
   wsSession = session;
   sessionStorage.setItem('ws_session', JSON.stringify(session));
   document.getElementById('loginScreen').style.display = 'none';
@@ -2199,16 +2200,21 @@ function wsUpdateBudgetTotal() {} // stub for campaign form budget input
   const wParam  = params.get('w');
   const adminParam = params.get('admin');
 
+  const WS_SESSION_TTL_MS = 8 * 60 * 60 * 1000; // 8 hours
   const saved = sessionStorage.getItem('ws_session');
   if (saved) {
     try {
       const s = JSON.parse(saved);
-      if (wParam && s.workspaceId !== wParam) { sessionStorage.removeItem('ws_session'); return; }
-      wsSession = s;
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('appShell').style.display = 'block';
-      wsInitApp();
-      return;
+      const age = Date.now() - new Date(s.loginAt || 0).getTime();
+      if (age >= WS_SESSION_TTL_MS) { sessionStorage.removeItem('ws_session'); }
+      else if (wParam && s.workspaceId !== wParam) { sessionStorage.removeItem('ws_session'); }
+      else {
+        wsSession = s;
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appShell').style.display = 'block';
+        wsInitApp();
+        return;
+      }
     } catch(e) {}
   }
 

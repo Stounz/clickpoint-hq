@@ -2568,13 +2568,20 @@
 // ── HQ Authentication ─────────────────────────────────────────────────────────
 const HQ_API = 'https://web-production-c959ce.up.railway.app';
 
+const HQ_SESSION_TTL_MS = 8 * 60 * 60 * 1000; // 8 hours
+
 function hqCheckSession() {
   const saved = sessionStorage.getItem('hq_session');
   if (saved) {
     try {
       const s = JSON.parse(saved);
-      hqShowApp(s);
-      return true;
+      const age = Date.now() - new Date(s.loginAt).getTime();
+      if (age < HQ_SESSION_TTL_MS) {
+        hqShowApp(s);
+        return true;
+      } else {
+        sessionStorage.removeItem('hq_session'); // expired
+      }
     } catch(e) {}
   }
   // Show login screen
