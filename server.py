@@ -67,6 +67,7 @@ STRIPE_PRICE_GROWTH        = _ENV.get('STRIPE_PRICE_GROWTH', '')   # price_xxx f
 STRIPE_PRICE_PRO           = _ENV.get('STRIPE_PRICE_PRO', '')      # price_xxx for $599/mo
 STRIPE_WEBHOOK_SECRET      = _ENV.get('STRIPE_WEBHOOK_SECRET', '')
 PLATFORM_URL               = _ENV.get('PLATFORM_URL', 'https://platform.clickpointconsulting.com.au')
+HUBSPOT_TOKEN              = _ENV.get('HUBSPOT_TOKEN', '')  # Set via Railway env var
 
 if not API_KEY:
     print('\n⚠️  No API key found.')
@@ -625,6 +626,95 @@ def _send_email(to: str, subject: str, html: str) -> bool:
     except Exception as e:
         print(f'  Email notify error: {e}')
         return False
+
+def _push_to_hubspot(contact_props: dict, company_props: dict = None, note: str = '') -> bool:
+    """Create or update a HubSpot contact + company and associate them."""
+    token = os.getenv('HUBSPOT_TOKEN', '') or HUBSPOT_TOKEN  # reads live each call
+    if not token:
+        return False
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type':  'application/json',
+    }
+
+    def hs_post(path, payload, method='POST'):
+        req = urllib.request.Request(
+            f'https://api.hubapi.com{path}',
+            data=json.dumps(payload).encode(),
+            headers=headers,
+            method=method,
+        )
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return json.loads(r.read())
+
+    contact_id = None
+    company_id = None
+
+    # ── Upsert contact by email ───────────────────────────────────────────────
+    try:
+        email = contact_props.get('email', '')
+        search = hs_post('/crm/v3/objects/contacts/search', {
+            'filterGroups': [{'filters': [{'propertyName': 'email', 'operator': 'EQ', 'value': email}]}],
+            'properties': ['email'], 'limit': 1,
+        })
+        if search.get('results'):
+            contact_id = search['results'][0]['id']
+            hs_post(f'/crm/v3/objects/contacts/{contact_id}', {'properties': contact_props}, method='PATCH')
+        else:
+            res = hs_post('/crm/v3/objects/contacts', {'properties': contact_props})
+            contact_id = res.get('id')
+        print(f'  📇 HubSpot contact {"updated" if search.get("results") else "created"}: {email} (id={contact_id})')
+    except Exception as e:
+        print(f'  ⚠️  HubSpot contact error: {e}')
+        return False
+
+    # ── Upsert company by name ────────────────────────────────────────────────
+    if company_props and company_props.get('name'):
+        try:
+            search = hs_post('/crm/v3/objects/companies/search', {
+                'filterGroups': [{'filters': [{'propertyName': 'name', 'operator': 'EQ', 'value': company_props['name']}]}],
+                'properties': ['name'], 'limit': 1,
+            })
+            if search.get('results'):
+                company_id = search['results'][0]['id']
+                hs_post(f'/crm/v3/objects/companies/{company_id}', {'properties': company_props}, method='PATCH')
+            else:
+                res = hs_post('/crm/v3/objects/companies', {'properties': company_props})
+                company_id = res.get('id')
+            print(f'  🏢 HubSpot company {"updated" if search.get("results") else "created"}: {company_props["name"]} (id={company_id})')
+        except Exception as e:
+            print(f'  ⚠️  HubSpot company error: {e}')
+
+    # ── Associate contact → company ───────────────────────────────────────────
+    if contact_id and company_id:
+        try:
+            hs_post(
+                f'/crm/v4/objects/contacts/{contact_id}/associations/companies/{company_id}',
+                [{'associationCategory': 'HUBSPOT_DEFINED', 'associationTypeId': 279}],
+                method='PUT',
+            )
+            print(f'  🔗 HubSpot associated contact {contact_id} → company {company_id}')
+        except Exception as e:
+            print(f'  ⚠️  HubSpot association error: {e}')
+
+    # ── Add note if provided ──────────────────────────────────────────────────
+    if note and contact_id:
+        try:
+            note_res = hs_post('/crm/v3/objects/notes', {
+                'properties': {
+                    'hs_note_body': note,
+                    'hs_timestamp': str(int(__import__('time').time() * 1000)),
+                }
+            })
+            note_id = note_res.get('id')
+            if note_id:
+                hs_post(f'/crm/v4/objects/notes/{note_id}/associations/contacts/{contact_id}',
+                        [{'associationCategory': 'HUBSPOT_DEFINED', 'associationTypeId': 202}],
+                        method='PUT')
+        except Exception as e:
+            print(f'  ⚠️  HubSpot note error: {e}')
+
+    return bool(contact_id)
 
 def _notify(event: str, client: str = '', detail: str = '', webhook: str = '', email: str = '') -> dict:
     """
@@ -1888,6 +1978,26 @@ class AgentHandler(BaseHTTPRequestHandler):
 </ul>"""
             _send_email(notify_email, f'[ClickPoint] New partner registration — {agency_name}', notify_html)
 
+        # ── Push to HubSpot ───────────────────────────────────────────────────
+        name_parts = name.split(None, 1)
+        _push_to_hubspot(
+            contact_props={
+                'email':          email,
+                'firstname':      name_parts[0] if name_parts else '',
+                'lastname':       name_parts[1] if len(name_parts) > 1 else '',
+                'company':        agency_name,
+                'website':        website,
+                'lifecyclestage': 'lead',
+                'hs_lead_status': 'NEW',
+            },
+            company_props={
+                'name':    agency_name,
+                'website': website,
+                'type':    'PARTNER',
+            },
+            note=f'Partner registration — ID: {partner_id} | Registered: {ts}',
+        )
+
         print(f'  🤝 Partner registered: {name} <{email}> ({agency_name}) — id:{partner_id} email_sent:{email_sent}')
         self._json(200, {
             'ok': True,
@@ -2227,6 +2337,19 @@ class AgentHandler(BaseHTTPRequestHandler):
 <p style="font-size:12px;color:#999;">Questions? Reply to this email or contact your ClickPoint account manager.</p>
 </div>"""
         _send_email(email, f'Your ClickPoint Workspace is ready — {company_name}', email_html)
+
+        # ── Push to HubSpot ───────────────────────────────────────────────────
+        _push_to_hubspot(
+            contact_props={
+                'email':          email,
+                'company':        company_name,
+                'lifecyclestage': 'customer',
+            },
+            company_props={
+                'name': company_name,
+            },
+            note=f'Client workspace created — ID: {workspace_id}',
+        )
 
         self._json(200, {
             'ok': True, 'workspaceId': workspace_id, 'companyName': company_name,
