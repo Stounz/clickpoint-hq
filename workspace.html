@@ -357,13 +357,13 @@
       <label class="ws-onboard-label">Monthly marketing budget (approx.)</label>
       <select class="ws-onboard-select" id="obBudget">
         <option value="">Select a range…</option>
-        <option>Under £2,000/mo</option>
-        <option>£2,000 – £5,000/mo</option>
-        <option>£5,000 – £10,000/mo</option>
-        <option>£10,000 – £25,000/mo</option>
-        <option>£25,000+/mo</option>
+        <option>Under $2,000/mo</option>
+        <option>$2,000 – $5,000/mo</option>
+        <option>$5,000 – $10,000/mo</option>
+        <option>$10,000 – $25,000/mo</option>
+        <option>$25,000+/mo</option>
       </select>
-      <button class="ws-onboard-btn" onclick="wsOnboardNext(2)">Continue →</button>
+      <button class="ws-onboard-btn" onclick="wsOnboardNext(3)">Continue →</button>
     </div>
     <!-- Step 2 -->
     <div id="obPanel2" style="display:none;">
@@ -393,7 +393,7 @@
     <!-- Step 3 -->
     <div id="obPanel3" style="display:none;">
       <label class="ws-onboard-label">Anything your team should know upfront? (optional)</label>
-      <textarea class="ws-onboard-input" id="obNotes" rows="3" placeholder="e.g. We're launching a new product in July. Our main competitor is XYZ. CFO reviews all spend over £10K…" style="resize:vertical;min-height:90px;"></textarea>
+      <textarea class="ws-onboard-input" id="obNotes" rows="3" placeholder="e.g. We're launching a new product in July. Our main competitor is XYZ. CFO reviews all spend over $10K…" style="resize:vertical;min-height:90px;"></textarea>
       <label class="ws-onboard-label">Connect Google Search Console? (recommended)</label>
       <div style="background:#F0F8F4;border:1.5px solid #C8E6D4;border-radius:10px;padding:14px;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
         <span style="font-size:20px;">🔍</span>
@@ -639,18 +639,18 @@
             </div>
             <div>
               <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Monthly Budget</label>
-              <input id="wsCmpBudget" type="text" placeholder="e.g. £2,000 / month" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+              <input id="wsCmpBudget" type="text" placeholder="e.g. $2,000 / month" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
             </div>
           </div>
 
           <div style="margin-bottom:16px;">
             <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Target Audience</label>
-            <input id="wsCmpAudience" type="text" placeholder="e.g. UK homeowners aged 35–55, interested in home improvement" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+            <input id="wsCmpAudience" type="text" placeholder="e.g. Australian homeowners aged 35–55, interested in home improvement" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
           </div>
 
           <div style="margin-bottom:22px;">
             <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Goals & Brief <span style="font-weight:400;color:#aaa;">(what do you want to achieve?)</span></label>
-            <textarea id="wsCmpBrief" rows="3" placeholder="e.g. We want to drive leads for our new product launch in May. Target is 50 leads in the first month at under £40 cost per lead…" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;resize:vertical;"></textarea>
+            <textarea id="wsCmpBrief" rows="3" placeholder="e.g. We want to drive leads for our new product launch in May. Target is 50 leads in the first month at under $40 cost per lead…" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;resize:vertical;"></textarea>
           </div>
 
           <div id="wsCmpResult" style="display:none;background:#F0F8F4;border:1px solid #D4E8DA;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;"></div>
@@ -1084,7 +1084,7 @@ function wsDemoMetrics() {
   const seed = wsDemoSeed();
   return {
     campaigns:  3 + (seed % 4),
-    spend:      `£${(8 + seed % 22).toFixed(0)}K/mo`,
+    spend:      `$${(8 + seed % 22).toFixed(0)}K/mo`,
     leads:      180 + seed * 3,
     roas:       (2.8 + (seed % 20) / 10).toFixed(1) + 'x',
     health:     6 + (seed % 4),
@@ -1108,7 +1108,7 @@ function wsDemoCampaigns() {
 function wsDemoActivity() {
   const items = [
     { who: 'Raj', initials: 'RN', text: 'SEO audit completed — 18 technical fixes identified, high priority items submitted for implementation.', time: '2h ago' },
-    { who: 'Derek', initials: 'DW', text: 'Google Ads bids adjusted for Q2 — Smart Bidding target CPA updated to £38, expect improved efficiency by Monday.', time: '5h ago' },
+    { who: 'Derek', initials: 'DW', text: 'Google Ads bids adjusted for Q2 — Smart Bidding target CPA updated to $38, expect improved efficiency by Monday.', time: '5h ago' },
     { who: 'Jess', initials: 'JP', text: '3 new blog briefs written and submitted — "Enterprise Automation Trends", "ROI Calculator Guide", "Case Study: Q1 Results".', time: '1d ago' },
     { who: 'Cleo', initials: 'CC', text: 'Meta campaign A/B test concluded — Variant B (product imagery) outperformed Variant A by 34% CTR. Scaling Variant B.', time: '1d ago' },
     { who: 'Zara', initials: 'ZO', text: 'Q2 banner suite delivered to Derek — 7 sizes across GDN and Meta. Ready for upload.', time: '2d ago' },
@@ -1120,8 +1120,8 @@ function wsDemoActivity() {
 function wsDemoAnalytics(platform) {
   const seed = wsDemoSeed();
   const platforms = {
-    search:  { impressions:'124K', clicks:'3,842', ctr:'3.1%', cpc:'£2.40', spend:'£9,220', conv:'187', cpa:'£49', change: '+12%', bars:[40,55,48,62,58,70,65,72,68,80,75,82] },
-    social:  { reach:'48K', clicks:'1,204', ctr:'2.5%', cpm:'£8.20', spend:'£5,100', leads:'94', cpl:'£54', change: '+8%',  bars:[30,38,35,45,42,50,48,55,52,58,60,62] },
+    search:  { impressions:'124K', clicks:'3,842', ctr:'3.1%', cpc:'$2.40', spend:'$9,220', conv:'187', cpa:'$49', change: '+12%', bars:[40,55,48,62,58,70,65,72,68,80,75,82] },
+    social:  { reach:'48K', clicks:'1,204', ctr:'2.5%', cpm:'$8.20', spend:'$5,100', leads:'94', cpl:'$54', change: '+8%',  bars:[30,38,35,45,42,50,48,55,52,58,60,62] },
     organic: { sessions:'8,420', pageviews:'22K', keywords:'342', topPos:'14', organic_leads:'62', blog_posts:'12', dr:'41', change: '+18%', bars:[50,52,55,58,60,65,62,68,70,72,74,78],
       rankings:[
         { kw:'marketing agency london',       pos:7,  prev:11, vol:'1.9K' },
@@ -1136,7 +1136,7 @@ function wsDemoAnalytics(platform) {
         { kw:'digital marketing for saas',    pos:14, prev:19, vol:'260'  },
       ]
     },
-    email:   { sent:'4,200', opens:'1,134', open_rate:'27%', clicks:'380', ctr:'9%', unsubs:'12', revenue:'£3,800', change: '+5%',  bars:[20,25,22,28,26,32,30,35,33,38,36,40] },
+    email:   { sent:'4,200', opens:'1,134', open_rate:'27%', clicks:'380', ctr:'9%', unsubs:'12', revenue:'$3,800', change: '+5%',  bars:[20,25,22,28,26,32,30,35,33,38,36,40] },
   };
   return platforms[platform] || platforms.search;
 }
@@ -1546,7 +1546,7 @@ async function wsAiSend() {
     const lower = msg.toLowerCase();
     if (lower.includes('perform') || lower.includes('how are')) reply = `Looking at your numbers right now — things are in good shape. Your ROAS is at ${m.roas}, which is above the 2.5x industry benchmark, and leads are up 14% on last month. Google Ads is your strongest performer. I'd say you're in a strong position to push a bit harder this quarter.`;
     else if (lower.includes('focus') || lower.includes('priorit')) reply = `My honest advice: double down on paid search — it's converting well and there's headroom to scale. I'd want to see the Google Ads budget increase by 15-20% to capture demand before competitors do. The SEO work is also gaining momentum; give it another 4-6 weeks and you'll see more organic leads coming through consistently.`;
-    else if (lower.includes('report') || lower.includes('explain')) reply = `Your account health is ${m.health}/10 — that's ${m.healthLabel}. In plain terms: your ads are spending efficiently, you're getting solid leads per pound spent, and the organic side is growing. The one thing I'd flag is Meta's lead cost — the team is already working on creative refreshes to bring that down.`;
+    else if (lower.includes('report') || lower.includes('explain')) reply = `Your account health is ${m.health}/10 — that's ${m.healthLabel}. In plain terms: your ads are spending efficiently, you're getting solid leads per dollar spent, and the organic side is growing. The one thing I'd flag is Meta's lead cost — the team is already working on creative refreshes to bring that down.`;
     else if (lower.includes('lead') || lower.includes('increase')) reply = `The fastest wins are usually on the landing page side — even a 10% lift in conversion rate means 10% more leads from your existing budget. Beyond that, I'd look at lookalike audiences on Meta based on your best clients, and more transactional SEO content targeting bottom-of-funnel queries. Your team can move on all three of these.`;
     else if (lower.includes('budget') || lower.includes('spend') || lower.includes('effective')) reply = `Your ${m.spend}/month is working well — your ROAS of ${m.roas} means you're getting solid returns. Google is giving you the best efficiency; Meta has room to improve but we're managing it carefully. I wouldn't cut anything right now — if anything, the case is there to increase Google spend and hold Meta steady while we optimise creatives.`;
     else if (lower.includes('best') || lower.includes('channel')) reply = `Google Ads, hands down, for lead quality and ROAS. SEO is your best long-term asset and it's growing steadily. Meta is working for reach and awareness but costs more per lead — we're improving that. I'd lean into Google and SEO for direct revenue, and keep Meta for brand presence and retargeting.`;
