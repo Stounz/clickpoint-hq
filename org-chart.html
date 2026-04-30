@@ -86,6 +86,26 @@
   .app-user-av { width:30px; height:30px; border-radius:9px; background:#D4622A; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#fff; flex-shrink:0; }
   .app-user-name { font-size:12px; font-weight:600; color:rgba(255,255,255,0.8); }
   .app-user-role { font-size:10px; color:rgba(255,255,255,0.4); margin-top:1px; }
+  .app-signout-btn { margin-top:8px; width:100%; padding:7px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:rgba(255,255,255,0.45); font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.15s; text-align:center; }
+  .app-signout-btn:hover { background:rgba(255,59,48,0.15); border-color:rgba(255,59,48,0.3); color:#FF453A; }
+
+  /* ── HQ Login Screen ── */
+  .hq-login-screen { position:fixed; inset:0; background:#0E1F17; z-index:9999; display:flex; align-items:center; justify-content:center; }
+  .hq-login-card { width:100%; max-width:400px; padding:48px 40px; }
+  .hq-login-logo { margin-bottom:32px; }
+  .hq-login-logo img { height:32px; width:auto; }
+  .hq-login-title { font-size:26px; font-weight:800; color:#fff; margin-bottom:6px; }
+  .hq-login-sub { font-size:14px; color:rgba(255,255,255,0.4); margin-bottom:36px; }
+  .hq-login-label { display:block; font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-bottom:8px; }
+  .hq-login-input { width:100%; padding:13px 16px; background:rgba(255,255,255,0.06); border:1.5px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; font-size:14px; font-family:inherit; outline:none; box-sizing:border-box; margin-bottom:16px; transition:border 0.15s; }
+  .hq-login-input:focus { border-color:rgba(212,98,42,0.7); background:rgba(255,255,255,0.08); }
+  .hq-login-input::placeholder { color:rgba(255,255,255,0.2); }
+  .hq-login-btn { width:100%; padding:14px; background:#D4622A; color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; margin-top:4px; transition:background 0.15s; }
+  .hq-login-btn:hover { background:#C0541E; }
+  .hq-login-btn:disabled { background:rgba(212,98,42,0.4); cursor:not-allowed; }
+  .hq-login-err { color:#FF453A; font-size:13px; margin-top:12px; display:none; text-align:center; }
+  .hq-login-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:20px; background:rgba(48,209,88,0.12); border:1px solid rgba(48,209,88,0.2); font-size:11px; color:#30D158; font-weight:600; margin-bottom:28px; }
+  .hq-login-badge-dot { width:6px; height:6px; border-radius:50%; background:#30D158; }
   .app-main { flex:1; display:flex; flex-direction:column; min-width:0; overflow-x:hidden; }
   .app-topbar { padding:14px 36px; border-bottom:1px solid #E2E1DB; display:flex; align-items:center; justify-content:space-between; background:#FFFFFF; position:sticky; top:0; z-index:10; flex-shrink:0; }
   .app-page-title { font-size:18px; font-weight:700; letter-spacing:-0.02em; color:#1A1A1A; }
@@ -1860,12 +1880,30 @@
 </head>
 <body>
 
+<!-- ── HQ Login Screen ── -->
+<div class="hq-login-screen" id="hqLoginScreen">
+  <div class="hq-login-card">
+    <div class="hq-login-logo">
+      <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" alt="ClickPoint">
+    </div>
+    <div class="hq-login-badge"><div class="hq-login-badge-dot"></div> Agency HQ — Restricted Access</div>
+    <div class="hq-login-title">Sign in</div>
+    <div class="hq-login-sub">ClickPoint team and authorised partners only.</div>
+    <label class="hq-login-label">Email address</label>
+    <input class="hq-login-input" id="hqEmail" type="email" placeholder="you@clickpoint.agency" autocomplete="email" onkeydown="if(event.key==='Enter')hqLogin()" />
+    <label class="hq-login-label">Password</label>
+    <input class="hq-login-input" id="hqPass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')hqLogin()" />
+    <button class="hq-login-btn" id="hqLoginBtn" onclick="hqLogin()">Sign in to Agency HQ →</button>
+    <div class="hq-login-err" id="hqLoginErr">Invalid email or password. Please try again.</div>
+  </div>
+</div>
+
 <div class="bg-gradient"></div>
 <div class="bg-orb orb1"></div>
 <div class="bg-orb orb2"></div>
 <div class="bg-orb orb3"></div>
 
-<div class="app-shell">
+<div class="app-shell" id="hqAppShell" style="display:none;">
   <aside class="app-sidebar">
     <div class="app-logo-wrap">
       <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" alt="ClickPoint" style="height:32px;width:auto;display:block;margin-bottom:6px;">
@@ -1901,12 +1939,13 @@
         New Campaign
       </button>
       <div class="app-user-row">
-        <div class="app-user-av">SL</div>
+        <div class="app-user-av" id="hqUserAv">CP</div>
         <div>
-          <div class="app-user-name">Sarah Lin</div>
-          <div class="app-user-role">Chief Marketing Officer</div>
+          <div class="app-user-name" id="hqUserName">ClickPoint HQ</div>
+          <div class="app-user-role" id="hqUserRole">Agency</div>
         </div>
       </div>
+      <button class="app-signout-btn" onclick="hqSignOut()">Sign out</button>
     </div>
   </aside>
   <div class="app-main">
@@ -2478,6 +2517,91 @@
 </div>
 
 <script>
+// ── HQ Authentication ─────────────────────────────────────────────────────────
+const HQ_API = 'https://web-production-c959ce.up.railway.app';
+
+function hqCheckSession() {
+  const saved = sessionStorage.getItem('hq_session');
+  if (saved) {
+    try {
+      const s = JSON.parse(saved);
+      hqShowApp(s);
+      return true;
+    } catch(e) {}
+  }
+  // Show login screen
+  document.getElementById('hqLoginScreen').style.display = 'flex';
+  document.getElementById('hqAppShell').style.display = 'none';
+  return false;
+}
+
+async function hqLogin() {
+  const email = document.getElementById('hqEmail').value.trim().toLowerCase();
+  const pass  = document.getElementById('hqPass').value;
+  const err   = document.getElementById('hqLoginErr');
+  const btn   = document.getElementById('hqLoginBtn');
+  err.style.display = 'none';
+
+  if (!email || !pass) {
+    err.textContent = 'Please enter your email and password.';
+    err.style.display = 'block'; return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+
+  try {
+    const res = await fetch(`${HQ_API}/api/hq/auth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass }),
+    });
+    const d = await res.json();
+    if (d.success) {
+      const session = { email: d.email, name: d.name, initials: d.initials, role: d.role, partnerId: d.partnerId, loginAt: new Date().toISOString() };
+      sessionStorage.setItem('hq_session', JSON.stringify(session));
+      hqShowApp(session);
+    } else {
+      err.textContent = d.error || 'Invalid email or password.';
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Sign in to Agency HQ →';
+    }
+  } catch(e) {
+    err.textContent = 'Could not reach the server. Please check your connection.';
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Sign in to Agency HQ →';
+  }
+}
+
+function hqShowApp(session) {
+  document.getElementById('hqLoginScreen').style.display = 'none';
+  document.getElementById('hqAppShell').style.display = 'flex';
+  // Update sidebar user info
+  document.getElementById('hqUserAv').textContent   = session.initials || 'CP';
+  document.getElementById('hqUserName').textContent = session.name || session.email;
+  document.getElementById('hqUserRole').textContent = session.role === 'superadmin' ? 'Super Admin · ClickPoint' : 'Agency Partner';
+  // Partner: hide internal-only nav items
+  if (session.role === 'partner') {
+    ['team','scheduled','staff','revenue'].forEach(nav => {
+      const el = document.querySelector(`[data-nav="${nav}"]`);
+      if (el) el.style.display = 'none';
+    });
+    document.querySelectorAll('.app-nav-section').forEach(s => {
+      if (s.textContent.trim() === 'Team') s.style.display = 'none';
+    });
+  }
+}
+
+function hqSignOut() {
+  sessionStorage.removeItem('hq_session');
+  location.reload();
+}
+
+// Run auth check immediately
+hqCheckSession();
+
 const teamMeetings = [
   { freq:"Weekly", title:"Monday All-Team Stand-up", desc:"Full team reviews previous week's outcomes, surfaces blockers, and aligns on this week's top priorities. Each specialist delivers a 90-second performance snapshot. Directors flag cross-functional dependencies.", time:"Mon 9:00 AM · 20 min · All 13 members", color:"#30D158" },
   { freq:"Weekly", title:"Director Strategy Sync", desc:"Directors and CMO handle budget pacing, cross-channel dependencies, and decisions requiring escalation. Status updates are banned — decision-making only. Each director owns one agenda item.", time:"Mon 9:30 AM · 30 min · Directors + CMO", color:"#BF5AF2" },

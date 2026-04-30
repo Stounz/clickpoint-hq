@@ -39,7 +39,8 @@ def _load_env() -> dict:
         result[k] = os.getenv(k, result[k])
     # Also pick up env vars that weren't in .env (e.g. set via Railway/Heroku dashboard)
     for k in ('ANTHROPIC_API_KEY', 'SUPABASE_URL', 'SUPABASE_SERVICE_KEY',
-               'INTEGRATION_ENCRYPTION_KEY', 'SLACK_WEBHOOK_URL', 'RESEND_API_KEY', 'NOTIFY_EMAIL'):
+               'INTEGRATION_ENCRYPTION_KEY', 'SLACK_WEBHOOK_URL', 'RESEND_API_KEY', 'NOTIFY_EMAIL',
+               'HQ_ADMIN_EMAIL', 'HQ_ADMIN_PASS', 'HQ_PARTNER_EMAIL', 'HQ_PARTNER_PASS'):
         env_val = os.getenv(k, '')
         if env_val:
             result[k] = env_val
@@ -54,6 +55,10 @@ INTEGRATION_ENCRYPTION_KEY = _ENV.get('INTEGRATION_ENCRYPTION_KEY', '')
 SLACK_WEBHOOK_URL          = _ENV.get('SLACK_WEBHOOK_URL', '')
 RESEND_API_KEY             = _ENV.get('RESEND_API_KEY', '')
 NOTIFY_EMAIL               = _ENV.get('NOTIFY_EMAIL', '')
+HQ_ADMIN_EMAIL             = _ENV.get('HQ_ADMIN_EMAIL', '')
+HQ_ADMIN_PASS              = _ENV.get('HQ_ADMIN_PASS', '')
+HQ_PARTNER_EMAIL           = _ENV.get('HQ_PARTNER_EMAIL', '')
+HQ_PARTNER_PASS            = _ENV.get('HQ_PARTNER_PASS', '')
 
 if not API_KEY:
     print('\n⚠️  No API key found.')
@@ -904,6 +909,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_workspace_activity()
         elif self.path == '/api/workspace/create':
             self._handle_workspace_create()
+        elif self.path == '/api/hq/auth':
+            self._handle_hq_auth()
         else:
             self.send_response(404)
             self.end_headers()
@@ -1479,6 +1486,39 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._error(400, 'channel must be slack or email')
 
     # ── Workspace handlers ────────────────────────────────────────────────────
+
+    def _handle_hq_auth(self):
+        """Authenticate an Agency HQ user (superadmin or partner)."""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+
+        email    = body.get('email', '').strip().lower()
+        password = body.get('password', '').strip()
+
+        if not email or not password:
+            self._json(200, {'success': False, 'error': 'Email and password are required'}); return
+
+        # Superadmin check
+        if HQ_ADMIN_EMAIL and HQ_ADMIN_PASS:
+            if email == HQ_ADMIN_EMAIL.lower() and password == HQ_ADMIN_PASS:
+                self._json(200, {
+                    'success': True, 'role': 'superadmin',
+                    'name': 'ClickPoint Admin', 'initials': 'CP',
+                    'email': email, 'partnerId': None,
+                }); return
+
+        # Partner check
+        if HQ_PARTNER_EMAIL and HQ_PARTNER_PASS:
+            if email == HQ_PARTNER_EMAIL.lower() and password == HQ_PARTNER_PASS:
+                self._json(200, {
+                    'success': True, 'role': 'partner',
+                    'name': 'Agency Partner', 'initials': 'AP',
+                    'email': email, 'partnerId': 'partner-demo',
+                }); return
+
+        self._json(200, {'success': False, 'error': 'Invalid email or password'})
 
     def _handle_workspace_auth(self):
         """Authenticate a workspace user. Falls back to demo mode."""
