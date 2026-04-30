@@ -844,6 +844,17 @@ class AgentHandler(BaseHTTPRequestHandler):
                 'endpoints': ['/health', '/api/agent', '/api/chain',
                               '/api/integrations/connect', '/api/integrations/disconnect'],
             }).encode())
+        elif self.path == '/api/env-check':
+            # Diagnostic — shows WHICH vars are set, never their values
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_cors_headers()
+            self.end_headers()
+            check_keys = ['HQ_ADMIN_EMAIL','HQ_ADMIN_PASS','HQ_PARTNER_EMAIL','HQ_PARTNER_PASS',
+                          'RESEND_API_KEY','NOTIFY_EMAIL','STRIPE_SECRET_KEY','PLATFORM_URL']
+            self.wfile.write(json.dumps({
+                k: bool(os.getenv(k, '')) for k in check_keys
+            }).encode())
         elif self.path == '/api/agents':
             self._handle_agents_list()
         elif self.path.startswith('/api/memories'):
