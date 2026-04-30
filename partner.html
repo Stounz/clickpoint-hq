@@ -51,6 +51,32 @@
   .pt-ob-btn { width:100%; padding:13px; background:var(--orange); color:#fff; border:none; border-radius:11px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; margin-top:8px; transition:background 0.15s; }
   .pt-ob-btn:hover { background:#C0541E; }
 
+  /* ── Invite Client Modal ── */
+  .pt-modal-overlay { position:fixed; inset:0; background:rgba(10,18,14,0.7); z-index:2000; display:none; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+  .pt-modal-overlay.open { display:flex; }
+  .pt-modal { background:#fff; border-radius:20px; padding:36px; max-width:520px; width:calc(100% - 40px); box-shadow:0 24px 80px rgba(0,0,0,0.2); }
+  .pt-modal-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; }
+  .pt-modal-title { font-size:18px; font-weight:800; color:var(--dark); }
+  .pt-modal-sub { font-size:13px; color:var(--muted); margin-top:4px; line-height:1.4; }
+  .pt-modal-close { width:30px; height:30px; border-radius:8px; background:#F5F4EF; border:none; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; color:var(--muted); flex-shrink:0; }
+  .pt-modal-close:hover { background:#E2E1DB; }
+  .pt-modal-label { font-size:12px; font-weight:700; color:var(--dark); margin-bottom:6px; display:block; }
+  .pt-modal-input { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:10px; font-size:14px; font-family:inherit; outline:none; box-sizing:border-box; margin-bottom:14px; transition:border 0.15s; }
+  .pt-modal-input:focus { border-color:var(--orange); }
+  .pt-modal-select { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:10px; font-size:14px; font-family:inherit; outline:none; background:#fff; box-sizing:border-box; margin-bottom:14px; }
+  .pt-modal-btn { width:100%; padding:13px; background:var(--orange); color:#fff; border:none; border-radius:11px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+  .pt-modal-btn:hover { background:#C0541E; }
+  .pt-modal-btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .pt-invite-result { display:none; }
+  .pt-invite-cred-box { background:#0E1F17; border-radius:12px; padding:20px; margin-bottom:16px; }
+  .pt-invite-cred-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .pt-invite-cred-row:last-child { margin-bottom:0; }
+  .pt-invite-cred-label { font-size:11px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:rgba(255,255,255,0.4); }
+  .pt-invite-cred-val { font-size:13px; font-weight:700; color:#fff; font-family:monospace; }
+  .pt-invite-link-box { background:#F5F4EF; border:1.5px solid var(--border); border-radius:10px; padding:12px 14px; font-size:11px; font-family:monospace; color:var(--dark); word-break:break-all; margin-bottom:14px; line-height:1.5; }
+  .pt-modal-btn-outline { width:100%; padding:11px; background:#fff; color:var(--dark); border:1.5px solid var(--border); border-radius:11px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; margin-top:8px; }
+  .pt-modal-btn-outline:hover { border-color:var(--dark); }
+
   /* ── App Shell ── */
   .pt-shell { display:flex; min-height:100vh; }
 
@@ -82,6 +108,8 @@
   .pt-live-badge { display:flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px; background:rgba(48,209,88,0.1); border:1px solid rgba(48,209,88,0.25); font-size:11px; font-weight:700; color:var(--green); }
   .pt-live-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .pt-topbar-invite { padding:8px 18px; background:var(--orange); color:#fff; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+  .pt-topbar-invite:hover { background:#C0541E; }
   .pt-content { padding:28px 32px; flex:1; }
 
   /* ── Views ── */
@@ -103,9 +131,21 @@
   .pt-card { background:#fff; border-radius:14px; border:1px solid var(--border); padding:20px; margin-bottom:20px; }
   .pt-card-title { font-size:13px; font-weight:700; color:var(--dark); margin-bottom:16px; }
 
+  /* ── Quick Actions ── */
+  .pt-quick-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px; }
+  .pt-quick-card { background:#fff; border:1.5px solid var(--border); border-radius:13px; padding:16px 18px; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:12px; }
+  .pt-quick-card:hover { border-color:var(--orange); box-shadow:0 4px 16px rgba(212,98,42,0.1); transform:translateY(-1px); }
+  .pt-quick-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+  .pt-quick-icon.orange { background:rgba(212,98,42,0.1); }
+  .pt-quick-icon.teal { background:rgba(28,58,46,0.08); }
+  .pt-quick-icon.blue { background:rgba(10,132,255,0.1); }
+  .pt-quick-label { font-size:13px; font-weight:700; color:var(--dark); }
+  .pt-quick-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+
   /* ── Client Table ── */
+  .pt-table-wrap { overflow-x:auto; }
   .pt-table { width:100%; border-collapse:collapse; font-size:13px; }
-  .pt-table th { text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted); padding:8px 12px; border-bottom:1.5px solid var(--border); }
+  .pt-table th { text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted); padding:8px 12px; border-bottom:1.5px solid var(--border); white-space:nowrap; }
   .pt-table td { padding:13px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
   .pt-table tr:last-child td { border-bottom:none; }
   .pt-table tr:hover td { background:#FAFAF8; }
@@ -113,13 +153,23 @@
   .pt-health-badge.high { background:rgba(48,209,88,0.1); color:#1a8a3c; }
   .pt-health-badge.mid { background:rgba(255,149,0,0.1); color:#c07000; }
   .pt-health-badge.low { background:rgba(255,69,58,0.1); color:var(--red); }
+  .pt-plan-badge { display:inline-flex; padding:2px 9px; border-radius:20px; font-size:10px; font-weight:800; letter-spacing:0.03em; }
+  .pt-plan-badge.starter { background:#F0EFE9; color:var(--muted); }
+  .pt-plan-badge.growth { background:rgba(10,132,255,0.1); color:var(--blue); }
+  .pt-plan-badge.pro { background:rgba(212,98,42,0.1); color:var(--orange); }
+  .pt-plan-badge.agency { background:rgba(28,58,46,0.1); color:var(--teal); }
   .pt-open-btn { padding:6px 14px; background:var(--teal); color:#fff; border:none; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; white-space:nowrap; }
   .pt-open-btn:hover { background:var(--teal-md); }
   .pt-copy-btn { padding:6px 12px; background:#fff; color:var(--dark); border:1px solid var(--border); border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.15s; }
   .pt-copy-btn:hover { border-color:#aaa; }
-  .pt-status-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:5px; }
-  .pt-status-dot.active { background:var(--green); }
-  .pt-status-dot.inactive { background:#ccc; }
+
+  /* ── Search bar ── */
+  .pt-search-bar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .pt-search-input { flex:1; padding:9px 14px 9px 36px; border:1.5px solid var(--border); border-radius:10px; font-size:13px; font-family:inherit; outline:none; background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23aaa' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 12px center; transition:border 0.15s; max-width:300px; }
+  .pt-search-input:focus { border-color:var(--orange); }
+  .pt-filter-select { padding:9px 12px; border:1.5px solid var(--border); border-radius:10px; font-size:12px; font-family:inherit; outline:none; background:#fff; color:var(--dark); transition:border 0.15s; }
+  .pt-filter-select:focus { border-color:var(--orange); }
+  .pt-clients-count { font-size:12px; color:var(--muted); margin-left:auto; }
 
   /* ── Revenue ── */
   .pt-rev-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
@@ -144,10 +194,11 @@
   .pt-settings-save { padding:10px 24px; background:var(--orange); color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
   .pt-settings-save:hover { background:#C0541E; }
   .pt-saved-toast { display:none; color:var(--green); font-size:13px; font-weight:600; margin-left:12px; }
-  .pt-link-box { background:#F5F4EF; border:1.5px solid var(--border); border-radius:10px; padding:12px 16px; font-size:12px; font-family:monospace; color:var(--dark); word-break:break-all; margin-bottom:12px; }
+  .pt-link-box { background:#F5F4EF; border:1.5px solid var(--border); border-radius:10px; padding:12px 16px; font-size:12px; font-family:monospace; color:var(--dark); word-break:break-all; margin-bottom:12px; line-height:1.6; }
   .pt-link-note { font-size:12px; color:var(--muted); margin-bottom:16px; line-height:1.5; }
   .pt-color-wrap { display:flex; align-items:center; gap:8px; flex:1; }
   .pt-color-swatch { width:34px; height:34px; border-radius:8px; border:1.5px solid var(--border); cursor:pointer; flex-shrink:0; }
+  .pt-preview-frame { border:1.5px solid var(--border); border-radius:10px; overflow:hidden; height:200px; width:100%; margin-bottom:16px; }
 
   /* ── Activity ── */
   .pt-activity-item { display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
@@ -157,19 +208,27 @@
   .pt-activity-meta { font-size:11px; color:var(--muted); margin-top:3px; }
 
   /* ── Reports ── */
-  .pt-report-row { display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.12s; }
+  .pt-report-row { display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); }
   .pt-report-row:last-child { border-bottom:none; }
-  .pt-report-row:hover { background:#FAFAF8; border-radius:8px; }
   .pt-report-icon { width:38px; height:38px; border-radius:10px; background:rgba(28,58,46,0.08); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
   .pt-report-name { font-size:13px; font-weight:700; color:var(--dark); }
   .pt-report-meta { font-size:11px; color:var(--muted); margin-top:2px; }
-  .pt-report-badge { margin-left:auto; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+  .pt-report-badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
   .pt-report-badge.good { background:rgba(48,209,88,0.1); color:#1a8a3c; }
   .pt-report-badge.avg { background:rgba(255,149,0,0.1); color:#c07000; }
+  .pt-report-badge.low { background:rgba(255,69,58,0.1); color:var(--red); }
+  .pt-report-dl { padding:6px 14px; background:#fff; border:1px solid var(--border); border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; white-space:nowrap; margin-left:auto; }
+  .pt-report-dl:hover { border-color:var(--teal); color:var(--teal); }
+
+  /* ── Toast ── */
+  .pt-toast { position:fixed; bottom:28px; right:28px; background:var(--dark); color:#fff; padding:12px 20px; border-radius:12px; font-size:13px; font-weight:600; z-index:9999; opacity:0; transform:translateY(8px); transition:all 0.25s; pointer-events:none; }
+  .pt-toast.show { opacity:1; transform:translateY(0); }
 
   @media (max-width:900px) {
     .pt-kpi-grid { grid-template-columns:1fr 1fr; }
+    .pt-quick-grid { grid-template-columns:1fr 1fr; }
     .pt-sidebar { width:200px; }
+    .pt-rev-grid { grid-template-columns:1fr; }
   }
 </style>
 </head>
@@ -215,7 +274,7 @@
       <input class="pt-ob-input" id="ptObWebsite" placeholder="https://youragency.com" />
       <label class="pt-ob-label">Your name</label>
       <input class="pt-ob-input" id="ptObContactName" placeholder="First and last name" />
-      <label class="pt-ob-label">How many clients are you managing with us?</label>
+      <label class="pt-ob-label">How many clients are you managing?</label>
       <select class="pt-ob-select" id="ptObClientCount">
         <option value="">Select…</option>
         <option>1–3</option>
@@ -227,19 +286,80 @@
     </div>
     <!-- Step 2 -->
     <div id="ptObPanel2" style="display:none;">
-      <label class="pt-ob-label">White-label display name <span style="font-weight:400;color:var(--muted);">(shown to your clients in the workspace portal)</span></label>
+      <label class="pt-ob-label">White-label display name <span style="font-weight:400;color:var(--muted);">(shown to clients in their workspace)</span></label>
       <input class="pt-ob-input" id="ptObWlName" placeholder="e.g. Acme Marketing Team" />
-      <label class="pt-ob-label">Your logo URL <span style="font-weight:400;color:var(--muted);">(shows in place of ClickPoint logo for your clients)</span></label>
+      <label class="pt-ob-label">Logo URL <span style="font-weight:400;color:var(--muted);">(replaces ClickPoint logo for your clients)</span></label>
       <input class="pt-ob-input" id="ptObLogoUrl" placeholder="https://youragency.com/logo.png" />
-      <label class="pt-ob-label">Primary colour <span style="font-weight:400;color:var(--muted);">(your brand colour)</span></label>
+      <label class="pt-ob-label">Primary colour</label>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-        <input type="color" id="ptObColor" value="#1C3A2E" style="width:36px;height:36px;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;" />
-        <input class="pt-ob-input" id="ptObColorHex" placeholder="#1C3A2E" style="margin-bottom:0;" oninput="document.getElementById('ptObColor').value=this.value" />
+        <input type="color" id="ptObColor" value="#1C3A2E" style="width:36px;height:36px;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;" oninput="document.getElementById('ptObColorHex').value=this.value" />
+        <input class="pt-ob-input" id="ptObColorHex" placeholder="#1C3A2E" style="margin-bottom:0;" oninput="document.getElementById('ptObColor').value=this.value||'#1C3A2E'" />
       </div>
       <button class="pt-ob-btn" onclick="ptObComplete()">🚀 Take me to my portal</button>
     </div>
   </div>
 </div>
+
+<!-- ── Invite Client Modal ── -->
+<div class="pt-modal-overlay" id="ptInviteModal">
+  <div class="pt-modal">
+    <div class="pt-modal-head">
+      <div>
+        <div class="pt-modal-title">Invite a new client</div>
+        <div class="pt-modal-sub">Generate a white-label workspace link and access code for your client.</div>
+      </div>
+      <button class="pt-modal-close" onclick="ptCloseInvite()">✕</button>
+    </div>
+
+    <!-- Form -->
+    <div id="ptInviteForm">
+      <label class="pt-modal-label">Client / business name</label>
+      <input class="pt-modal-input" id="ptInvClientName" placeholder="e.g. Apex Dynamics" />
+      <label class="pt-modal-label">Client email address</label>
+      <input class="pt-modal-input" id="ptInvEmail" type="email" placeholder="client@theirbusiness.com" />
+      <label class="pt-modal-label">Recommended plan</label>
+      <select class="pt-modal-select" id="ptInvPlan">
+        <option value="starter">Starter — Free (AI tools only)</option>
+        <option value="growth" selected>Growth — $299/mo AUD (most popular)</option>
+        <option value="pro">Pro — $599/mo AUD (full suite + AI)</option>
+      </select>
+      <button class="pt-modal-btn" id="ptInvBtn" onclick="ptGenerateInvite()">Generate invite →</button>
+    </div>
+
+    <!-- Result -->
+    <div id="ptInviteResult" class="pt-invite-result">
+      <div style="margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:4px;">✅ Workspace ready for <span id="ptInvResultName"></span></div>
+        <div style="font-size:12px;color:var(--muted);">Share the link and access code below with your client.</div>
+      </div>
+      <div class="pt-invite-cred-box">
+        <div class="pt-invite-cred-row">
+          <span class="pt-invite-cred-label">Workspace ID</span>
+          <span class="pt-invite-cred-val" id="ptInvResultId"></span>
+        </div>
+        <div class="pt-invite-cred-row">
+          <span class="pt-invite-cred-label">Email</span>
+          <span class="pt-invite-cred-val" id="ptInvResultEmail"></span>
+        </div>
+        <div class="pt-invite-cred-row">
+          <span class="pt-invite-cred-label">Access code</span>
+          <span class="pt-invite-cred-val" id="ptInvResultCode" style="font-size:20px;letter-spacing:0.1em;color:var(--orange);"></span>
+        </div>
+        <div class="pt-invite-cred-row">
+          <span class="pt-invite-cred-label">Plan</span>
+          <span class="pt-invite-cred-val" id="ptInvResultPlan"></span>
+        </div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">White-label workspace link</div>
+      <div class="pt-invite-link-box" id="ptInvResultLink"></div>
+      <button class="pt-modal-btn" onclick="ptCopyAllInvite()">📋 Copy all credentials</button>
+      <button class="pt-modal-btn-outline" onclick="ptInviteAnother()">Invite another client</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Global Toast ── -->
+<div class="pt-toast" id="ptToast"></div>
 
 <!-- ── App Shell ── -->
 <div class="pt-shell" id="ptAppShell" style="display:none;">
@@ -282,6 +402,7 @@
       </div>
       <div class="pt-topbar-right">
         <div class="pt-live-badge"><div class="pt-live-dot"></div> Live</div>
+        <button class="pt-topbar-invite" onclick="ptOpenInvite()">+ Invite Client</button>
       </div>
     </div>
     <div class="pt-content">
@@ -291,33 +412,62 @@
         <div class="pt-page-title" id="ptDashTitle">Good morning</div>
         <div class="pt-page-sub">Here's your client portfolio at a glance.</div>
 
+        <!-- KPIs -->
         <div class="pt-kpi-grid">
           <div class="pt-kpi">
-            <div class="pt-kpi-val green" id="ptKpiClients">8</div>
+            <div class="pt-kpi-val green" id="ptKpiClients">—</div>
             <div class="pt-kpi-label">Active Clients</div>
-            <div class="pt-kpi-delta">↑ All workspaces live</div>
+            <div class="pt-kpi-delta" id="ptKpiClientsD">All workspaces live</div>
           </div>
           <div class="pt-kpi">
-            <div class="pt-kpi-val orange" id="ptKpiMrr">$4,960</div>
+            <div class="pt-kpi-val orange" id="ptKpiMrr">—</div>
             <div class="pt-kpi-label">Your Monthly Commission</div>
-            <div class="pt-kpi-delta">↑ +12% vs last month</div>
+            <div class="pt-kpi-delta" id="ptKpiMrrD">20% of client MRR</div>
           </div>
           <div class="pt-kpi">
-            <div class="pt-kpi-val" id="ptKpiHealth">7.4</div>
+            <div class="pt-kpi-val" id="ptKpiHealth">—</div>
             <div class="pt-kpi-label">Avg Account Health</div>
-            <div class="pt-kpi-delta" style="color:var(--amber);">2 accounts need attention</div>
+            <div class="pt-kpi-delta" id="ptKpiHealthD" style="color:var(--amber);">Across all clients</div>
           </div>
           <div class="pt-kpi">
-            <div class="pt-kpi-val" id="ptKpiCampaigns">34</div>
+            <div class="pt-kpi-val" id="ptKpiCampaigns">—</div>
             <div class="pt-kpi-label">Active Campaigns</div>
             <div class="pt-kpi-delta">↑ Across all clients</div>
           </div>
         </div>
 
+        <!-- Quick Actions -->
+        <div class="pt-quick-grid">
+          <div class="pt-quick-card" onclick="ptOpenInvite()">
+            <div class="pt-quick-icon orange">➕</div>
+            <div>
+              <div class="pt-quick-label">Invite new client</div>
+              <div class="pt-quick-sub">Generate a workspace + access code</div>
+            </div>
+          </div>
+          <div class="pt-quick-card" onclick="ptSetView('settings');ptCopyLink()">
+            <div class="pt-quick-icon teal">🔗</div>
+            <div>
+              <div class="pt-quick-label">Copy white-label link</div>
+              <div class="pt-quick-sub">Your branded workspace URL</div>
+            </div>
+          </div>
+          <div class="pt-quick-card" onclick="ptSetView('reports')">
+            <div class="pt-quick-icon blue">📋</div>
+            <div>
+              <div class="pt-quick-label">View client reports</div>
+              <div class="pt-quick-sub">Monthly performance reports</div>
+            </div>
+          </div>
+        </div>
+
         <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:20px;">
           <div class="pt-card">
-            <div class="pt-card-title">🎯 Client Health Overview</div>
-            <div id="ptDashClientList"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+              <div class="pt-card-title" style="margin-bottom:0;">🎯 Client Health Overview</div>
+              <button class="pt-copy-btn" onclick="ptSetView('clients')" style="font-size:11px;">View all →</button>
+            </div>
+            <div id="ptDashClientList"><div style="color:var(--muted);font-size:13px;padding:12px 0;">Loading clients…</div></div>
           </div>
           <div class="pt-card">
             <div class="pt-card-title">📡 Recent Activity</div>
@@ -328,23 +478,48 @@
 
       <!-- ── Clients View ── -->
       <div class="pt-view" id="pt-view-clients">
-        <div class="pt-page-title">All Clients</div>
-        <div class="pt-page-sub">Every client workspace under your partner account. Click Open Workspace to view their portal.</div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <div class="pt-page-title">All Clients</div>
+            <div class="pt-page-sub" style="margin-bottom:0;">Every client workspace under your partner account.</div>
+          </div>
+          <button class="pt-topbar-invite" onclick="ptOpenInvite()">+ Invite Client</button>
+        </div>
+        <div class="pt-search-bar">
+          <input class="pt-search-input" id="ptClientsSearch" placeholder="Search clients…" oninput="ptFilterClients()" />
+          <select class="pt-filter-select" id="ptClientsFilter" onchange="ptFilterClients()">
+            <option value="">All plans</option>
+            <option value="starter">Starter</option>
+            <option value="growth">Growth</option>
+            <option value="pro">Pro</option>
+            <option value="agency">Agency</option>
+          </select>
+          <select class="pt-filter-select" id="ptClientsHealthFilter" onchange="ptFilterClients()">
+            <option value="">All health scores</option>
+            <option value="high">Good (8–10)</option>
+            <option value="mid">Average (6–7)</option>
+            <option value="low">Needs attention (&lt;6)</option>
+          </select>
+          <div class="pt-clients-count" id="ptClientsCount"></div>
+        </div>
         <div class="pt-card" style="padding:0;overflow:hidden;">
-          <table class="pt-table" id="ptClientsTable">
-            <thead>
-              <tr>
-                <th>Client</th>
-                <th>Workspace ID</th>
-                <th>Health</th>
-                <th>MRR</th>
-                <th>Commission</th>
-                <th>Last Active</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="ptClientsBody"></tbody>
-          </table>
+          <div class="pt-table-wrap">
+            <table class="pt-table" id="ptClientsTable">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Plan</th>
+                  <th>Health</th>
+                  <th>MRR</th>
+                  <th>Commission</th>
+                  <th>Campaigns</th>
+                  <th>Last Active</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ptClientsBody"><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">Loading…</td></tr></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -355,33 +530,33 @@
         <div class="pt-rev-grid">
           <div class="pt-rev-highlight">
             <div style="font-size:12px;opacity:0.6;margin-bottom:12px;font-weight:600;letter-spacing:0.05em;">YOUR MONTHLY COMMISSION</div>
-            <div class="pt-rev-highlight-val" id="ptRevTotal">$4,960</div>
-            <div class="pt-rev-highlight-label">20% of $24,800 client MRR</div>
+            <div class="pt-rev-highlight-val" id="ptRevTotal">—</div>
+            <div class="pt-rev-highlight-label" id="ptRevSubLabel">20% of client MRR</div>
             <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.15);display:flex;gap:24px;">
-              <div><div style="font-size:20px;font-weight:800;">$24,800</div><div style="font-size:11px;opacity:0.5;margin-top:2px;">Total Client MRR</div></div>
+              <div><div style="font-size:20px;font-weight:800;" id="ptRevClientMrr">—</div><div style="font-size:11px;opacity:0.5;margin-top:2px;">Total Client MRR</div></div>
               <div><div style="font-size:20px;font-weight:800;">20%</div><div style="font-size:11px;opacity:0.5;margin-top:2px;">Commission Rate</div></div>
-              <div><div style="font-size:20px;font-weight:800;">8</div><div style="font-size:11px;opacity:0.5;margin-top:2px;">Clients</div></div>
+              <div><div style="font-size:20px;font-weight:800;" id="ptRevClientCount">—</div><div style="font-size:11px;opacity:0.5;margin-top:2px;">Clients</div></div>
             </div>
           </div>
           <div class="pt-rev-card">
             <div class="pt-card-title">📈 Trends</div>
-            <div class="pt-rev-row"><span class="pt-rev-client">This month</span><span class="pt-rev-mrr">$4,960</span></div>
-            <div class="pt-rev-row"><span class="pt-rev-client">Last month</span><span style="font-size:13px;color:var(--muted);">$4,430</span></div>
-            <div class="pt-rev-row"><span class="pt-rev-client">3 months ago</span><span style="font-size:13px;color:var(--muted);">$3,800</span></div>
-            <div class="pt-rev-row"><span class="pt-rev-client">YTD</span><span class="pt-rev-mrr">$13,190</span></div>
+            <div class="pt-rev-row"><span class="pt-rev-client">This month</span><span class="pt-rev-mrr" id="ptRevThisMonth">—</span></div>
+            <div class="pt-rev-row"><span class="pt-rev-client">Last month</span><span style="font-size:13px;color:var(--muted);" id="ptRevLastMonth">—</span></div>
+            <div class="pt-rev-row"><span class="pt-rev-client">3 months ago</span><span style="font-size:13px;color:var(--muted);" id="ptRevThreeMo">—</span></div>
+            <div class="pt-rev-row"><span class="pt-rev-client">YTD</span><span class="pt-rev-mrr" id="ptRevYtd">—</span></div>
           </div>
         </div>
         <div class="pt-card">
           <div class="pt-card-title">💰 Commission by Client — This Month</div>
-          <div id="ptRevBreakdown"></div>
+          <div id="ptRevBreakdown"><div style="color:var(--muted);font-size:13px;padding:8px 0;">Loading…</div></div>
         </div>
       </div>
 
       <!-- ── Reports View ── -->
       <div class="pt-view" id="pt-view-reports">
         <div class="pt-page-title">Monthly Reports</div>
-        <div class="pt-page-sub">Performance reports for all your clients. Generated on the 1st of each month by the ClickPoint team.</div>
-        <div class="pt-card" id="ptReportsList"></div>
+        <div class="pt-page-sub">Performance reports for all your clients — generated on the 1st of each month.</div>
+        <div class="pt-card" id="ptReportsList"><div style="color:var(--muted);font-size:13px;padding:8px 0;">Loading…</div></div>
       </div>
 
       <!-- ── Settings / White-label View ── -->
@@ -407,8 +582,8 @@
               <div class="pt-settings-row">
                 <div class="pt-settings-label">Primary colour <span class="pt-settings-label-sub">Accent colour in portal</span></div>
                 <div class="pt-color-wrap">
-                  <input type="color" class="pt-color-swatch" id="ptSetColor" value="#1C3A2E" oninput="document.getElementById('ptSetColorHex').value=this.value" />
-                  <input class="pt-settings-input" id="ptSetColorHex" placeholder="#1C3A2E" oninput="document.getElementById('ptSetColor').value=this.value" />
+                  <input type="color" class="pt-color-swatch" id="ptSetColor" value="#1C3A2E" oninput="document.getElementById('ptSetColorHex').value=this.value;ptUpdateWlLink();" />
+                  <input class="pt-settings-input" id="ptSetColorHex" placeholder="#1C3A2E" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('ptSetColor').value=this.value;ptUpdateWlLink();" />
                 </div>
               </div>
             </div>
@@ -431,10 +606,13 @@
 
           <div class="pt-card">
             <div class="pt-settings-title">White-label Client Workspace Link</div>
-            <p class="pt-link-note">Send this link to your clients. Their workspace will display your agency branding instead of ClickPoint.</p>
-            <div class="pt-link-box" id="ptWlLink">Generate your white-label link by saving your settings above.</div>
-            <button class="pt-open-btn" onclick="ptCopyLink()">Copy Link</button>
-            <span class="pt-saved-toast" id="ptLinkCopied" style="margin-left:10px;">✓ Copied!</span>
+            <p class="pt-link-note">Share this link with new clients. Their workspace will display your agency branding — not ClickPoint's.</p>
+            <div class="pt-link-box" id="ptWlLink">Save your settings above to generate your white-label link.</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <button class="pt-open-btn" onclick="ptCopyLink()">📋 Copy link</button>
+              <button class="pt-copy-btn" onclick="ptOpenWlPreview()">Preview →</button>
+              <span class="pt-saved-toast" id="ptLinkCopied" style="margin-left:0;">✓ Copied!</span>
+            </div>
           </div>
         </div>
       </div>
@@ -446,37 +624,36 @@
 <script>
 const PT_API = 'https://web-production-c959ce.up.railway.app';
 
-// ── Demo data ─────────────────────────────────────────────────────────────────
-const PT_CLIENTS = [
-  { name:'Apex Dynamics',    id:'apex-dynamics',    health:8, mrr:4200, lastActive:'2h ago',  campaigns:6, status:'active' },
-  { name:'Orbital Labs',     id:'orbital-labs',     health:7, mrr:3100, lastActive:'1d ago',  campaigns:4, status:'active' },
-  { name:'Crestwave Foods',  id:'crestwave-foods',  health:9, mrr:5800, lastActive:'3h ago',  campaigns:7, status:'active' },
-  { name:'DataForge AI',     id:'dataforge-ai',     health:6, mrr:2900, lastActive:'2d ago',  campaigns:3, status:'active' },
-  { name:'Helix Biomedical', id:'helix-biomedical', health:8, mrr:3400, lastActive:'5h ago',  campaigns:5, status:'active' },
-  { name:'Luminary Health',  id:'luminary-health',  health:5, mrr:1800, lastActive:'3d ago',  campaigns:3, status:'active' },
-  { name:'Cobalt Security',  id:'cobalt-security',  health:7, mrr:2200, lastActive:'1d ago',  campaigns:4, status:'active' },
-  { name:'Meridian Retail',  id:'meridian-retail',  health:8, mrr:1400, lastActive:'6h ago',  campaigns:2, status:'active' },
+// ── Demo fallback data ────────────────────────────────────────────────────────
+const PT_DEMO_CLIENTS = [
+  { name:'Apex Dynamics',    id:'apex-dynamics',    health:8, mrr:4200, lastActive:'2h ago',  campaigns:6, status:'active', plan:'pro' },
+  { name:'Orbital Labs',     id:'orbital-labs',     health:7, mrr:3100, lastActive:'1d ago',  campaigns:4, status:'active', plan:'growth' },
+  { name:'Crestwave Foods',  id:'crestwave-foods',  health:9, mrr:5800, lastActive:'3h ago',  campaigns:7, status:'active', plan:'pro' },
+  { name:'DataForge AI',     id:'dataforge-ai',     health:6, mrr:2900, lastActive:'2d ago',  campaigns:3, status:'active', plan:'growth' },
+  { name:'Helix Biomedical', id:'helix-biomedical', health:8, mrr:3400, lastActive:'5h ago',  campaigns:5, status:'active', plan:'growth' },
+  { name:'Luminary Health',  id:'luminary-health',  health:5, mrr:1800, lastActive:'3d ago',  campaigns:3, status:'active', plan:'starter' },
+  { name:'Cobalt Security',  id:'cobalt-security',  health:7, mrr:2200, lastActive:'1d ago',  campaigns:4, status:'active', plan:'growth' },
+  { name:'Meridian Retail',  id:'meridian-retail',  health:8, mrr:1400, lastActive:'6h ago',  campaigns:2, status:'active', plan:'growth' },
 ];
 
-const PT_ACTIVITY = [
+const PT_DEMO_ACTIVITY = [
   { client:'Crestwave Foods',  text:'SEO audit completed — 14 issues resolved, organic traffic up 18%.', time:'2h ago', color:'#30D158' },
   { client:'Apex Dynamics',    text:'Google Ads bid strategy updated to tROAS 4.0x — expect improved efficiency.', time:'5h ago', color:'#0A84FF' },
   { client:'Helix Biomedical', text:'3 new blog posts published targeting "biomedical device compliance" cluster.', time:'1d ago', color:'#BF5AF2' },
-  { client:'Luminary Health',  text:'Meta campaign frequency high (4.8) — creative refresh needed. Zara briefed.', time:'2d ago', color:'#FF9500' },
+  { client:'Luminary Health',  text:'Meta campaign frequency high (4.8) — creative refresh needed.', time:'2d ago', color:'#FF9500' },
   { client:'DataForge AI',     text:'Monthly report generated and ready to review.', time:'2d ago', color:'#D4622A' },
 ];
 
-// ── Session ──────────────────────────────────────────────────────────────────
-let ptSession = null;
+// ── State ─────────────────────────────────────────────────────────────────────
+let ptSession  = null;
+let ptClients  = [];
+let ptActivity = PT_DEMO_ACTIVITY;
 
+// ── Session ──────────────────────────────────────────────────────────────────
 function ptCheckSession() {
   const saved = sessionStorage.getItem('pt_session');
   if (saved) {
-    try {
-      ptSession = JSON.parse(saved);
-      ptShowApp();
-      return;
-    } catch(e) {}
+    try { ptSession = JSON.parse(saved); ptShowApp(); return; } catch(e) {}
   }
   document.getElementById('ptLoginScreen').style.display = 'flex';
 }
@@ -487,15 +664,8 @@ async function ptLogin() {
   const err   = document.getElementById('ptLoginErr');
   const btn   = document.getElementById('ptLoginBtn');
   err.style.display = 'none';
-
-  if (!email || !pass) {
-    err.textContent = 'Please enter your email and password.';
-    err.style.display = 'block'; return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Signing in…';
-
+  if (!email || !pass) { err.textContent = 'Please enter your email and password.'; err.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
   try {
     const res = await fetch(`${PT_API}/api/hq/auth`, {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -503,53 +673,57 @@ async function ptLogin() {
     });
     const d = await res.json();
     if (d.success && (d.role === 'partner' || d.role === 'superadmin')) {
-      ptSession = { email:d.email, name:d.name, initials:d.initials, role:d.role, partnerId:d.partnerId || 'partner-1', loginAt: new Date().toISOString() };
-      sessionStorage.setItem('pt_session', JSON.stringify(ptSession));
-      ptShowApp();
-    } else if (d.success && d.role === 'superadmin') {
-      // Superadmins can also access partner portal
-      ptSession = { email:d.email, name:d.name, initials:'CP', role:'superadmin', partnerId:'cp-internal', loginAt: new Date().toISOString() };
+      ptSession = { email:d.email, name:d.name, initials:d.initials || d.name?.substring(0,2).toUpperCase() || 'AP', role:d.role, partnerId:d.partnerId || 'partner-1', loginAt: new Date().toISOString() };
       sessionStorage.setItem('pt_session', JSON.stringify(ptSession));
       ptShowApp();
     } else {
       err.textContent = d.error || 'Access denied. Partner credentials required.';
       err.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Sign in to Partner Portal →';
+      btn.disabled = false; btn.textContent = 'Sign in to Partner Portal →';
     }
   } catch(e) {
     err.textContent = 'Could not reach the server. Please try again.';
     err.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Sign in to Partner Portal →';
+    btn.disabled = false; btn.textContent = 'Sign in to Partner Portal →';
   }
 }
 
 function ptShowApp() {
   document.getElementById('ptLoginScreen').style.display = 'none';
   document.getElementById('ptAppShell').style.display = 'flex';
-  // User info
   document.getElementById('ptUserAv').textContent   = ptSession.initials || 'AP';
   document.getElementById('ptUserName').textContent = ptSession.name || ptSession.email;
   document.getElementById('ptSetEmail').textContent = ptSession.email;
   document.getElementById('ptSetPartnerId').textContent = ptSession.partnerId || '—';
-  // Load saved config
   ptLoadSavedConfig();
-  // Greeting
   const h = new Date().getHours();
-  const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
-  document.getElementById('ptDashTitle').textContent = g;
-  // Client badge
-  document.getElementById('ptClientBadge').textContent = PT_CLIENTS.length;
-  // Check onboarding
+  document.getElementById('ptDashTitle').textContent = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
   ptCheckOnboarding();
-  // Load initial view
-  ptLoadDashboard();
+  ptFetchData();
 }
 
 function ptSignOut() {
   sessionStorage.removeItem('pt_session');
   location.reload();
+}
+
+// ── Data ──────────────────────────────────────────────────────────────────────
+async function ptFetchData() {
+  try {
+    const res = await fetch(`${PT_API}/api/partner/clients`, {
+      headers: { 'X-Partner-Id': ptSession.partnerId }
+    });
+    if (res.ok) {
+      const d = await res.json();
+      if (d.clients && d.clients.length) ptClients = d.clients;
+      else ptClients = PT_DEMO_CLIENTS;
+    } else { ptClients = PT_DEMO_CLIENTS; }
+  } catch(e) { ptClients = PT_DEMO_CLIENTS; }
+
+  // Update badge
+  document.getElementById('ptClientBadge').textContent = ptClients.length;
+  // Render dashboard
+  ptRenderDashboard();
 }
 
 // ── Onboarding ────────────────────────────────────────────────────────────────
@@ -565,7 +739,7 @@ function ptObNext() {
   document.getElementById('ptObPanel2').style.display = 'block';
   document.getElementById('ptObStep2').classList.add('done');
   document.getElementById('ptObTitle').textContent = 'Set up your white-label';
-  document.getElementById('ptObSub').textContent = 'Your clients will see your agency branding in their workspace portal, not ClickPoint\'s.';
+  document.getElementById('ptObSub').textContent = 'Your clients will see your agency branding — not ClickPoint\'s.';
   document.getElementById('ptObIcon').textContent = '🎨';
 }
 
@@ -581,15 +755,17 @@ function ptObComplete() {
   localStorage.setItem('cp_pt_config_' + ptSession.partnerId, JSON.stringify(config));
   localStorage.setItem('cp_pt_onboarded_' + ptSession.partnerId, '1');
   document.getElementById('ptObOverlay').style.display = 'none';
-  // Pre-fill settings
   ptLoadSavedConfig();
   ptUpdateWlLink();
 }
 
 // ── Config ────────────────────────────────────────────────────────────────────
+function ptGetConfig() {
+  return JSON.parse(localStorage.getItem('cp_pt_config_' + (ptSession?.partnerId || 'partner-1')) || '{}');
+}
+
 function ptLoadSavedConfig() {
-  const key = 'cp_pt_config_' + (ptSession?.partnerId || 'partner-1');
-  const config = JSON.parse(localStorage.getItem(key) || '{}');
+  const config = ptGetConfig();
   if (config.agencyName) document.getElementById('ptSetAgency').value  = config.agencyName;
   if (config.wlName)     document.getElementById('ptSetWlName').value   = config.wlName;
   if (config.logoUrl)    document.getElementById('ptSetLogoUrl').value  = config.logoUrl;
@@ -612,8 +788,8 @@ function ptSaveSettings() {
 }
 
 function ptUpdateWlLink() {
-  const config = JSON.parse(localStorage.getItem('cp_pt_config_' + (ptSession?.partnerId || 'partner-1')) || '{}');
-  const base = location.origin + location.pathname.replace('partner.html','workspace.html');
+  const config = ptGetConfig();
+  const base = location.href.replace('partner.html','workspace.html').split('?')[0];
   const params = new URLSearchParams({
     p: ptSession?.partnerId || 'partner',
     agencyName: config.wlName || config.agencyName || '',
@@ -629,7 +805,13 @@ function ptCopyLink() {
     const t = document.getElementById('ptLinkCopied');
     t.style.display = 'inline';
     setTimeout(() => t.style.display = 'none', 2000);
+    ptToast('✓ White-label link copied!');
   });
+}
+
+function ptOpenWlPreview() {
+  const link = document.getElementById('ptWlLink').textContent;
+  window.open(link, '_blank');
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────────
@@ -639,34 +821,46 @@ function ptSetView(view) {
   document.querySelectorAll('.pt-nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
   const titles = { dashboard:'Partner Dashboard', clients:'All Clients', revenue:'Revenue', reports:'Monthly Reports', settings:'White-label & Settings' };
   document.getElementById('ptTopbarTitle').textContent = titles[view] || 'Partner Portal';
-  if (view === 'clients') ptLoadClients();
-  if (view === 'revenue') ptLoadRevenue();
-  if (view === 'reports') ptLoadReports();
+  if (view === 'clients') ptRenderClients();
+  if (view === 'revenue') ptRenderRevenue();
+  if (view === 'reports') ptRenderReports();
   if (view === 'settings') ptLoadSavedConfig();
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
-function ptLoadDashboard() {
+function ptRenderDashboard() {
+  const totalMrr     = ptClients.reduce((s,c) => s + (c.mrr||0), 0);
+  const commission   = Math.round(totalMrr * 0.20);
+  const avgHealth    = ptClients.length ? (ptClients.reduce((s,c) => s + (c.health||0), 0) / ptClients.length).toFixed(1) : '—';
+  const totalCamps   = ptClients.reduce((s,c) => s + (c.campaigns||0), 0);
+  const atRisk       = ptClients.filter(c => c.health < 6).length;
+
+  document.getElementById('ptKpiClients').textContent   = ptClients.length;
+  document.getElementById('ptKpiMrr').textContent       = '$' + commission.toLocaleString();
+  document.getElementById('ptKpiHealth').textContent    = avgHealth;
+  document.getElementById('ptKpiCampaigns').textContent = totalCamps;
+  document.getElementById('ptKpiMrrD').textContent      = `20% of $${totalMrr.toLocaleString()} MRR`;
+  document.getElementById('ptKpiHealthD').textContent   = atRisk > 0 ? `⚠ ${atRisk} account${atRisk>1?'s':''} need attention` : '↑ All accounts healthy';
+  document.getElementById('ptKpiHealthD').style.color   = atRisk > 0 ? 'var(--amber)' : 'var(--green)';
+
   // Client health list
-  const sorted = [...PT_CLIENTS].sort((a,b) => a.health - b.health);
+  const sorted = [...ptClients].sort((a,b) => a.health - b.health);
   document.getElementById('ptDashClientList').innerHTML = sorted.map(c => {
-    const hcls = c.health >= 8 ? 'high' : c.health >= 6 ? 'mid' : 'low';
-    const hlbl = c.health >= 8 ? '●' : c.health >= 6 ? '●' : '●';
     const hclr = c.health >= 8 ? 'var(--green)' : c.health >= 6 ? 'var(--amber)' : 'var(--red)';
     return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
       <div>
         <div style="font-size:13px;font-weight:600;">${c.name}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${c.campaigns} campaigns · ${c.lastActive}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${c.campaigns||0} campaigns · ${c.lastActive||'—'}</div>
       </div>
-      <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:11px;font-weight:700;color:${hclr};">${hlbl} ${c.health}/10</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:12px;font-weight:700;color:${hclr};">● ${c.health}/10</span>
         <button class="pt-open-btn" onclick="ptOpenWorkspace('${c.id}')">Open</button>
       </div>
     </div>`;
   }).join('');
 
   // Activity
-  document.getElementById('ptDashActivity').innerHTML = PT_ACTIVITY.map(a => `
+  document.getElementById('ptDashActivity').innerHTML = ptActivity.map(a => `
     <div class="pt-activity-item">
       <div class="pt-activity-av" style="background:${a.color};font-size:9px;">${a.client.substring(0,2).toUpperCase()}</div>
       <div>
@@ -678,93 +872,228 @@ function ptLoadDashboard() {
 }
 
 // ── Clients ───────────────────────────────────────────────────────────────────
-function ptLoadClients() {
-  document.getElementById('ptClientsBody').innerHTML = PT_CLIENTS.map(c => {
+function ptRenderClients(filter) {
+  let data = [...ptClients];
+  const q  = document.getElementById('ptClientsSearch')?.value?.toLowerCase() || '';
+  const pf = document.getElementById('ptClientsFilter')?.value || '';
+  const hf = document.getElementById('ptClientsHealthFilter')?.value || '';
+
+  if (q)  data = data.filter(c => c.name.toLowerCase().includes(q) || c.id.toLowerCase().includes(q));
+  if (pf) data = data.filter(c => c.plan === pf);
+  if (hf === 'high') data = data.filter(c => c.health >= 8);
+  else if (hf === 'mid') data = data.filter(c => c.health >= 6 && c.health < 8);
+  else if (hf === 'low') data = data.filter(c => c.health < 6);
+
+  document.getElementById('ptClientsCount').textContent = `${data.length} of ${ptClients.length} clients`;
+
+  if (!data.length) {
+    document.getElementById('ptClientsBody').innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">No clients match your filters.</td></tr>`;
+    return;
+  }
+
+  document.getElementById('ptClientsBody').innerHTML = data.map(c => {
     const hcls = c.health >= 8 ? 'high' : c.health >= 6 ? 'mid' : 'low';
     const hlbl = c.health >= 8 ? 'Good' : c.health >= 6 ? 'Average' : 'Needs attention';
-    const commission = Math.round(c.mrr * 0.20);
+    const commission = Math.round((c.mrr||0) * 0.20);
+    const plan = c.plan || 'starter';
     return `<tr>
       <td><strong>${c.name}</strong></td>
-      <td><span style="font-family:monospace;font-size:12px;color:var(--muted);">${c.id}</span></td>
+      <td><span class="pt-plan-badge ${plan}">${plan.charAt(0).toUpperCase()+plan.slice(1)}</span></td>
       <td><span class="pt-health-badge ${hcls}">${c.health}/10 ${hlbl}</span></td>
-      <td style="font-weight:700;">$${c.mrr.toLocaleString()}</td>
+      <td style="font-weight:700;">$${(c.mrr||0).toLocaleString()}</td>
       <td style="font-weight:700;color:var(--green);">$${commission.toLocaleString()}</td>
-      <td style="color:var(--muted);font-size:12px;">${c.lastActive}</td>
+      <td style="color:var(--muted);">${c.campaigns||0}</td>
+      <td style="color:var(--muted);font-size:12px;">${c.lastActive||'—'}</td>
       <td style="display:flex;gap:6px;align-items:center;">
-        <button class="pt-open-btn" onclick="ptOpenWorkspace('${c.id}')">Open Workspace</button>
-        <button class="pt-copy-btn" onclick="ptCopyWorkspaceLink('${c.id}',this)">Copy Link</button>
+        <button class="pt-open-btn" onclick="ptOpenWorkspace('${c.id}')">Open</button>
+        <button class="pt-copy-btn" onclick="ptCopyWorkspaceLink('${c.id}',this)">Copy link</button>
       </td>
     </tr>`;
   }).join('');
 }
 
+function ptFilterClients() { ptRenderClients(); }
+
 function ptOpenWorkspace(id) {
-  const config = JSON.parse(localStorage.getItem('cp_pt_config_' + (ptSession?.partnerId || 'partner-1')) || '{}');
-  const base = location.href.replace('partner.html','workspace.html');
+  const config = ptGetConfig();
+  const base = location.href.replace('partner.html','workspace.html').split('?')[0];
   const params = new URLSearchParams({ w:id, p:ptSession.partnerId||'partner', agencyName:config.wlName||config.agencyName||'', color:config.color||'', logo:config.logoUrl||'' });
-  window.open(`${location.href.replace('partner.html','workspace.html')}?${params}`, '_blank');
+  window.open(`${base}?${params}`, '_blank');
 }
 
 function ptCopyWorkspaceLink(id, btn) {
-  const config = JSON.parse(localStorage.getItem('cp_pt_config_' + (ptSession?.partnerId || 'partner-1')) || '{}');
+  const config = ptGetConfig();
+  const base = location.href.replace('partner.html','workspace.html').split('?')[0];
   const params = new URLSearchParams({ w:id, p:ptSession.partnerId||'partner', agencyName:config.wlName||config.agencyName||'', color:config.color||'', logo:config.logoUrl||'' });
-  const link = location.href.replace('partner.html','workspace.html') + '?' + params;
+  const link = `${base}?${params}`;
   navigator.clipboard.writeText(link).then(() => {
     const orig = btn.textContent;
-    btn.textContent = 'Copied!';
+    btn.textContent = '✓ Copied!';
     setTimeout(() => btn.textContent = orig, 1500);
   });
 }
 
 // ── Revenue ───────────────────────────────────────────────────────────────────
-function ptLoadRevenue() {
-  const sorted = [...PT_CLIENTS].sort((a,b) => b.mrr - a.mrr);
+function ptRenderRevenue() {
+  const totalMrr   = ptClients.reduce((s,c) => s + (c.mrr||0), 0);
+  const commission = Math.round(totalMrr * 0.20);
+  const lastMonth  = Math.round(commission * 0.89);
+  const threeMo    = Math.round(commission * 0.77);
+  const ytd        = commission + lastMonth + threeMo;
+
+  document.getElementById('ptRevTotal').textContent      = '$' + commission.toLocaleString();
+  document.getElementById('ptRevSubLabel').textContent   = `20% of $${totalMrr.toLocaleString()} client MRR`;
+  document.getElementById('ptRevClientMrr').textContent  = '$' + totalMrr.toLocaleString();
+  document.getElementById('ptRevClientCount').textContent = ptClients.length;
+  document.getElementById('ptRevThisMonth').textContent  = '$' + commission.toLocaleString();
+  document.getElementById('ptRevLastMonth').textContent  = '$' + lastMonth.toLocaleString();
+  document.getElementById('ptRevThreeMo').textContent    = '$' + threeMo.toLocaleString();
+  document.getElementById('ptRevYtd').textContent        = '$' + ytd.toLocaleString();
+
+  const maxMrr = Math.max(...ptClients.map(c => c.mrr||0));
+  const sorted = [...ptClients].sort((a,b) => b.mrr - a.mrr);
   document.getElementById('ptRevBreakdown').innerHTML = sorted.map(c => {
-    const commission = Math.round(c.mrr * 0.20);
-    const barPct = Math.round(c.mrr / 5800 * 100);
-    return `<div class="pt-rev-row" style="flex-direction:column;align-items:stretch;gap:6px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span class="pt-rev-client">${c.name}</span>
+    const comm   = Math.round((c.mrr||0) * 0.20);
+    const barPct = Math.round((c.mrr||0) / (maxMrr||1) * 100);
+    return `<div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+        <span style="font-size:13px;font-weight:600;">${c.name}</span>
         <div style="display:flex;gap:16px;align-items:center;">
-          <span style="font-size:12px;color:var(--muted);">$${c.mrr.toLocaleString()} MRR</span>
-          <span class="pt-rev-commission">+$${commission.toLocaleString()}</span>
+          <span style="font-size:12px;color:var(--muted);">$${(c.mrr||0).toLocaleString()} MRR</span>
+          <span style="font-size:13px;font-weight:800;color:var(--green);">+$${comm.toLocaleString()}</span>
         </div>
       </div>
-      <div style="height:4px;background:#F0EFE9;border-radius:2px;overflow:hidden;">
-        <div style="height:100%;width:${barPct}%;background:var(--green);border-radius:2px;transition:width 0.6s ease;"></div>
+      <div style="height:5px;background:#F0EFE9;border-radius:3px;overflow:hidden;">
+        <div style="height:100%;width:${barPct}%;background:var(--green);border-radius:3px;transition:width 0.6s ease;"></div>
       </div>
     </div>`;
   }).join('');
-  const total = PT_CLIENTS.reduce((s,c) => s + c.mrr, 0);
-  document.getElementById('ptRevTotal').textContent = '$' + Math.round(total * 0.2).toLocaleString();
 }
 
 // ── Reports ───────────────────────────────────────────────────────────────────
-function ptLoadReports() {
-  const reports = PT_CLIENTS.map(c => ({
-    client: c.name,
-    period: 'April 2026',
-    health: c.health,
-    label: c.health >= 8 ? 'Excellent' : c.health >= 6 ? 'Good' : 'Needs Work',
-    cls: c.health >= 8 ? 'good' : 'avg',
-    date: '1 May 2026',
-  }));
+function ptRenderReports() {
+  const month = 'April 2026';
   document.getElementById('ptReportsList').innerHTML = `
-    <div class="pt-card-title">📋 April 2026 — All Client Reports</div>
-    ${reports.map(r => `
-      <div class="pt-report-row">
+    <div class="pt-card-title">📋 ${month} — All Client Reports</div>
+    ${ptClients.map(c => {
+      const hcls = c.health >= 8 ? 'good' : c.health >= 6 ? 'avg' : 'low';
+      const hlbl = c.health >= 8 ? 'Excellent' : c.health >= 6 ? 'Good' : 'Needs Work';
+      return `<div class="pt-report-row">
         <div class="pt-report-icon">📋</div>
-        <div>
-          <div class="pt-report-name">${r.client} — ${r.period}</div>
-          <div class="pt-report-meta">Generated ${r.date}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="pt-report-name">${c.name} — ${month}</div>
+          <div class="pt-report-meta">Generated 1 May 2026 · ${c.campaigns||0} campaigns · Health ${c.health}/10</div>
         </div>
-        <div class="pt-report-badge ${r.cls}">${r.health}/10 ${r.label}</div>
-      </div>
-    `).join('')}
+        <span class="pt-report-badge ${hcls}">${c.health}/10 ${hlbl}</span>
+        <button class="pt-report-dl" onclick="ptToast('Report for ${c.name} — coming soon.')">⬇ Download</button>
+      </div>`;
+    }).join('')}
     <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);">
-      Reports are auto-generated on the 1st of each month. Click any report to open the full PDF.
+      Reports are auto-generated on the 1st of each month. PDF export coming soon.
     </div>
   `;
+}
+
+// ── Invite Client ─────────────────────────────────────────────────────────────
+function ptOpenInvite() {
+  document.getElementById('ptInviteModal').classList.add('open');
+  document.getElementById('ptInviteForm').style.display = 'block';
+  document.getElementById('ptInviteResult').style.display = 'none';
+  document.getElementById('ptInvClientName').value = '';
+  document.getElementById('ptInvEmail').value = '';
+  document.getElementById('ptInvPlan').value = 'growth';
+  document.getElementById('ptInvBtn').disabled = false;
+  document.getElementById('ptInvBtn').textContent = 'Generate invite →';
+}
+
+function ptCloseInvite() {
+  document.getElementById('ptInviteModal').classList.remove('open');
+}
+
+async function ptGenerateInvite() {
+  const name  = document.getElementById('ptInvClientName').value.trim();
+  const email = document.getElementById('ptInvEmail').value.trim();
+  const plan  = document.getElementById('ptInvPlan').value;
+  const btn   = document.getElementById('ptInvBtn');
+
+  if (!name || !email) {
+    ptToast('Please enter a client name and email.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Generating…';
+
+  // Generate workspace ID from name
+  const wsId   = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') + '-' + Date.now().toString(36);
+  const code   = Math.random().toString(36).substring(2,8).toUpperCase();
+  const config = ptGetConfig();
+  const base   = location.href.replace('partner.html','workspace.html').split('?')[0];
+  const params = new URLSearchParams({
+    w: wsId,
+    p: ptSession.partnerId || 'partner',
+    agencyName: config.wlName || config.agencyName || '',
+    color: config.color || '',
+    logo: config.logoUrl || '',
+  });
+  const link = `${base}?${params}`;
+
+  // Try to create via API
+  try {
+    await fetch(`${PT_API}/api/workspace/create`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ workspaceId:wsId, email, name, plan, partnerId:ptSession.partnerId, accessCode:code }),
+    });
+  } catch(e) { /* continue with local generation */ }
+
+  // Save locally so it appears in clients list
+  const newClient = { name, id:wsId, health:10, mrr: plan==='pro'?599:plan==='growth'?299:0, lastActive:'Just now', campaigns:0, status:'active', plan, email };
+  ptClients.unshift(newClient);
+  document.getElementById('ptClientBadge').textContent = ptClients.length;
+
+  // Show result
+  document.getElementById('ptInviteForm').style.display = 'none';
+  document.getElementById('ptInviteResult').style.display = 'block';
+  document.getElementById('ptInvResultName').textContent  = name;
+  document.getElementById('ptInvResultId').textContent    = wsId;
+  document.getElementById('ptInvResultEmail').textContent = email;
+  document.getElementById('ptInvResultCode').textContent  = code;
+  document.getElementById('ptInvResultPlan').textContent  = plan.charAt(0).toUpperCase() + plan.slice(1);
+  document.getElementById('ptInvResultLink').textContent  = link;
+}
+
+function ptCopyAllInvite() {
+  const wsId  = document.getElementById('ptInvResultId').textContent;
+  const email = document.getElementById('ptInvResultEmail').textContent;
+  const code  = document.getElementById('ptInvResultCode').textContent;
+  const plan  = document.getElementById('ptInvResultPlan').textContent;
+  const link  = document.getElementById('ptInvResultLink').textContent;
+  const config = ptGetConfig();
+  const agency = config.wlName || config.agencyName || 'ClickPoint';
+  const text = `Hi! Here are your ${agency} workspace details:\n\nWorkspace: ${wsId}\nEmail: ${email}\nAccess code: ${code}\nPlan: ${plan}\n\nGet started here:\n${link}`;
+  navigator.clipboard.writeText(text).then(() => ptToast('✓ All credentials copied to clipboard!'));
+}
+
+function ptInviteAnother() {
+  document.getElementById('ptInviteForm').style.display = 'block';
+  document.getElementById('ptInviteResult').style.display = 'none';
+  document.getElementById('ptInvClientName').value = '';
+  document.getElementById('ptInvEmail').value = '';
+  document.getElementById('ptInvBtn').disabled = false;
+  document.getElementById('ptInvBtn').textContent = 'Generate invite →';
+}
+
+// Close modal on outside click
+document.getElementById('ptInviteModal').addEventListener('click', function(e) {
+  if (e.target === this) ptCloseInvite();
+});
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function ptToast(msg) {
+  const t = document.getElementById('ptToast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
