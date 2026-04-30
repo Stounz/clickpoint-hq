@@ -716,6 +716,155 @@ def _push_to_hubspot(contact_props: dict, company_props: dict = None, note: str 
 
     return bool(contact_id)
 
+def _get_stripe_customer_email(customer_id: str) -> str:
+    """Look up a Stripe customer's email by their customer ID."""
+    sk = os.getenv('STRIPE_SECRET_KEY', '') or STRIPE_SECRET_KEY
+    if not customer_id or not sk:
+        return ''
+    try:
+        req = urllib.request.Request(
+            f'https://api.stripe.com/v1/customers/{customer_id}',
+            headers={'Authorization': f'Bearer {sk}'},
+        )
+        with urllib.request.urlopen(req, timeout=8) as r:
+            return json.loads(r.read()).get('email', '')
+    except Exception as e:
+        print(f'  ⚠️  Stripe customer lookup error: {e}')
+        return ''
+
+_PLAN_MRR    = {'growth': 299, 'pro': 599}
+_PLAN_LABELS = {'growth': 'Growth — $299/mo AUD', 'pro': 'Pro — $599/mo AUD'}
+
+def _hubspot_update_subscription(email: str, company_name: str, plan: str, status: str) -> None:
+    """
+    Update HubSpot when a subscription changes.
+    status: 'active' | 'cancelled' | 'payment_failed'
+    """
+    token = os.getenv('HUBSPOT_TOKEN', '') or HUBSPOT_TOKEN
+    if not token or not email:
+        return
+
+    headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+
+    def hs(path, payload, method='POST'):
+        req = urllib.request.Request(
+            f'https://api.hubapi.com{path}',
+            data=json.dumps(payload).encode(),
+            headers=headers, method=method,
+        )
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return json.loads(r.read())
+
+    # ── Find contact ──────────────────────────────────────────────────────────
+    contact_id = None
+    try:
+        res = hs('/crm/v3/objects/contacts/search', {
+            'filterGroups': [{'filters': [{'propertyName': 'email', 'operator': 'EQ', 'value': email}]}],
+            'properties': ['email'], 'limit': 1,
+        })
+        if res.get('results'):
+            contact_id = res['results'][0]['id']
+    except Exception as e:
+        print(f'  ⚠️  HubSpot contact lookup error: {e}')
+        return
+
+    # ── Find company ─────────────────────────────────────────────────────────
+    company_id = None
+    if company_name:
+        try:
+            res = hs('/crm/v3/objects/companies/search', {
+                'filterGroups': [{'filters': [{'propertyName': 'name', 'operator': 'EQ', 'value': company_name}]}],
+                'properties': ['name'], 'limit': 1,
+            })
+            if res.get('results'):
+                company_id = res['results'][0]['id']
+        except Exception:
+            pass
+
+    # ── Update contact lifecycle ──────────────────────────────────────────────
+    if contact_id:
+        try:
+            if status == 'active':
+                props = {'lifecyclestage': 'customer', 'hs_lead_status': 'IN_PROGRESS'}
+            elif status == 'cancelled':
+                props = {'lifecyclestage': 'lead', 'hs_lead_status': 'OPEN'}
+            else:
+                props = {}
+            if props:
+                hs(f'/crm/v3/objects/contacts/{contact_id}', {'properties': props}, method='PATCH')
+        except Exception as e:
+            print(f'  ⚠️  HubSpot contact update error: {e}')
+
+    # ── Create / update deal ─────────────────────────────────────────────────
+    mrr        = _PLAN_MRR.get(plan, 0)
+    plan_label = _PLAN_LABELS.get(plan, plan.title())
+    deal_name  = f"{company_name or email} — {plan_label}"
+    today_ms   = str(int(__import__('time').time() * 1000))
+
+    deal_stage = 'closedwon' if status == 'active' else 'closedlost'
+
+    try:
+        # Search for existing deal by name to avoid duplicates
+        res = hs('/crm/v3/objects/deals/search', {
+            'filterGroups': [{'filters': [{'propertyName': 'dealname', 'operator': 'EQ', 'value': deal_name}]}],
+            'properties': ['dealname'], 'limit': 1,
+        })
+        deal_id = None
+        if res.get('results'):
+            deal_id = res['results'][0]['id']
+            hs(f'/crm/v3/objects/deals/{deal_id}', {
+                'properties': {'dealstage': deal_stage, 'closedate': today_ms}
+            }, method='PATCH')
+            print(f'  📊 HubSpot deal updated: {deal_name} → {deal_stage}')
+        else:
+            deal_res = hs('/crm/v3/objects/deals', {'properties': {
+                'dealname':   deal_name,
+                'amount':     str(mrr),
+                'dealstage':  deal_stage,
+                'closedate':  today_ms,
+                'pipeline':   'default',
+                'description': f'Plan: {plan} | MRR: ${mrr}/mo AUD | Status: {status}',
+            }})
+            deal_id = deal_res.get('id')
+            print(f'  💰 HubSpot deal created: {deal_name} (${mrr}/mo)')
+
+        # Associate deal → contact + company
+        if deal_id:
+            if contact_id:
+                try:
+                    hs(f'/crm/v4/objects/deals/{deal_id}/associations/contacts/{contact_id}',
+                       [{'associationCategory': 'HUBSPOT_DEFINED', 'associationTypeId': 3}], method='PUT')
+                except Exception:
+                    pass
+            if company_id:
+                try:
+                    hs(f'/crm/v4/objects/deals/{deal_id}/associations/companies/{company_id}',
+                       [{'associationCategory': 'HUBSPOT_DEFINED', 'associationTypeId': 5}], method='PUT')
+                except Exception:
+                    pass
+    except Exception as e:
+        print(f'  ⚠️  HubSpot deal error: {e}')
+
+    # ── Add note ─────────────────────────────────────────────────────────────
+    if contact_id:
+        note_map = {
+            'active':         f'✅ Subscription activated — {plan_label}',
+            'cancelled':      f'❌ Subscription cancelled — was on {plan_label}. Re-marketing eligible.',
+            'payment_failed': f'⚠️ Payment failed — {plan_label}. Follow up required.',
+        }
+        note_body = note_map.get(status, f'Subscription event: {status}')
+        try:
+            note_res = hs('/crm/v3/objects/notes', {'properties': {
+                'hs_note_body': note_body,
+                'hs_timestamp': today_ms,
+            }})
+            note_id = note_res.get('id')
+            if note_id:
+                hs(f'/crm/v4/objects/notes/{note_id}/associations/contacts/{contact_id}',
+                   [{'associationCategory': 'HUBSPOT_DEFINED', 'associationTypeId': 202}], method='PUT')
+        except Exception as e:
+            print(f'  ⚠️  HubSpot note error: {e}')
+
 def _notify(event: str, client: str = '', detail: str = '', webhook: str = '', email: str = '') -> dict:
     """
     Dispatch a notification for a named event.
@@ -1697,30 +1846,79 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._error(400, 'Invalid JSON'); return
 
         event_type = event.get('type', '')
-        if event_type in ('checkout.session.completed', 'invoice.payment_succeeded'):
-            obj = event.get('data', {}).get('object', {})
+        obj        = event.get('data', {}).get('object', {})
+
+        # ── Subscription activated / payment received ──────────────────────────
+        if event_type == 'checkout.session.completed':
             metadata     = obj.get('metadata', {})
             workspace_id = metadata.get('workspace_id', '')
+            company_name = metadata.get('company_name', workspace_id)
             plan         = metadata.get('plan', '')
+            email        = obj.get('customer_email', '')
 
+            # Update Supabase
             if workspace_id and plan and SUPABASE_URL and SUPABASE_SERVICE_KEY:
                 try:
                     patch_url = f"{SUPABASE_URL}/rest/v1/workspace_access?workspace_id=eq.{workspace_id}"
-                    patch_req = urllib.request.Request(
+                    urllib.request.urlopen(urllib.request.Request(
                         patch_url,
                         data=json.dumps({'plan': plan, 'subscription_active': True}).encode(),
-                        headers={
-                            'apikey': SUPABASE_SERVICE_KEY,
-                            'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
-                            'Content-Type': 'application/json',
-                            'Prefer': 'return=minimal',
-                        },
-                        method='PATCH',
-                    )
-                    urllib.request.urlopen(patch_req, timeout=6)
+                        headers={'apikey': SUPABASE_SERVICE_KEY, 'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                                 'Content-Type': 'application/json', 'Prefer': 'return=minimal'},
+                        method='PATCH'), timeout=6)
                     print(f'  ✅ Workspace {workspace_id} upgraded to {plan}')
                 except Exception as e:
                     print(f'  Supabase plan update error: {e}')
+
+            # Push to HubSpot
+            if email and plan:
+                _hubspot_update_subscription(email, company_name, plan, 'active')
+
+        # ── Recurring payment succeeded ───────────────────────────────────────
+        elif event_type == 'invoice.payment_succeeded':
+            metadata     = obj.get('subscription_details', {}).get('metadata', {}) or obj.get('metadata', {})
+            workspace_id = metadata.get('workspace_id', '')
+            plan         = metadata.get('plan', '')
+            email        = obj.get('customer_email', '')
+            company_name = workspace_id.replace('-', ' ').title() if workspace_id else ''
+            if email and plan:
+                _hubspot_update_subscription(email, company_name, plan, 'active')
+
+        # ── Subscription cancelled ────────────────────────────────────────────
+        elif event_type == 'customer.subscription.deleted':
+            metadata     = obj.get('metadata', {})
+            workspace_id = metadata.get('workspace_id', '')
+            plan         = metadata.get('plan', '')
+            customer_id  = obj.get('customer', '')
+            email        = _get_stripe_customer_email(customer_id)
+            company_name = workspace_id.replace('-', ' ').title() if workspace_id else ''
+
+            # Update Supabase
+            if workspace_id and SUPABASE_URL and SUPABASE_SERVICE_KEY:
+                try:
+                    urllib.request.urlopen(urllib.request.Request(
+                        f"{SUPABASE_URL}/rest/v1/workspace_access?workspace_id=eq.{workspace_id}",
+                        data=json.dumps({'subscription_active': False}).encode(),
+                        headers={'apikey': SUPABASE_SERVICE_KEY, 'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                                 'Content-Type': 'application/json', 'Prefer': 'return=minimal'},
+                        method='PATCH'), timeout=6)
+                    print(f'  ❌ Workspace {workspace_id} subscription cancelled')
+                except Exception as e:
+                    print(f'  Supabase cancel update error: {e}')
+
+            # Push to HubSpot — demote lifecycle for re-marketing
+            if email:
+                _hubspot_update_subscription(email, company_name, plan or 'unknown', 'cancelled')
+
+        # ── Payment failed ────────────────────────────────────────────────────
+        elif event_type == 'invoice.payment_failed':
+            metadata     = obj.get('subscription_details', {}).get('metadata', {}) or obj.get('metadata', {})
+            plan         = metadata.get('plan', '')
+            email        = obj.get('customer_email', '')
+            workspace_id = metadata.get('workspace_id', '')
+            company_name = workspace_id.replace('-', ' ').title() if workspace_id else ''
+            if email:
+                _hubspot_update_subscription(email, company_name, plan or 'unknown', 'payment_failed')
 
         self._json(200, {'received': True})
 
