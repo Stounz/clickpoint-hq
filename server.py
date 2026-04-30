@@ -42,7 +42,7 @@ def _load_env() -> dict:
                'INTEGRATION_ENCRYPTION_KEY', 'SLACK_WEBHOOK_URL', 'RESEND_API_KEY', 'RESEND_FROM', 'NOTIFY_EMAIL',
                'HQ_ADMIN_EMAIL', 'HQ_ADMIN_PASS', 'HQ_PARTNER_EMAIL', 'HQ_PARTNER_PASS',
                'STRIPE_SECRET_KEY', 'STRIPE_PRICE_GROWTH', 'STRIPE_PRICE_PRO',
-               'STRIPE_WEBHOOK_SECRET', 'PLATFORM_URL'):
+               'STRIPE_WEBHOOK_SECRET', 'PLATFORM_URL', 'HUBSPOT_TOKEN'):
         env_val = os.getenv(k, '')
         if env_val:
             result[k] = env_val
@@ -1084,15 +1084,20 @@ class AgentHandler(BaseHTTPRequestHandler):
                               '/api/integrations/connect', '/api/integrations/disconnect'],
             }).encode())
         elif self.path == '/api/env-check':
-            # Diagnostic — shows WHICH vars are set, never their values
+            # Diagnostic — shows WHICH vars are set (booleans only, no values)
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.send_cors_headers()
             self.end_headers()
             check_keys = ['HQ_ADMIN_EMAIL','HQ_ADMIN_PASS','HQ_PARTNER_EMAIL','HQ_PARTNER_PASS',
-                          'RESEND_API_KEY','NOTIFY_EMAIL','STRIPE_SECRET_KEY','PLATFORM_URL']
+                          'RESEND_API_KEY','NOTIFY_EMAIL','STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET',
+                          'STRIPE_PRICE_GROWTH','STRIPE_PRICE_PRO','PLATFORM_URL',
+                          'HUBSPOT_TOKEN','SUPABASE_URL','SUPABASE_SERVICE_KEY']
+            # Show both os.getenv (live) and _ENV (startup) to diagnose Railway injection
             self.wfile.write(json.dumps({
-                k: bool(os.getenv(k, '')) for k in check_keys
+                'live':    {k: bool(os.getenv(k, ''))   for k in check_keys},
+                'startup': {k: bool(_ENV.get(k, ''))    for k in check_keys},
+                'all_env_keys': sorted([k for k in os.environ.keys() if not k.startswith('_')]),
             }).encode())
         elif self.path == '/api/agents':
             self._handle_agents_list()
