@@ -488,6 +488,12 @@
     </div>
     <div class="pt-content">
 
+      <!-- ── Trial Banner ── -->
+      <div id="ptTrialBanner" style="display:none;background:linear-gradient(90deg,rgba(212,98,42,0.10),rgba(212,98,42,0.05));border:1.5px solid rgba(212,98,42,0.22);border-radius:12px;padding:12px 18px;margin-bottom:20px;align-items:center;gap:12px;font-size:13px;color:#D4622A;font-weight:600;">
+        <span id="ptTrialBannerText"></span>
+        <a href="mailto:hello@clickpointconsulting.com.au?subject=Partner%20Subscription" style="margin-left:auto;padding:6px 16px;background:#D4622A;color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;">Choose a plan →</a>
+      </div>
+
       <!-- ── Dashboard View ── -->
       <div class="pt-view active" id="pt-view-dashboard">
         <div class="pt-page-title" id="ptDashTitle">Good morning</div>
@@ -791,7 +797,7 @@ async function ptLogin() {
     });
     const d = await res.json();
     if (d.success && (d.role === 'partner' || d.role === 'superadmin')) {
-      ptSession = { email:d.email, name:d.name, initials:d.initials || d.name?.substring(0,2).toUpperCase() || 'AP', role:d.role, partnerId:d.partnerId || 'partner-1', agencyName:d.agencyName||'', website:d.website||'', loginAt: new Date().toISOString() };
+      ptSession = { email:d.email, name:d.name, initials:d.initials || d.name?.substring(0,2).toUpperCase() || 'AP', role:d.role, partnerId:d.partnerId || 'partner-1', agencyName:d.agencyName||'', website:d.website||'', createdAt:d.createdAt||new Date().toISOString(), loginAt: new Date().toISOString() };
       sessionStorage.setItem('pt_session', JSON.stringify(ptSession));
       ptShowApp();
     } else {
@@ -877,7 +883,41 @@ function ptShowApp() {
   const h = new Date().getHours();
   document.getElementById('ptDashTitle').textContent = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
   ptCheckOnboarding();
+  ptShowTrialBanner();
   ptFetchData();
+}
+
+// ── Trial ─────────────────────────────────────────────────────────────────────
+const PT_TRIAL_DAYS = 14;
+
+function ptTrialStatus() {
+  const created = ptSession && ptSession.createdAt;
+  if (!created) return 'active';
+  const daysSince = (Date.now() - new Date(created).getTime()) / (1000 * 60 * 60 * 24);
+  return daysSince <= PT_TRIAL_DAYS ? 'active' : 'expired';
+}
+
+function ptTrialDaysLeft() {
+  const created = ptSession && ptSession.createdAt;
+  if (!created) return PT_TRIAL_DAYS;
+  const daysSince = (Date.now() - new Date(created).getTime()) / (1000 * 60 * 60 * 24);
+  return Math.max(0, Math.ceil(PT_TRIAL_DAYS - daysSince));
+}
+
+function ptShowTrialBanner() {
+  const status  = ptTrialStatus();
+  const banner  = document.getElementById('ptTrialBanner');
+  const text    = document.getElementById('ptTrialBannerText');
+  if (status === 'active') {
+    const daysLeft = ptTrialDaysLeft();
+    text.textContent = daysLeft <= 3
+      ? `⚠️ Your free trial ends in ${daysLeft} day${daysLeft !== 1 ? 's' : ''} — contact us to keep full access.`
+      : `🎉 You're on a free 14-day trial — ${daysLeft} days left. Full access included.`;
+    banner.style.display = 'flex';
+  } else if (status === 'expired') {
+    text.textContent = '⏰ Your free trial has ended — get in touch to continue using the partner portal.';
+    banner.style.display = 'flex';
+  }
 }
 
 function ptSignOut() {

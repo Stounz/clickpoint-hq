@@ -2461,6 +2461,7 @@ class AgentHandler(BaseHTTPRequestHandler):
                             'partnerId': partner_id,
                             'agencyName': agency_name,
                             'website':   website,
+                            'createdAt': row.get('created_at', ''),
                         }); return
             except Exception as e:
                 print(f'  ⚠️  Supabase partner auth error: {e}')
