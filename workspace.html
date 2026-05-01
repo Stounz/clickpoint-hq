@@ -2019,6 +2019,12 @@ async function wsNewCampaignSubmit() {
   result.style.borderColor = '#E2E1DB';
   result.innerHTML = `<div style="color:var(--muted);font-size:13px;">⏳ Submitting your campaign request…</div>`;
 
+  // Build connected platforms string so agents know what's available
+  const _connPlatforms = (window._wsIntegrations || [])
+    .filter(c => c.status === 'connected')
+    .map(c => { const p = WS_PLATFORMS.find(x => x.id === c.platform); return p ? p.label : c.platform; })
+    .join(', ');
+
   let serverOk = false;
   try {
     const resp = await fetch(`${WS_API}/api/campaign/request`, {
@@ -2028,6 +2034,7 @@ async function wsNewCampaignSubmit() {
         workspaceId: wsSession.workspaceId,
         companyName: wsSession.companyName,
         name, type, channel, budget, audience, brief,
+        connectedPlatforms: _connPlatforms,
       }),
     });
     const data = await resp.json();

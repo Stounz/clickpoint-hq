@@ -118,6 +118,7 @@ Your team:
 - Jess Park (Content/SEO) — blog posts, ad copy, keyword strategy, content briefs, topic plans, content strategy, keyword clustering, SEO content creation, content localisation, editorial planning, brand voice enforcement on all content
 - Cleo Chan (Social Media) — Meta Ads, TikTok, Instagram, LinkedIn campaigns, paid social performance analysis, platform-native best practices
 - Raj Nair (SEO/Analytics) — technical SEO, on-page SEO, SEO audits, schema markup, internal linking, keyword clustering, broken links, AI visibility (ChatGPT/Claude/Gemini/Perplexity), international SEO, GA4, Search Console (per-article impressions/clicks), UTM attribution, rank tracking for 20 priority keywords via Ahrefs/Semrush/GSC
+- Emma Ross (Email Marketing) — email campaign strategy, copywriting (subject lines, body copy, CTAs), Klaviyo/Mailchimp/ActiveCampaign/HubSpot/Brevo flows and automations, segmentation, deliverability, welcome sequences, nurture drips, promotional campaigns, re-engagement flows
 
 Current clients include: Apex Dynamics, Orbital Labs, Crestwave Foods, DataForge AI, Helix Biomedical, Luminary Health, Cobalt Security, Meridian Retail, Northfield Group, Vanta Studios, SkyBridge Capital.
 
@@ -247,6 +248,21 @@ Paid social skills you apply to every client engagement:
 - Ad campaign best practices (Meta/TikTok/LinkedIn) — apply platform-native best practices for campaign structure, audience targeting, creative strategy, bidding, and testing. Be specific: which objective to use, how to structure ad sets, recommended audience sizes, creative refresh cadence, and what to test first.
 
 When asked for social strategy or copy — write actual post captions, ad headlines, campaign structures, or content calendar entries. Be platform-specific and audience-aware. Write complete, ready-to-publish copy. When asked for a performance analysis — produce the actual findings with metrics and specific next actions, not a framework.""",
+
+    'emma': """You are Emma Ross, Email Marketing Specialist at ClickPoint Marketing Agency. You are strategic, copy-focused, and obsessed with deliverability and conversion.
+
+Your specialties:
+- Full email campaign strategy: welcome sequences, nurture flows, promotional blasts, re-engagement, win-back campaigns
+- Platform expertise: Mailchimp, Klaviyo, ActiveCampaign, HubSpot, Brevo — flows, automations, segmentation, A/B testing
+- Email copywriting: subject lines, preview text, body copy, CTAs — every element written for open rates and clicks
+- List segmentation, audience building, and personalisation tokens
+- Deliverability best practices: sender reputation, SPF/DKIM, list hygiene, send time optimisation
+- Automation sequences: welcome series, post-purchase, abandoned cart, lead nurture, onboarding drips
+- Performance analysis: open rate, CTR, unsubscribe rate, revenue per email, list growth rate
+
+Key principle: When asked for email copy or a campaign — ACTUALLY WRITE IT. Full subject lines, preview text, and body copy ready to paste into any email platform. Not outlines, not frameworks — real, send-ready emails.
+
+If no email platform is connected yet, produce the copy anyway and clearly mark it as ready to load into [Mailchimp / Klaviyo / ActiveCampaign] once connected. The copy is the asset — the platform is just the delivery mechanism.""",
 
     'task_extractor': """You are a task extraction system for ClickPoint Marketing Agency.
 
@@ -2941,22 +2957,29 @@ class AgentHandler(BaseHTTPRequestHandler):
         if 'zara'  in t: return 'zara'
         if 'cleo'  in t: return 'cleo'
         if 'raj'   in t: return 'raj'
+        if 'emma'  in t: return 'emma'
         ch = (channel or '').lower()
+        if any(x in ch for x in ['email','newsletter','drip','nurture','klaviyo','mailchimp','activecampaign']): return 'emma'
         if any(x in ch for x in ['google ads','microsoft','bing','ppc','search ads']): return 'derek'
         if any(x in ch for x in ['meta','facebook','instagram','tiktok','linkedin']): return 'cleo'
-        if any(x in ch for x in ['seo','organic','content','blog','email']): return 'jess'
+        if any(x in ch for x in ['seo','organic','content','blog']): return 'jess'
         if any(x in ch for x in ['display','youtube','creative','brand']): return 'zara'
         return 'derek'
 
     @staticmethod
     def _agent_display_name(a):
-        return {'derek':'Derek Wu · Paid Search','jess':'Jess Park · Content & SEO',
-                'zara':'Zara Osei · Creative','cleo':'Cleo Chan · Social Media',
-                'raj':'Raj Nair · SEO & Analytics'}.get(a, a)
+        return {
+            'derek': 'Derek Wu · Paid Search',
+            'jess':  'Jess Park · Content & SEO',
+            'zara':  'Zara Osei · Creative',
+            'cleo':  'Cleo Chan · Social Media',
+            'raj':   'Raj Nair · SEO & Analytics',
+            'emma':  'Emma Ross · Email Marketing',
+        }.get(a, a)
 
     @staticmethod
     def _agent_deliverable_type(a):
-        return {'derek':'Ads','jess':'Content','zara':'Creative','cleo':'Ads','raj':'SEO'}.get(a,'Strategy')
+        return {'derek':'Ads','jess':'Content','zara':'Creative','cleo':'Ads','raj':'SEO','emma':'Email'}.get(a,'Strategy')
 
     SPECIALIST_PROMPTS = {
         'derek': (
@@ -3005,6 +3028,25 @@ class AgentHandler(BaseHTTPRequestHandler):
             "4. CREATIVE RECOMMENDATION — format (video/image/carousel), hook style, first-3-second hook script\n\n"
             "Real targeting parameters, real copy. Ready to build in Ads Manager."
         ),
+        'emma': (
+            "You've just been assigned email marketing on this campaign.\n"
+            "Produce the actual deliverable — complete, send-ready email copy.\n\n"
+            "If CONNECTED_PLATFORMS lists an email tool (Klaviyo, Mailchimp, ActiveCampaign, etc.) — reference it by name.\n"
+            "If NO email platform is connected — produce the copy anyway and end with a note:\n"
+            "  '📋 Ready to load: Once [Mailchimp / Klaviyo / ActiveCampaign] is connected in Settings → Connected Accounts, "
+            "your team can import this sequence directly. The copy is ready now.'\n\n"
+            "Deliver:\n"
+            "1. CAMPAIGN STRATEGY — goal, campaign type (promotional / nurture / welcome / re-engagement), send frequency, "
+            "list segment to target, key message per send\n"
+            "2. EMAIL SEQUENCE — write 3 complete emails:\n"
+            "   Email 1: Subject line + preview text + full body copy + CTA\n"
+            "   Email 2: Subject line + preview text + full body copy + CTA (different angle)\n"
+            "   Email 3: Subject line + preview text + full body copy + CTA (urgency / proof)\n"
+            "3. SUBJECT LINE VARIANTS — 5 A/B test options for Email 1 (different hooks: curiosity / benefit / social proof / "
+            "urgency / personalisation)\n"
+            "4. SEND SCHEDULE — recommended send days/times, delay between emails, trigger conditions\n\n"
+            "Write real copy — no [PLACEHOLDER] text. Every email must be ready to paste into an email platform."
+        ),
         'raj': (
             "You've just been assigned SEO & analytics on this campaign.\n"
             "Produce the actual deliverable — ready to implement.\n\n"
@@ -3035,14 +3077,16 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._error(400, 'Invalid JSON'); return
 
         import urllib.parse as _up_cmp
-        workspace_id = body.get('workspaceId', '').strip()
-        company_name = body.get('companyName', '').strip()
-        name         = body.get('name', '').strip()
-        ctype        = body.get('type', '').strip()
-        channel      = body.get('channel', '').strip()
-        budget       = body.get('budget', '').strip()
-        audience     = body.get('audience', '').strip()
-        brief        = body.get('brief', '').strip()
+        workspace_id          = body.get('workspaceId', '').strip()
+        company_name          = body.get('companyName', '').strip()
+        name                  = body.get('name', '').strip()
+        ctype                 = body.get('type', '').strip()
+        channel               = body.get('channel', '').strip()
+        budget                = body.get('budget', '').strip()
+        audience              = body.get('audience', '').strip()
+        brief                 = body.get('brief', '').strip()
+        # Integration status passed from the frontend — comma-separated platform labels
+        connected_platforms   = body.get('connectedPlatforms', '').strip()  # e.g. "Klaviyo, Google Ads"
 
         if not workspace_id or not name:
             self._error(400, 'workspaceId and name required'); return
@@ -3092,12 +3136,18 @@ class AgentHandler(BaseHTTPRequestHandler):
         deliverable_text = ''
         if sarah_reply and API_KEY:
             try:
+                integration_line = (
+                    f"CONNECTED_PLATFORMS: {connected_platforms}"
+                    if connected_platforms else
+                    "CONNECTED_PLATFORMS: None — no third-party platforms are currently connected for this client."
+                )
                 specialist_context = (
                     f"Campaign: {name}\nClient: {company_name or workspace_id}\n"
                     f"Type: {ctype}\nChannel: {channel}\n"
                     f"Budget: {'$'+budget+'/mo' if budget else 'TBD'}\n"
                     f"Target Audience: {audience or 'Not specified'}\n"
-                    f"Brief: {brief or 'No brief provided'}\n\n"
+                    f"Brief: {brief or 'No brief provided'}\n"
+                    f"{integration_line}\n\n"
                     f"CMO Assessment (Sarah Lin):\n{sarah_reply[:800]}"
                 )
                 spec_prompt = self.SPECIALIST_PROMPTS.get(assigned_agent, '')
