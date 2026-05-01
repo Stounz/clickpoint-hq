@@ -467,7 +467,7 @@
 <!-- ── Login ── -->
 <div id="loginScreen">
   <div class="login-card">
-    <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/cropped-clickpoint-logo-header-2x.png" alt="ClickPoint" style="height:40px;width:auto;display:block;margin:0 auto 16px;">
+    <img id="wsLoginLogo" src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/cropped-clickpoint-logo-header-2x.png" alt="ClickPoint" style="height:40px;width:auto;display:block;margin:0 auto 16px;">
 
     <!-- Tabs -->
     <div class="login-tabs">
@@ -1255,23 +1255,39 @@ function wsSignOut() {
 (function wsApplyPartnerTheme() {
   const p = new URLSearchParams(location.search);
   const agencyName = p.get('agencyName');
-  const color      = p.get('color');   // hex without '#', e.g. "1C3A2E"
+  const rawColor   = p.get('color');   // may arrive as '#1C3A2E' or '1C3A2E'
   const logo       = p.get('logo');    // full URL
 
-  if (!agencyName && !logo && !color) return; // No partner params — skip
+  if (!agencyName && !logo && !rawColor) return; // No partner params — skip
+
+  // Normalise colour — strip any leading '#' then re-add it
+  const hex = rawColor ? '#' + rawColor.replace(/^#/, '') : null;
 
   // Store for use by wsInitApp
-  window._ptTheme = { agencyName, color: color ? '#' + color : null, logo };
+  window._ptTheme = { agencyName, color: hex, logo };
 
   // Override CSS primary colour immediately (before paint)
-  if (color) {
-    const hex = '#' + color;
+  if (hex) {
     document.documentElement.style.setProperty('--teal', hex);
-    // Derive a slightly lighter shade for hover states
     document.documentElement.style.setProperty('--teal-md', hex + 'CC');
   }
 
-  // Override logo
+  // Apply branding to the login card logo
+  if (logo) {
+    const loginLogo = document.getElementById('wsLoginLogo');
+    if (loginLogo) { loginLogo.src = logo; loginLogo.alt = agencyName || 'Agency'; }
+  } else if (agencyName && !logo) {
+    // No logo — show agency name as text instead
+    const loginLogo = document.getElementById('wsLoginLogo');
+    if (loginLogo) {
+      const span = document.createElement('div');
+      span.style.cssText = `font-size:20px;font-weight:800;color:${hex||'#1C3A2E'};margin:0 auto 16px;text-align:center;`;
+      span.textContent = agencyName;
+      loginLogo.replaceWith(span);
+    }
+  }
+
+  // Override topbar logo (app shell — applied again in wsInitApp too)
   if (logo) {
     const img = document.getElementById('wsTopbarLogoImg');
     if (img) { img.src = logo; img.alt = agencyName || 'Agency'; }
