@@ -1612,146 +1612,24 @@ function wsAnalyticsTab(platform, el) {
 }
 
 function wsRenderAnalytics(platform) {
-  const d = wsDemoAnalytics(platform);
-  const labels = {
-    search: [
-      { k:'Impressions', v:d.impressions }, { k:'Clicks', v:d.clicks },
-      { k:'CTR', v:d.ctr }, { k:'Avg CPC', v:d.cpc },
-      { k:'Total Spend', v:d.spend }, { k:'Conversions', v:d.conv },
-      { k:'Cost/Conv', v:d.cpa }, { k:'vs Last Month', v:d.change, cls:'up' }
-    ],
-    social: [
-      { k:'Reach', v:d.reach }, { k:'Link Clicks', v:d.clicks },
-      { k:'CTR', v:d.ctr }, { k:'CPM', v:d.cpm },
-      { k:'Total Spend', v:d.spend }, { k:'Leads', v:d.leads },
-      { k:'Cost/Lead', v:d.cpl }, { k:'vs Last Month', v:d.change, cls:'up' }
-    ],
-    organic: [
-      { k:'Sessions', v:d.sessions }, { k:'Page Views', v:d.pageviews },
-      { k:'Keywords', v:d.keywords }, { k:'Top 10 Rankings', v:d.topPos },
-      { k:'Organic Leads', v:d.organic_leads }, { k:'Blog Posts', v:d.blog_posts },
-      { k:'Domain Rating', v:d.dr }, { k:'vs Last Month', v:d.change, cls:'up' }
-    ],
-    email: [
-      { k:'Emails Sent', v:d.sent }, { k:'Opens', v:d.opens },
-      { k:'Open Rate', v:d.open_rate }, { k:'Clicks', v:d.clicks },
-      { k:'CTR', v:d.ctr }, { k:'Unsubscribes', v:d.unsubs },
-      { k:'Revenue', v:d.revenue }, { k:'vs Last Month', v:d.change, cls:'up' }
-    ],
-  };
-  const metrics = labels[platform];
-  const peak = Math.max(...d.bars);
-
-  let extraHtml = '';
-  if (platform === 'organic' && d.rankings) {
-    const rankRows = d.rankings.map(r => {
-      const diff = r.prev - r.pos; // positive = moved up
-      const cls = diff > 0 ? 'ws-rank-up' : diff < 0 ? 'ws-rank-down' : 'ws-rank-same';
-      const arrow = diff > 0 ? `↑${diff}` : diff < 0 ? `↓${Math.abs(diff)}` : '—';
-      const posCls = r.pos <= 3 ? 'top3' : r.pos <= 10 ? 'top10' : '';
-      return `<tr>
-        <td>${r.kw}</td>
-        <td><span class="ws-rank-pos ${posCls}">#${r.pos}</span></td>
-        <td><span class="${cls}">${arrow}</span></td>
-        <td style="color:var(--muted);">${r.vol}/mo</td>
-      </tr>`;
-    }).join('');
-    extraHtml = `
-      <div class="ws-gsc-connect">
-        <div class="ws-gsc-icon">🔍</div>
-        <div class="ws-gsc-text">
-          <div class="ws-gsc-title">Connect Google Search Console</div>
-          <div class="ws-gsc-sub">See real impressions, clicks, and position data per article — updated weekly.</div>
-        </div>
-        <button class="ws-gsc-btn" onclick="alert('Your account manager will reach out to connect GSC. You can also ask in the Your CMO chat.')">Connect GSC</button>
-      </div>
-      <div class="ws-card">
-        <div class="ws-card-title">🎯 Priority Keyword Rankings — Weekly Snapshot</div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Tracked weekly via Ahrefs &amp; Search Console. <span style="color:#30D158;">●</span> Top 3 &nbsp;<span style="color:#30D158;">●</span> Top 10</div>
-        <table class="ws-rank-table">
-          <thead><tr><th>Keyword</th><th>Position</th><th>Change</th><th>Volume</th></tr></thead>
-          <tbody>${rankRows}</tbody>
-        </table>
-      </div>`;
-  }
-
-  if (platform === 'search') {
-    const dayOfMonth = new Date().getDate();
-    const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth()+1, 0).getDate();
-    const budgetPct = Math.round(parseInt(d.spend.replace(/[^0-9]/g,'')) / 9220 * 70); // demo pacing
-    const dayPct = Math.round(dayOfMonth / daysInMonth * 100);
-    const pacingCls = Math.abs(budgetPct - dayPct) < 10 ? 'green' : budgetPct > dayPct + 15 ? 'red' : 'amber';
-    const pacingLabel = pacingCls === 'green' ? 'On pace' : pacingCls === 'red' ? 'Overpacing — monitor closely' : 'Slightly ahead of pace';
-    extraHtml = `
-      <div class="ws-card">
-        <div class="ws-card-title">💰 Budget Pacing — This Month</div>
-        <div class="ws-pacing-wrap">
-          <div class="ws-pacing-header">
-            <span class="ws-pacing-label">${pacingLabel}</span>
-            <span class="ws-pacing-vals">Day ${dayOfMonth} of ${daysInMonth} &nbsp;·&nbsp; ${budgetPct}% spent</span>
-          </div>
-          <div class="ws-pacing-track">
-            <div class="ws-pacing-bar ${pacingCls}" style="width:${budgetPct}%"></div>
-            <div class="ws-pacing-marker" style="left:${dayPct}%"></div>
-          </div>
-          <div class="ws-pacing-legend">
-            <div class="ws-pacing-legend-item"><div class="ws-pacing-dot" style="background:#30D158;"></div> Budget spent</div>
-            <div class="ws-pacing-legend-item"><div class="ws-pacing-dot" style="background:var(--dark);"></div> Days elapsed</div>
-          </div>
-        </div>
-      </div>`;
-  }
-
   document.getElementById('wsAnalyticsContent').innerHTML = `
-    <div class="ws-metrics-grid">
-      ${metrics.map(m => `
-        <div class="ws-metric-card">
-          <div class="ws-metric-title">${m.k}</div>
-          <div class="ws-metric-big">${m.v}</div>
-          ${m.cls ? `<div class="ws-metric-change ${m.cls}">${m.v}</div>` : ''}
-        </div>
-      `).join('')}
+    <div style="text-align:center;padding:64px 24px;">
+      <div style="font-size:40px;margin-bottom:16px;">📊</div>
+      <div style="font-weight:700;font-size:17px;color:var(--dark);margin-bottom:8px;">No analytics data yet</div>
+      <div style="font-size:13px;color:var(--muted);max-width:380px;margin:0 auto;">Your agency team will sync your campaign data here once your campaigns are live. Check back after your first active campaign.</div>
     </div>
-    <div class="ws-card">
-      <div class="ws-card-title">📊 Last 12 Weeks — ${platform.charAt(0).toUpperCase()+platform.slice(1)} Volume</div>
-      <div class="ws-sparkline">
-        ${d.bars.map((v,i) => `<div class="ws-spark-bar${v===peak?' peak':''}" style="height:${Math.round(v/peak*100)}%"></div>`).join('')}
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:6px;"><span>12 weeks ago</span><span>This week</span></div>
-    </div>
-    ${extraHtml}
   `;
 }
 
 // ── Reports ───────────────────────────────────────────────────────────────────
 async function wsLoadReports() {
   const container = document.getElementById('wsReportsList');
-  container.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px;">Loading reports…</div>';
-
-  // Demo reports
-  const demoReports = [
-    { period:'Q2 2026 — April', health:wsDemoMetrics().health, label:wsDemoMetrics().healthLabel, date:'Generated 2 Apr 2026', summary:'Strong month across paid and organic. ROAS up 12%, leads grew 14%.' },
-    { period:'Q1 2026 — March', health:7, label:'Good', date:'Generated 1 Mar 2026', summary:'Solid performance. Google Ads efficiency improved after bid strategy update.' },
-    { period:'Q1 2026 — February', health:6, label:'Good', date:'Generated 1 Feb 2026', summary:'Meta campaigns underperformed. Adjustments made mid-month showed improvement.' },
-  ];
-
   container.innerHTML = `
     <div class="ws-card-title">📋 Monthly Reports</div>
-    ${demoReports.map(r => `
-      <div class="ws-report-row" onclick="wsOpenReport('${r.period}','${r.summary}')">
-        <div class="ws-report-icon">📋</div>
-        <div>
-          <div class="ws-report-name">${r.period}</div>
-          <div class="ws-report-meta">${r.date} · ${r.summary.substring(0,60)}…</div>
-        </div>
-        <div class="ws-report-score">
-          <div class="ws-report-score-val">${r.health}/10</div>
-          <div class="ws-report-score-label">${r.label}</div>
-        </div>
-      </div>
-    `).join('')}
-    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);font-size:13px;color:var(--muted);">
-      Reports are generated monthly by your ClickPoint account team and automatically shared here.
+    <div style="text-align:center;padding:48px 24px;">
+      <div style="font-size:32px;margin-bottom:12px;">📋</div>
+      <div style="font-weight:700;color:var(--dark);margin-bottom:6px;">No reports yet</div>
+      <div style="font-size:13px;color:var(--muted);">Your ClickPoint team generates a performance report on the 1st of each month. It will appear here automatically.</div>
     </div>
   `;
 }

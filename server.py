@@ -2624,12 +2624,15 @@ class AgentHandler(BaseHTTPRequestHandler):
         workspace_id = preset_ws_id or _re.sub(r'[^a-z0-9]+', '-', company_name.lower()).strip('-')
         code = preset_code or _generate_access_code(6)
 
+        partner_id_val = body.get('partnerId', '').strip()
         row = {
             'workspace_id': workspace_id, 'company_name': company_name,
             'email': email, 'access_code': code,
             'contact_name': contact_name,
             'created_at': datetime.datetime.utcnow().isoformat()
         }
+        if partner_id_val:
+            row['partner_id'] = partner_id_val
 
         if SUPABASE_URL and SUPABASE_SERVICE_KEY:
             try:
@@ -2685,13 +2688,28 @@ class AgentHandler(BaseHTTPRequestHandler):
         if SUPABASE_URL and SUPABASE_SERVICE_KEY:
             try:
                 req = urllib.request.Request(
-                    f"{SUPABASE_URL}/rest/v1/workspace_access?select=workspace_id,company_name,email,created_at,last_login&order=created_at.desc",
+                    f"{SUPABASE_URL}/rest/v1/workspace_access?select=workspace_id,company_name,email,created_at,last_login,partner_id&order=created_at.desc",
                     headers={'apikey': SUPABASE_SERVICE_KEY, 'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}'})
                 with urllib.request.urlopen(req, timeout=6) as r:
                     workspaces = json.loads(r.read())
 
-                # Enrich with recent activity
+                # Build a partner_id → agency_name lookup map
+                partner_map = {}
+                try:
+                    p_req = urllib.request.Request(
+                        f"{SUPABASE_URL}/rest/v1/partner_accounts?select=partner_id,agency_name",
+                        headers={'apikey': SUPABASE_SERVICE_KEY, 'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}'})
+                    with urllib.request.urlopen(p_req, timeout=5) as pr:
+                        for p in json.loads(pr.read()):
+                            if p.get('partner_id'):
+                                partner_map[p['partner_id']] = p.get('agency_name', '')
+                except Exception:
+                    pass
+
+                # Enrich with recent activity and partner name
                 for ws in workspaces:
+                    pid = ws.get('partner_id', '')
+                    ws['partner_name'] = partner_map.get(pid, '') if pid else ''
                     try:
                         act_req = urllib.request.Request(
                             f"{SUPABASE_URL}/rest/v1/workspace_activity?workspace_id=eq.{ws['workspace_id']}&order=created_at.desc&limit=1",
