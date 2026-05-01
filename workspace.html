@@ -2885,6 +2885,20 @@ function wsMaybeTour() {
   if (!toured) setTimeout(wsStartTour, 900);
 }
 
+// ── Lightweight markdown renderer for agent replies ───────────────────────────
+function wsMd(text) {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') // escape HTML
+    .replace(/^#{1,3}\s+(.+)$/gm, '<strong style="font-size:13px;color:var(--text);display:block;margin-top:12px;margin-bottom:4px;">$1</strong>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^---+$/gm, '<hr style="border:none;border-top:1px solid var(--border);margin:10px 0;">')
+    .replace(/^[\-\*]\s+(.+)$/gm, '<div style="padding-left:14px;position:relative;margin:3px 0;"><span style="position:absolute;left:0;">·</span>$1</div>')
+    .replace(/\n{2,}/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+}
+
 // ── Campaign Detail Drawer ────────────────────────────────────────────────────
 async function wsOpenCampaign(idx) {
   const c = wsPendingCampaigns[idx];
@@ -2947,7 +2961,7 @@ async function wsOpenCampaign(idx) {
     updatesEl.innerHTML = `
       <div class="ws-cmp-update">
         <div class="ws-cmp-update-author">Sarah Lin · CMO</div>
-        <div class="ws-cmp-update-text">${c.sarah_reply}</div>
+        <div class="ws-cmp-update-text" style="line-height:1.6;">${wsMd(c.sarah_reply)}</div>
         <div class="ws-cmp-update-time">${dateStr}</div>
       </div>
     `;
@@ -2965,7 +2979,7 @@ async function wsOpenCampaign(idx) {
           updatesEl.innerHTML = updates.map(u => `
             <div class="ws-cmp-update">
               <div class="ws-cmp-update-author">${u.author || 'Agency Team'}</div>
-              <div class="ws-cmp-update-text">${u.text}</div>
+              <div class="ws-cmp-update-text" style="line-height:1.6;">${wsMd(u.text)}</div>
               <div class="ws-cmp-update-time">${new Date(u.created_at).toLocaleDateString('en-AU', { day:'numeric', month:'short' })}</div>
             </div>
           `).join('');
@@ -2976,7 +2990,7 @@ async function wsOpenCampaign(idx) {
             updatesEl.innerHTML = `
               <div class="ws-cmp-update">
                 <div class="ws-cmp-update-author">Sarah Lin · CMO</div>
-                <div class="ws-cmp-update-text">${sessionReply}</div>
+                <div class="ws-cmp-update-text" style="line-height:1.6;">${wsMd(sessionReply)}</div>
                 <div class="ws-cmp-update-time">just now</div>
               </div>
             `;
@@ -2996,7 +3010,7 @@ async function wsOpenCampaign(idx) {
     updatesEl.innerHTML = updates.map(u => `
       <div class="ws-cmp-update">
         <div class="ws-cmp-update-author">${u.author}</div>
-        <div class="ws-cmp-update-text">${u.text}</div>
+        <div class="ws-cmp-update-text" style="line-height:1.6;">${wsMd(u.text)}</div>
         <div class="ws-cmp-update-time">${new Date(u.at).toLocaleDateString('en-AU', { day:'numeric', month:'short' })}</div>
       </div>
     `).join('');
