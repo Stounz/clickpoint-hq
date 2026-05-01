@@ -1552,6 +1552,7 @@ const SUPABASE_ANON_KEY = 'placeholder';
 
 // ── State ────────────────────────────────────────────────────────────────────
 let wsSession = null; // { workspaceId, companyName, email, isAdmin }
+window._wsIntegrations = null; // null = not yet fetched; [] = fetched (empty = none connected)
 let wsApiKey  = localStorage.getItem('cp_agc_key') || '';
 let wsData    = null; // loaded workspace data
 
@@ -1786,6 +1787,7 @@ function wsInitApp() {
 
   wsLoadDashboard();
   wsCheckOnboarding();
+  _wsFetchIntegrationStatus(); // silently load integration state for Sarah's context
   wsLogActivity('workspace_open', `Workspace opened by ${s.email}`);
   // Tour only if onboarding already done (otherwise triggered from wsOnboardComplete)
   const _wsObKey = 'cp_onboarded_' + (wsSession && wsSession.workspaceId);
@@ -2175,6 +2177,109 @@ function wsOpenReport(period, summary) {
   alert(`📋 ${period}\n\n${summary}\n\n(Full report viewer coming soon — ask your account manager for the full PDF.)`);
 }
 
+// ── AI Chat helpers ───────────────────────────────────────────────────────────
+
+/**
+ * Fetches integration status silently at workspace init so Sarah has live context.
+ * Also updates her welcome message if no platforms are connected yet.
+ */
+async function _wsFetchIntegrationStatus() {
+  if (!wsSession || !wsSession.workspaceId) return;
+  try {
+    const r = await fetch(`/api/integrations/list?workspaceId=${encodeURIComponent(wsSession.workspaceId)}`);
+    const d = await r.json();
+    window._wsIntegrations = d.integrations || [];
+  } catch(e) {
+    window._wsIntegrations = [];
+  }
+
+  // Personalise Sarah's welcome based on setup state
+  const connected = (window._wsIntegrations || []).filter(c => c.status === 'connected');
+  const welcomeEl = document.getElementById('wsAiWelcome');
+  if (!welcomeEl) return;
+
+  const pt = window._ptTheme || {};
+  const agencyLabel = pt.agencyName || 'ClickPoint';
+  const hasPartner = !!pt.agencyName;
+
+  if (connected.length === 0) {
+    const partnerLine = hasPartner
+      ? ` Or I can ask your ${agencyLabel} team to handle the account setup for you — just say the word.`
+      : '';
+    welcomeEl.innerHTML = wsMd(
+      `Hi! I'm Sarah, your CMO at ${agencyLabel}. Before we can review campaigns or plan strategy, I need your platforms connected so I can actually see your data.\n\n` +
+      `Head to **Settings → Connected Accounts** to add your ad account IDs — it only takes a minute.${partnerLine}\n\n` +
+      `Once you're set up, I'll have full visibility and we can hit the ground running. 🚀`
+    );
+  } else {
+    const names = connected.map(c => {
+      const p = WS_PLATFORMS.find(x => x.id === c.platform);
+      return p ? p.label : c.platform;
+    });
+    welcomeEl.innerHTML = wsMd(
+      `Hi! I'm Sarah, your CMO at ${agencyLabel}. I can see you have **${names.join(', ')}** connected — great start.\n\n` +
+      `Ask me anything: what's working, where to push harder, what the numbers mean, or what to prioritise this month.`
+    );
+  }
+}
+
+/**
+ * Builds Sarah's full system context string, injecting live integration + partner state.
+ */
+function _wsAiContext() {
+  const s = wsSession;
+  const pt = window._ptTheme || {};
+  const agencyLabel = pt.agencyName || 'ClickPoint';
+  const hasPartner   = !!pt.agencyName;
+
+  const allIntegrations = window._wsIntegrations || [];
+  const connected = allIntegrations.filter(c => c.status === 'connected');
+
+  // Summarise which platforms are live by category
+  const byCategory = { paid: [], email: [], social: [] };
+  connected.forEach(c => {
+    const p = WS_PLATFORMS.find(x => x.id === c.platform);
+    if (p) byCategory[p.category || 'paid'].push(p.label);
+  });
+
+  const integrationSummary = connected.length === 0
+    ? 'NONE — no ad platforms, email tools, or social accounts are connected yet.'
+    : [
+        byCategory.paid.length  ? `Paid/Analytics: ${byCategory.paid.join(', ')}`   : '',
+        byCategory.email.length ? `Email marketing: ${byCategory.email.join(', ')}` : '',
+        byCategory.social.length? `Organic social: ${byCategory.social.join(', ')}` : '',
+      ].filter(Boolean).join(' | ');
+
+  const setupPath = hasPartner
+    ? `direct them to Settings → Connected Accounts, OR offer to have the ${agencyLabel} team handle the connection for them (client just needs to say "yes, please have the agency do it")`
+    : `direct them to Settings → Connected Accounts to enter their account IDs (takes under 2 minutes)`;
+
+  const noIntegrationRules = connected.length === 0 ? `
+CRITICAL ONBOARDING RULE (no platforms connected):
+- If the client asks about campaigns, performance, analytics, email marketing, or social posting: ALWAYS address the connection gap first. Be friendly but direct. Example: "Before I can pull up any data or kick off a campaign, I need your accounts connected so I can actually see what's happening. It's quick — head to Settings → Connected Accounts and enter your account IDs." ${hasPartner ? `Then add: "Alternatively, your ${agencyLabel} team can set this up for you — just let me know and I'll pass it on."` : ''}
+- Do NOT pretend you have data you don't have. Don't make up metrics or campaign status.
+- If the client says "you do it" or "can the agency/team set it up": confirm warmly that you'll flag it to the ${agencyLabel} team and they'll be in touch.` : '';
+
+  return `IMPORTANT — CLIENT-FACING MODE.
+
+You are Sarah Lin, CMO at ${agencyLabel}. You are speaking directly with ${s.companyName} — a paying client. Not internal team chat.
+
+CONNECTED PLATFORMS: ${integrationSummary}
+${noIntegrationRules}
+
+AGENCY CONTEXT: ${hasPartner ? `Client is managed by ${agencyLabel}. If setup or execution tasks come up, you can offer to loop in the ${agencyLabel} team.` : `Client is self-managed — no agency partner assigned yet. Guide them to self-serve where possible.`}
+
+ROUTING RULES:
+1. Campaign setup request → check if relevant platform is connected first. If not, ${setupPath}.
+2. Email marketing questions → needs Mailchimp, Klaviyo, or ActiveCampaign connected.
+3. Organic social / posting → needs Facebook Pages, Instagram, LinkedIn Pages, or TikTok connected.
+4. Performance / reporting → needs at least one platform connected to pull real data.
+5. Client says "you/agency do it" → confirm you'll raise it with the ${agencyLabel} team, ask for any missing details (e.g. which platform, account name).
+6. Strategy questions with no data → you can still give directional advice, but flag that connecting accounts will unlock specific recommendations.
+
+PERSONA: Authoritative, warm, strategic, client-friendly CMO. No internal jargon. Keep responses to 3–5 sentences unless depth is genuinely needed. Use light formatting (bold for emphasis) when helpful. Always end with a clear next step or question.`.trim();
+}
+
 // ── AI Chat ───────────────────────────────────────────────────────────────────
 function wsAiPrompt(el) {
   document.getElementById('wsAiInput').value = el.textContent;
@@ -2211,8 +2316,8 @@ async function wsAiSend() {
   `;
   msgs.scrollTop = msgs.scrollHeight;
 
-  // Build context for Sarah — no fake metrics, just real session info
-  const context = `IMPORTANT — CLIENT-FACING MODE: You are Sarah Lin, CMO at the client's marketing agency. You are speaking directly with the client, not internally with your team. The client's company is ${wsSession.companyName} (workspace: ${wsSession.workspaceId}). Speak as their dedicated CMO — authoritative, warm, strategic, and client-friendly. No internal agency jargon. Keep responses to 3-5 sentences unless depth is needed. Their campaign data is being synced by your team. Be helpful, ask clarifying questions where needed, and focus on marketing strategy, priorities, and next steps.`;
+  // Build context for Sarah — dynamic, aware of integrations + partner status
+  const context = _wsAiContext();
 
   let reply = '';
   try {
