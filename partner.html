@@ -158,13 +158,25 @@
   .pt-quick-label { font-size:13px; font-weight:700; color:var(--dark); }
   .pt-quick-sub { font-size:11px; color:var(--muted); margin-top:2px; }
 
-  /* ── Client Table ── */
-  .pt-table-wrap { overflow-x:auto; }
-  .pt-table { width:100%; border-collapse:collapse; font-size:13px; }
-  .pt-table th { text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted); padding:8px 12px; border-bottom:1.5px solid var(--border); white-space:nowrap; }
-  .pt-table td { padding:13px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
-  .pt-table tr:last-child td { border-bottom:none; }
-  .pt-table tr:hover td { background:#FAFAF8; }
+  /* ── Client Cards (admin-style) ── */
+  .pt-client-stats { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+  .pt-client-stat { background:#fff; border:1px solid var(--border); border-radius:12px; padding:14px 18px; flex:1; min-width:130px; }
+  .pt-client-stat-val { font-size:20px; font-weight:800; margin-bottom:2px; }
+  .pt-client-stat-label { font-size:11px; color:var(--muted); }
+  .pt-client-list { display:flex; flex-direction:column; gap:8px; }
+  .pt-client-row { display:flex; align-items:center; gap:14px; background:#fff; border:1px solid var(--border); border-radius:13px; padding:14px 18px; cursor:pointer; transition:all 0.15s; }
+  .pt-client-row:hover { background:#F9F8F4; border-color:#D0CFC9; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
+  .pt-client-av { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:#fff; flex-shrink:0; }
+  .pt-client-name { font-size:14px; font-weight:700; color:var(--dark); margin-bottom:2px; }
+  .pt-client-meta { font-size:11px; color:var(--muted); }
+  .pt-client-mrr { font-size:13px; font-weight:700; color:var(--dark); text-align:right; margin-left:auto; flex-shrink:0; white-space:nowrap; }
+  .pt-client-mrr-sub { font-size:10px; color:var(--muted); margin-top:1px; }
+  .pt-status-badge { padding:3px 10px; border-radius:20px; font-size:10px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; flex-shrink:0; }
+  .pt-open-btn { padding:6px 14px; background:var(--teal); color:#fff; border:none; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; white-space:nowrap; flex-shrink:0; }
+  .pt-open-btn:hover { background:var(--teal-md); }
+  .pt-copy-btn { padding:6px 12px; background:#fff; color:var(--dark); border:1px solid var(--border); border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.15s; flex-shrink:0; }
+  .pt-copy-btn:hover { border-color:#aaa; }
+  /* keep table styles for potential reuse */
   .pt-health-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
   .pt-health-badge.high { background:rgba(48,209,88,0.1); color:#1a8a3c; }
   .pt-health-badge.mid { background:rgba(255,149,0,0.1); color:#c07000; }
@@ -174,10 +186,11 @@
   .pt-plan-badge.growth { background:rgba(10,132,255,0.1); color:var(--blue); }
   .pt-plan-badge.pro { background:rgba(212,98,42,0.1); color:var(--orange); }
   .pt-plan-badge.agency { background:rgba(28,58,46,0.1); color:var(--teal); }
-  .pt-open-btn { padding:6px 14px; background:var(--teal); color:#fff; border:none; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; white-space:nowrap; }
-  .pt-open-btn:hover { background:var(--teal-md); }
-  .pt-copy-btn { padding:6px 12px; background:#fff; color:var(--dark); border:1px solid var(--border); border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.15s; }
-  .pt-copy-btn:hover { border-color:#aaa; }
+
+  /* ── Sidebar CTA button ── */
+  .pt-sidebar-cta { display:flex; align-items:center; gap:9px; width:calc(100% - 32px); margin:10px 16px 4px; padding:10px 14px; background:var(--orange); border:none; border-radius:11px; color:#fff; font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.18s; text-align:left; }
+  .pt-sidebar-cta:hover { background:#C0541E; transform:translateY(-1px); box-shadow:0 4px 16px rgba(212,98,42,0.35); }
+  .pt-sidebar-cta-icon { width:22px; height:22px; background:rgba(255,255,255,0.18); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
 
   /* ── Search bar ── */
   .pt-search-bar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
@@ -451,6 +464,10 @@
       <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" alt="ClickPoint" id="ptSidebarLogo">
       <div class="pt-sidebar-badge">Partner Portal</div>
     </div>
+    <button class="pt-sidebar-cta" onclick="ptOpenInvite()">
+      <div class="pt-sidebar-cta-icon">➕</div>
+      Invite Client
+    </button>
     <nav class="pt-nav">
       <div class="pt-nav-section">Overview</div>
       <div class="pt-nav-item active" data-view="dashboard" onclick="ptSetView('dashboard')">📊 &nbsp;Dashboard</div>
@@ -567,10 +584,19 @@
 
       <!-- ── Clients View ── -->
       <div class="pt-view" id="pt-view-clients">
-        <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <div class="pt-page-title" style="margin-bottom:2px;">Active Clients <span id="ptClientsHeadCount" style="font-size:18px;font-weight:600;color:var(--muted);"></span></div>
+            <div class="pt-page-sub" style="margin-bottom:0;">Click any client to open their workspace</div>
+          </div>
           <button class="pt-topbar-invite" onclick="ptOpenInvite()">+ Invite Client</button>
         </div>
-        <div class="pt-search-bar">
+
+        <!-- Summary stat tiles -->
+        <div class="pt-client-stats" id="ptClientStatTiles"></div>
+
+        <!-- Search + filter bar -->
+        <div class="pt-search-bar" style="margin-bottom:16px;">
           <input class="pt-search-input" id="ptClientsSearch" placeholder="Search clients…" oninput="ptFilterClients()" />
           <select class="pt-filter-select" id="ptClientsFilter" onchange="ptFilterClients()">
             <option value="">All plans</option>
@@ -579,32 +605,12 @@
             <option value="pro">Pro</option>
             <option value="agency">Agency</option>
           </select>
-          <select class="pt-filter-select" id="ptClientsHealthFilter" onchange="ptFilterClients()">
-            <option value="">All health scores</option>
-            <option value="high">Good (8–10)</option>
-            <option value="mid">Average (6–7)</option>
-            <option value="low">Needs attention (&lt;6)</option>
-          </select>
           <div class="pt-clients-count" id="ptClientsCount"></div>
         </div>
-        <div class="pt-card" style="padding:0;overflow:hidden;">
-          <div class="pt-table-wrap">
-            <table class="pt-table" id="ptClientsTable">
-              <thead>
-                <tr>
-                  <th>Client</th>
-                  <th>Plan</th>
-                  <th>Health</th>
-                  <th>MRR</th>
-                  <th>Commission</th>
-                  <th>Campaigns</th>
-                  <th>Last Active</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="ptClientsBody"><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">Loading…</td></tr></tbody>
-            </table>
-          </div>
+
+        <!-- Card list -->
+        <div class="pt-client-list" id="ptClientsBody">
+          <div style="text-align:center;color:var(--muted);padding:32px;">Loading…</div>
         </div>
       </div>
 
@@ -1203,57 +1209,77 @@ function ptRenderDashboard() {
 }
 
 // ── Clients ───────────────────────────────────────────────────────────────────
-function ptRenderClients(filter) {
+const PT_AVATAR_COLORS = ['#1C3A2E','#2A5240','#0A84FF','#8E44AD','#D4622A','#1A5276','#117a65','#6e2cf0'];
+function ptAvatarColor(id) {
+  let n = 0; for (let i = 0; i < (id||'').length; i++) n += id.charCodeAt(i);
+  return PT_AVATAR_COLORS[n % PT_AVATAR_COLORS.length];
+}
+
+function ptRenderClients() {
   let data = [...ptClients];
   const q  = document.getElementById('ptClientsSearch')?.value?.toLowerCase() || '';
   const pf = document.getElementById('ptClientsFilter')?.value || '';
-  const hf = document.getElementById('ptClientsHealthFilter')?.value || '';
 
-  if (q)  data = data.filter(c => c.name.toLowerCase().includes(q) || c.id.toLowerCase().includes(q));
+  if (q)  data = data.filter(c => c.name.toLowerCase().includes(q) || (c.id||'').toLowerCase().includes(q));
   if (pf) data = data.filter(c => c.plan === pf);
-  if (hf === 'high') data = data.filter(c => c.health >= 8);
-  else if (hf === 'mid') data = data.filter(c => c.health >= 6 && c.health < 8);
-  else if (hf === 'low') data = data.filter(c => c.health < 6);
 
   document.getElementById('ptClientsCount').textContent = `${data.length} of ${ptClients.length} clients`;
+  const headCount = document.getElementById('ptClientsHeadCount');
+  if (headCount) headCount.textContent = ptClients.length ? `(${ptClients.length})` : '';
 
+  // Stat tiles
+  const totalMrr    = ptClients.reduce((s,c) => s + (c.mrr||0), 0);
+  const commission  = Math.round(totalMrr * 0.20);
+  const onboarding  = ptClients.filter(c => c.lastActive === 'Just now' || c.status === 'onboarding').length;
+  const tiles = document.getElementById('ptClientStatTiles');
+  if (tiles) tiles.innerHTML = `
+    <div class="pt-client-stat"><div class="pt-client-stat-val" style="color:#30D158;">${totalMrr > 0 ? '$' + (totalMrr/1000).toFixed(1) + 'K' : '—'}</div><div class="pt-client-stat-label">Total Client MRR</div></div>
+    <div class="pt-client-stat"><div class="pt-client-stat-val" style="color:#0A84FF;">${ptClients.length}</div><div class="pt-client-stat-label">Active Clients</div></div>
+    <div class="pt-client-stat"><div class="pt-client-stat-val" style="color:#D4622A;">${commission > 0 ? '$' + commission.toLocaleString() : '—'}</div><div class="pt-client-stat-label">Your Commission</div></div>
+    <div class="pt-client-stat"><div class="pt-client-stat-val" style="color:#5AC8FA;">${onboarding}</div><div class="pt-client-stat-label">Onboarding Now</div></div>
+  `;
+
+  const body = document.getElementById('ptClientsBody');
   if (!ptClients.length) {
-    document.getElementById('ptClientsBody').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:48px 24px;">
-      <div style="font-size:32px;margin-bottom:12px;">🎯</div>
-      <div style="font-weight:700;color:var(--dark);margin-bottom:6px;">No clients yet</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Invite your first client to get started.</div>
-      <button class="pt-topbar-invite" onclick="ptOpenInvite()">+ Invite Client</button>
-    </td></tr>`;
+    body.innerHTML = `<div style="text-align:center;padding:60px 24px;">
+      <div style="font-size:40px;margin-bottom:14px;">🎯</div>
+      <div style="font-weight:700;font-size:17px;color:var(--dark);margin-bottom:6px;">No clients yet</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Invite your first client to get started.</div>
+      <button class="pt-topbar-invite" onclick="ptOpenInvite()">+ Invite First Client</button>
+    </div>`;
     return;
   }
   if (!data.length) {
-    document.getElementById('ptClientsBody').innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">No clients match your filters.</td></tr>`;
+    body.innerHTML = `<div style="text-align:center;color:var(--muted);padding:32px;font-size:13px;">No clients match your filters.</div>`;
     return;
   }
 
-  document.getElementById('ptClientsBody').innerHTML = data.map(c => {
-    const hasHealth = c.health != null && c.health > 0;
-    const hcls = hasHealth ? (c.health >= 8 ? 'high' : c.health >= 6 ? 'mid' : 'low') : '';
-    const hlbl = hasHealth ? `${c.health}/10 ${c.health >= 8 ? 'Good' : c.health >= 6 ? 'Average' : 'Needs attention'}` : '—';
-    const healthHtml = hasHealth
-      ? `<span class="pt-health-badge ${hcls}">${hlbl}</span>`
-      : `<span style="color:var(--muted);font-size:12px;">—</span>`;
-    const hasMrr = c.mrr != null && c.mrr > 0;
-    const commission = hasMrr ? Math.round(c.mrr * 0.20) : null;
-    const plan = c.plan || 'starter';
-    return `<tr>
-      <td><strong>${c.name}</strong></td>
-      <td><span class="pt-plan-badge ${plan}">${plan.charAt(0).toUpperCase()+plan.slice(1)}</span></td>
-      <td>${healthHtml}</td>
-      <td style="font-weight:700;color:${hasMrr?'inherit':'var(--muted)'};">${hasMrr ? '$'+c.mrr.toLocaleString() : '—'}</td>
-      <td style="font-weight:700;color:${commission!=null?'var(--green)':'var(--muted)'};">${commission!=null ? '$'+commission.toLocaleString() : '—'}</td>
-      <td style="color:var(--muted);">${c.campaigns||0}</td>
-      <td style="color:var(--muted);font-size:12px;">${c.lastActive||'—'}</td>
-      <td style="display:flex;gap:6px;align-items:center;">
-        <button class="pt-open-btn" onclick="ptOpenWorkspace('${c.id}')">Open</button>
-        <button class="pt-copy-btn" onclick="ptCopyWorkspaceLink('${c.id}',this)">Copy link</button>
-      </td>
-    </tr>`;
+  body.innerHTML = data.map(c => {
+    const initials = c.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    const color    = ptAvatarColor(c.id || c.name);
+    const plan     = c.plan || 'starter';
+    const planLabel = plan.charAt(0).toUpperCase() + plan.slice(1);
+    const planColors = { starter:'#999', growth:'#0A84FF', pro:'#D4622A', agency:'#1C3A2E' };
+    const hasMrr   = c.mrr != null && c.mrr > 0;
+    const comm     = hasMrr ? Math.round(c.mrr * 0.20) : null;
+    return `
+      <div class="pt-client-row" onclick="ptOpenWorkspace('${c.id}')">
+        <div class="pt-client-av" style="background:${color};">${initials}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="pt-client-name">${c.name}</div>
+          <div class="pt-client-meta">
+            <span class="pt-plan-badge ${plan}" style="margin-right:6px;">${planLabel}</span>
+            ${c.campaigns ? `${c.campaigns} campaign${c.campaigns>1?'s':''}` : 'No campaigns yet'}
+            &nbsp;·&nbsp; ${c.lastActive||'—'}
+          </div>
+        </div>
+        <div class="pt-client-mrr">
+          <div>${hasMrr ? '$'+c.mrr.toLocaleString()+'/mo' : '—'}</div>
+          <div class="pt-client-mrr-sub" style="color:${comm!=null?'#30D158':'var(--muted)'};">${comm!=null ? '$'+comm.toLocaleString()+' commission' : 'Awaiting billing'}</div>
+        </div>
+        <span class="pt-status-badge" style="background:rgba(48,209,88,0.1);color:#1C8C44;border:1px solid rgba(48,209,88,0.25);">Active</span>
+        <button class="pt-copy-btn" onclick="event.stopPropagation();ptCopyWorkspaceLink('${c.id}',this)">Copy link</button>
+      </div>`;
   }).join('');
 }
 
