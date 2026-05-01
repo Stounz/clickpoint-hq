@@ -1151,6 +1151,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_portal_get()
         elif self.path == '/api/workspaces':
             self._handle_workspaces_list()
+        elif self.path == '/api/admin/migrate':
+            self._handle_admin_migrate()
         elif self.path.startswith('/api/partner/clients'):
             self._handle_partner_clients()
         elif self.path.startswith('/api/partner/summary'):
@@ -2683,15 +2685,36 @@ class AgentHandler(BaseHTTPRequestHandler):
             'email': email, 'code': code, 'link': portal_link
         })
 
+    def _handle_admin_migrate(self):
+        """Returns migration SQL that needs to be run in the Supabase SQL editor."""
+        self._json(200, {
+            'ok': True,
+            'message': 'Run the following SQL in your Supabase SQL Editor',
+            'sql': 'ALTER TABLE workspace_access ADD COLUMN IF NOT EXISTS partner_id TEXT DEFAULT NULL;',
+            'url': 'https://supabase.com/dashboard/project/banelvzjttdqkwmbvybm/sql/new'
+        })
+
     def _handle_workspaces_list(self):
         """List all workspaces — admin only."""
         if SUPABASE_URL and SUPABASE_SERVICE_KEY:
             try:
-                req = urllib.request.Request(
-                    f"{SUPABASE_URL}/rest/v1/workspace_access?select=workspace_id,company_name,email,created_at,last_login,partner_id&order=created_at.desc",
-                    headers={'apikey': SUPABASE_SERVICE_KEY, 'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}'})
-                with urllib.request.urlopen(req, timeout=6) as r:
-                    workspaces = json.loads(r.read())
+                # Try fetching with partner_id; fall back if the column doesn't exist yet
+                workspaces = None
+                for fields in ('workspace_id,company_name,email,created_at,last_login,partner_id',
+                               'workspace_id,company_name,email,created_at,last_login'):
+                    try:
+                        req = urllib.request.Request(
+                            f"{SUPABASE_URL}/rest/v1/workspace_access?select={fields}&order=created_at.desc",
+                            headers={'apikey': SUPABASE_SERVICE_KEY, 'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}'})
+                        with urllib.request.urlopen(req, timeout=6) as r:
+                            result = json.loads(r.read())
+                            if isinstance(result, list):
+                                workspaces = result
+                                break
+                    except Exception:
+                        continue
+                if workspaces is None:
+                    raise Exception('Could not fetch workspaces')
 
                 # Build a partner_id → agency_name lookup map
                 partner_map = {}
