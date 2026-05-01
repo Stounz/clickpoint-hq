@@ -1988,19 +1988,23 @@ async function wsNewCampaignSubmit() {
     const data = await resp.json();
     if (data.ok) {
       serverOk = true;
+      // Store Sarah's reply in session so it's immediately visible in the drawer
+      if (data.sarahReply && data.campaignId) {
+        sessionStorage.setItem('ws_sarah_' + data.campaignId, data.sarahReply);
+      }
       result.style.background = '#F0F8F4';
       result.style.borderColor = '#D4E8DA';
       result.innerHTML = `
         <div style="font-weight:700;color:#1C3A2E;margin-bottom:6px;">✅ Campaign request submitted!</div>
         <div style="color:#555;margin-bottom:4px;"><strong>${name}</strong> · ${type} · ${channel}</div>
-        <div style="color:#777;font-size:12px;margin-top:8px;">Sarah is reviewing your brief now — open the campaign in a moment to see her response.</div>
+        <div style="color:#777;font-size:12px;margin-top:8px;">Sarah has reviewed your brief — click the campaign to read her response.</div>
       `;
-      // Reload from server after a short delay so Sarah's reply is ready
+      // Reload from server right away (Sarah's reply is already saved)
       setTimeout(async () => {
         await wsLoadCampaignsFromServer();
         wsLoadCampaigns();
         wsNewCampaignClose();
-      }, 3000);
+      }, 2000);
     }
   } catch(e) { /* fall through */ }
 
@@ -2937,7 +2941,20 @@ async function wsOpenCampaign(idx) {
   const updatesEl = document.getElementById('wsCmpDrawerUpdates');
   updatesEl.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px;">⏳ Loading updates…</div>`;
 
-  // Fetch from server if we have a real campaign ID
+  // Prefer sarah_reply from the loaded campaign object (already fetched from DB)
+  if (c.sarah_reply) {
+    const dateStr = c.requestedAt ? new Date(c.requestedAt).toLocaleDateString('en-AU', { day:'numeric', month:'short' }) : 'today';
+    updatesEl.innerHTML = `
+      <div class="ws-cmp-update">
+        <div class="ws-cmp-update-author">Sarah Lin · CMO</div>
+        <div class="ws-cmp-update-text">${c.sarah_reply}</div>
+        <div class="ws-cmp-update-time">${dateStr}</div>
+      </div>
+    `;
+    return;
+  }
+
+  // Fallback: fetch from server updates endpoint
   if (c.id) {
     try {
       const resp = await fetch(`${WS_API}/api/campaign/updates?campaignId=${encodeURIComponent(c.id)}`);
@@ -2953,7 +2970,19 @@ async function wsOpenCampaign(idx) {
             </div>
           `).join('');
         } else {
-          updatesEl.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px;">Sarah is reviewing your brief — check back shortly.</div>`;
+          // Check sessionStorage for immediate post-submit reply
+          const sessionReply = sessionStorage.getItem('ws_sarah_' + c.id);
+          if (sessionReply) {
+            updatesEl.innerHTML = `
+              <div class="ws-cmp-update">
+                <div class="ws-cmp-update-author">Sarah Lin · CMO</div>
+                <div class="ws-cmp-update-text">${sessionReply}</div>
+                <div class="ws-cmp-update-time">just now</div>
+              </div>
+            `;
+          } else {
+            updatesEl.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px;">Sarah is reviewing your brief — check back shortly.</div>`;
+          }
         }
         return;
       }

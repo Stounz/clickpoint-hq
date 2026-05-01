@@ -2927,7 +2927,16 @@ class AgentHandler(BaseHTTPRequestHandler):
     # ── Campaign Pipeline ─────────────────────────────────────────────────────
 
     def _handle_campaign_request(self):
-        """Client submits a campaign brief → Supabase → Sarah auto-reviews → update saved."""
+        """Client submits a campaign brief → Supabase campaigns table → Sarah auto-reviews.
+
+        Uses the existing 'campaigns' table with column remapping:
+          client   → workspace_id
+          types    → campaign type
+          assigned → channel
+          brief    → JSON blob with {brief, channel, budget, partner_id, company_name, sarah_reply}
+        Sarah's reply is stored back into the 'brief' JSON and returned directly
+        in the response so the client can display it instantly without a second fetch.
+        """
         try:
             body = self._read_body()
         except Exception:
@@ -2960,41 +2969,10 @@ class AgentHandler(BaseHTTPRequestHandler):
             except Exception:
                 pass
 
-        # ── Save to campaign_requests ─────────────────────────────────────────
-        campaign_id = None
-        now = datetime.datetime.utcnow().isoformat()
-        if SUPABASE_URL and SUPABASE_SERVICE_KEY:
-            try:
-                row = {
-                    'workspace_id': workspace_id,
-                    'company_name': company_name or workspace_id,
-                    'name': name, 'type': ctype, 'channel': channel,
-                    'budget': budget, 'audience': audience, 'brief': brief,
-                    'status': 'pending', 'created_at': now,
-                }
-                if partner_id:
-                    row['partner_id'] = partner_id
-                result = _supabase_req('POST', 'campaign_requests', row, service_role=True)
-                if result and isinstance(result, list) and result[0].get('id'):
-                    campaign_id = result[0]['id']
-                    print(f'  📥 Campaign saved: id={campaign_id} ws={workspace_id}')
-            except Exception as e:
-                print(f'  ⚠️  campaign_requests insert error: {e}')
-
-        # ── Log to workspace_activity ─────────────────────────────────────────
-        detail = f'New campaign requested: "{name}" · {ctype} · {channel}' + (f' · ${budget}' if budget else '')
-        if SUPABASE_URL and SUPABASE_SERVICE_KEY:
-            try:
-                _supabase_req('POST', 'workspace_activity', {
-                    'workspace_id': workspace_id, 'company_name': company_name or workspace_id,
-                    'activity_type': 'campaign_request', 'detail': detail, 'created_at': now,
-                }, service_role=True)
-            except Exception:
-                pass
-
-        # ── Auto-trigger Sarah to review the brief ────────────────────────────
+        # ── Auto-trigger Sarah BEFORE saving (so we can store reply in DB) ────
+        sarah_reply = ''
         sarah_status = 'pending'
-        if campaign_id and API_KEY:
+        if API_KEY:
             try:
                 budget_str = f'${budget}/mo' if budget else 'Not specified'
                 sarah_prompt = (
@@ -3012,41 +2990,51 @@ class AgentHandler(BaseHTTPRequestHandler):
                     API_KEY, AGENT_PROMPTS.get('sarah', ''),
                     [{'role': 'user', 'content': sarah_prompt}], max_tokens=500
                 )
-                # Save Sarah's response as first campaign update
-                if SUPABASE_URL and SUPABASE_SERVICE_KEY:
-                    _supabase_req('POST', 'campaign_updates', {
-                        'campaign_id': campaign_id,
-                        'workspace_id': workspace_id,
-                        'author': 'Sarah Lin · CMO',
-                        'text': sarah_reply,
-                        'created_at': datetime.datetime.utcnow().isoformat(),
-                    }, service_role=True)
-                    # Promote status to 'reviewing'
-                    try:
-                        upd = urllib.request.Request(
-                            f"{SUPABASE_URL}/rest/v1/campaign_requests?id=eq.{campaign_id}",
-                            data=json.dumps({'status': 'reviewing'}).encode(),
-                            headers={'apikey': SUPABASE_SERVICE_KEY,
-                                     'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
-                                     'Content-Type': 'application/json', 'Prefer': 'return=minimal'},
-                            method='PATCH')
-                        urllib.request.urlopen(upd, timeout=5)
-                    except Exception:
-                        pass
-                    sarah_status = 'reviewing'
-                    print(f'  🤖 Sarah reviewed "{name}" for {company_name}')
+                sarah_status = 'reviewing'
+                print(f'  🤖 Sarah reviewed "{name}" for {company_name}')
             except Exception as e:
                 print(f'  ⚠️  Sarah auto-review error: {e}')
 
+        # ── Encode all extra fields into the brief JSON blob ──────────────────
+        brief_blob = json.dumps({
+            'brief':       brief,
+            'channel':     channel,
+            'budget':      budget,
+            'partner_id':  partner_id,
+            'company_name': company_name or workspace_id,
+            'sarah_reply': sarah_reply,
+        })
+
+        # ── Save to existing campaigns table ──────────────────────────────────
+        campaign_id = None
+        if SUPABASE_URL and SUPABASE_SERVICE_KEY:
+            try:
+                row = {
+                    'name':     name,
+                    'client':   workspace_id,   # repurposed as workspace_id
+                    'types':    ctype,           # campaign type
+                    'audience': audience,
+                    'assigned': channel,         # repurposed as channel
+                    'brief':    brief_blob,      # JSON blob with all extras
+                    'status':   sarah_status,
+                }
+                result = _supabase_req('POST', 'campaigns', row, service_role=True)
+                if result and isinstance(result, list) and result[0].get('id'):
+                    campaign_id = result[0]['id']
+                    print(f'  📥 Campaign saved: id={campaign_id} ws={workspace_id}')
+            except Exception as e:
+                print(f'  ⚠️  campaigns insert error: {e}')
+
         self._json(200, {
-            'ok': True,
-            'campaignId': campaign_id,
-            'partnerId': partner_id,
-            'status': sarah_status,
+            'ok':          True,
+            'campaignId':  campaign_id,
+            'partnerId':   partner_id,
+            'status':      sarah_status,
+            'sarahReply':  sarah_reply,  # returned immediately for instant display
         })
 
     def _handle_campaigns_list(self):
-        """List all campaign requests for a workspace."""
+        """List all campaign requests for a workspace (reads from campaigns table)."""
         import urllib.parse as _up_cl
         parsed = _up_cl.urlparse(self.path)
         params = _up_cl.parse_qs(parsed.query)
@@ -3057,16 +3045,44 @@ class AgentHandler(BaseHTTPRequestHandler):
         if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
             self._json(200, {'campaigns': []}); return
         try:
-            campaigns = _supabase_req(
+            # Filter by client = workspace_id (our repurposed column)
+            rows = _supabase_req(
                 'GET',
-                f'campaign_requests?workspace_id=eq.{_up_cl.quote(workspace_id)}&order=created_at.desc',
+                f'campaigns?client=eq.{_up_cl.quote(workspace_id)}&order=created_at.desc',
             )
-            self._json(200, {'campaigns': campaigns or []})
+            # Unpack each row: parse brief JSON blob and remap columns
+            out = []
+            for c in (rows or []):
+                blob = {}
+                try:
+                    blob = json.loads(c.get('brief', '{}'))
+                except Exception:
+                    pass
+                out.append({
+                    'id':           c['id'],
+                    'name':         c.get('name', ''),
+                    'type':         c.get('types', ''),
+                    'channel':      blob.get('channel') or c.get('assigned', ''),
+                    'budget':       blob.get('budget', ''),
+                    'audience':     c.get('audience', ''),
+                    'brief':        blob.get('brief', ''),
+                    'status':       c.get('status', 'pending'),
+                    'created_at':   c.get('created_at', ''),
+                    'workspace_id': c.get('client', ''),
+                    'company_name': blob.get('company_name', ''),
+                    'sarah_reply':  blob.get('sarah_reply', ''),
+                })
+            self._json(200, {'campaigns': out})
         except Exception as e:
             self._error(500, str(e))
 
     def _handle_campaign_updates_get(self):
-        """Return all agency updates for a campaign, oldest-first."""
+        """Return agency updates for a campaign.
+
+        Updates are stored in the 'brief' JSON blob of the campaigns table.
+        Sarah's reply is returned as the first (and currently only) update.
+        Future agents can be added by appending to a 'updates' array in the blob.
+        """
         import urllib.parse as _up_cu
         parsed = _up_cu.urlparse(self.path)
         params = _up_cu.parse_qs(parsed.query)
@@ -3077,11 +3093,29 @@ class AgentHandler(BaseHTTPRequestHandler):
         if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
             self._json(200, {'updates': []}); return
         try:
-            updates = _supabase_req(
+            rows = _supabase_req(
                 'GET',
-                f'campaign_updates?campaign_id=eq.{_up_cu.quote(campaign_id)}&order=created_at.asc',
+                f'campaigns?id=eq.{_up_cu.quote(str(campaign_id))}&select=brief,created_at&limit=1',
             )
-            self._json(200, {'updates': updates or []})
+            if not rows:
+                self._json(200, {'updates': []}); return
+            blob = {}
+            try:
+                blob = json.loads(rows[0].get('brief', '{}'))
+            except Exception:
+                pass
+            updates = []
+            sarah_reply = blob.get('sarah_reply', '')
+            if sarah_reply:
+                updates.append({
+                    'author':     'Sarah Lin · CMO',
+                    'text':       sarah_reply,
+                    'created_at': rows[0].get('created_at', ''),
+                })
+            # Future: append additional agent updates from blob.get('updates', [])
+            for u in blob.get('updates', []):
+                updates.append(u)
+            self._json(200, {'updates': updates})
         except Exception as e:
             self._error(500, str(e))
 
@@ -3105,29 +3139,6 @@ def _run_db_migrations():
         return
     migrations = [
         "ALTER TABLE workspace_access ADD COLUMN IF NOT EXISTS partner_id TEXT DEFAULT NULL;",
-        """CREATE TABLE IF NOT EXISTS campaign_requests (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  workspace_id TEXT NOT NULL,
-  company_name TEXT,
-  partner_id TEXT,
-  name TEXT NOT NULL,
-  type TEXT,
-  channel TEXT,
-  budget TEXT,
-  audience TEXT,
-  brief TEXT,
-  status TEXT DEFAULT 'pending',
-  assigned_agent TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);""",
-        """CREATE TABLE IF NOT EXISTS campaign_updates (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  campaign_id UUID,
-  workspace_id TEXT,
-  author TEXT,
-  text TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);""",
     ]
     for sql in migrations:
         try:
