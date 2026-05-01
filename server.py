@@ -2667,6 +2667,36 @@ class AgentHandler(BaseHTTPRequestHandler):
 </div>"""
         _send_email(email, f'Your ClickPoint Workspace is ready — {company_name}', email_html)
 
+        # ── Notify partner if this came via their self-signup link ────────────
+        if partner_id_val and SUPABASE_URL and SUPABASE_SERVICE_KEY:
+            try:
+                p_req = urllib.request.Request(
+                    f"{SUPABASE_URL}/rest/v1/partner_accounts?partner_id=eq.{_up.quote(partner_id_val)}&select=email,agency_name&limit=1",
+                    headers={'apikey': SUPABASE_SERVICE_KEY, 'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}'})
+                with urllib.request.urlopen(p_req, timeout=5) as pr:
+                    partners = json.loads(pr.read())
+                if partners:
+                    p_email     = partners[0].get('email', '')
+                    p_agency    = partners[0].get('agency_name', 'Your agency')
+                    notif_html  = f"""<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;">
+<div style="font-size:22px;font-weight:800;color:#1C3A2E;margin-bottom:4px;">ClickPoint</div>
+<div style="font-size:14px;color:#999;margin-bottom:28px;">New client signed up via your link</div>
+<h2 style="font-size:20px;color:#1A1A1A;font-weight:700;margin-bottom:8px;">🎉 New client: {company_name}</h2>
+<p style="color:#555;font-size:14px;line-height:1.6;margin-bottom:20px;">A new client just signed up through your {p_agency} self-signup link. Their workspace is live and ready.</p>
+<div style="background:#F4F3EE;border-radius:12px;padding:20px;margin-bottom:20px;">
+  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#999;margin-bottom:8px;">Client Details</div>
+  <div style="font-size:14px;color:#1A1A1A;margin-bottom:4px;">Company: <strong>{company_name}</strong></div>
+  <div style="font-size:14px;color:#1A1A1A;margin-bottom:4px;">Contact: <strong>{contact_name or 'Not provided'}</strong></div>
+  <div style="font-size:14px;color:#1A1A1A;">Email: <strong>{email}</strong></div>
+</div>
+<a href="https://platform.clickpointconsulting.com.au/partner.html" style="display:block;background:#1C3A2E;color:#fff;text-decoration:none;padding:14px;border-radius:10px;text-align:center;font-weight:700;font-size:15px;margin-bottom:24px;">View in Partner Portal →</a>
+<p style="font-size:12px;color:#999;">Powered by ClickPoint Partner Network</p>
+</div>"""
+                    if p_email:
+                        _send_email(p_email, f'🎉 New client signed up — {company_name}', notif_html)
+            except Exception:
+                pass
+
         # ── Push to HubSpot ───────────────────────────────────────────────────
         _push_to_hubspot(
             contact_props={

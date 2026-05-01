@@ -464,10 +464,6 @@
       <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" alt="ClickPoint" id="ptSidebarLogo">
       <div class="pt-sidebar-badge">Partner Portal</div>
     </div>
-    <button class="pt-sidebar-cta" onclick="ptOpenInvite()">
-      <div class="pt-sidebar-cta-icon">➕</div>
-      Invite Client
-    </button>
     <nav class="pt-nav">
       <div class="pt-nav-section">Overview</div>
       <div class="pt-nav-item active" data-view="dashboard" onclick="ptSetView('dashboard')">📊 &nbsp;Dashboard</div>
@@ -502,7 +498,6 @@
       </div>
       <div class="pt-topbar-right">
         <div class="pt-live-badge"><div class="pt-live-dot"></div> Live</div>
-        <button class="pt-topbar-invite" onclick="ptOpenInvite()">+ Invite Client</button>
       </div>
     </div>
     <div class="pt-content">
@@ -554,8 +549,8 @@
           <div class="pt-quick-card" onclick="ptSetView('settings');ptCopyLink()">
             <div class="pt-quick-icon teal">🔗</div>
             <div>
-              <div class="pt-quick-label">Copy white-label link</div>
-              <div class="pt-quick-sub">Your branded workspace URL</div>
+              <div class="pt-quick-label">Copy self-signup link</div>
+              <div class="pt-quick-sub">Prospects sign up themselves</div>
             </div>
           </div>
           <div class="pt-quick-card" onclick="ptSetView('reports')">
@@ -728,9 +723,9 @@
           </div>
 
           <div class="pt-card">
-            <div class="pt-settings-title">White-label Client Workspace Link</div>
-            <p class="pt-link-note">Share this link with new clients. Their workspace will display your agency branding — not ClickPoint's.</p>
-            <div class="pt-link-box" id="ptWlLink">Save your settings above to generate your white-label link.</div>
+            <div class="pt-settings-title">Client Self-Signup Link</div>
+            <p class="pt-link-note">Share this link anywhere — your website, proposals, emails. Prospects click it, fill in their details, and a branded workspace is created automatically. You'll get an email notification the moment someone signs up.</p>
+            <div class="pt-link-box" id="ptWlLink">Save your settings above to generate your signup link.</div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
               <button class="pt-open-btn" onclick="ptCopyLink()">📋 Copy link</button>
               <button class="pt-copy-btn" onclick="ptOpenWlPreview()">Preview →</button>
@@ -1124,6 +1119,7 @@ function ptUpdateWlLink() {
   const config = ptGetConfig();
   const base = location.href.replace('partner.html','workspace.html').split('?')[0];
   const params = new URLSearchParams({
+    signup: '1',
     p: ptSession?.partnerId || 'partner',
     agencyName: config.wlName || config.agencyName || '',
     color: config.color || '',

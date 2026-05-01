@@ -1161,11 +1161,15 @@ async function wsSignup() {
   btn.disabled = true;
   btn.textContent = 'Creating workspace…';
 
+  // Pick up partnerId if this is a partner self-signup link
+  const _urlP = new URLSearchParams(location.search);
+  const _partnerId = _urlP.get('p') || '';
+
   try {
     const res = await fetch(`${WS_API}/api/workspace/create`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ companyName: company, email, contactName: name })
+      body: JSON.stringify({ companyName: company, email, contactName: name, partnerId: _partnerId || undefined })
     });
     const d = await res.json();
 
@@ -2180,6 +2184,21 @@ function wsUpdateBudgetTotal() {} // stub for campaign form budget input
         return;
       }
     } catch(e) {}
+  }
+
+  // Partner self-signup mode — show signup form with partner branding
+  if (params.get('signup') === '1') {
+    wsShowTab('signup');
+    // Hide the Sign In tab — this link is for new clients only
+    document.getElementById('tabSignIn').style.display = 'none';
+    document.getElementById('tabSignUp').style.display = 'none';
+    // Customise copy with agency name if present
+    const _pt = window._ptTheme || {};
+    const _agencyName = _pt.agencyName || params.get('agencyName') || 'ClickPoint';
+    const titleEl = document.querySelector('#panelSignUp .login-title');
+    const subEl   = document.querySelector('#panelSignUp .login-sub');
+    if (titleEl) titleEl.textContent = `Get started with ${_agencyName}`;
+    if (subEl)   subEl.textContent   = `Your dedicated marketing workspace will be ready in seconds. No credit card required.`;
   }
 
   // Pre-fill workspace from URL
