@@ -126,8 +126,33 @@
   .ws-card-title span:hover { color:var(--teal); }
 
   /* Campaign rows */
-  .ws-campaign { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid #F0EFE9; }
+  .ws-campaign { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid #F0EFE9; cursor:pointer; border-radius:8px; margin:0 -8px; padding-left:8px; padding-right:8px; transition:background 0.15s; }
   .ws-campaign:last-child { border-bottom:none; }
+  .ws-campaign:hover { background:#F5F4EF; }
+  /* Campaign detail drawer */
+  .ws-cmp-drawer-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.25); z-index:800; opacity:0; pointer-events:none; transition:opacity 0.25s; }
+  .ws-cmp-drawer-overlay.open { opacity:1; pointer-events:all; }
+  .ws-cmp-drawer { position:fixed; top:0; right:0; bottom:0; width:480px; max-width:100vw; background:#fff; box-shadow:-8px 0 40px rgba(0,0,0,0.12); z-index:801; transform:translateX(100%); transition:transform 0.28s cubic-bezier(0.4,0,0.2,1); display:flex; flex-direction:column; }
+  .ws-cmp-drawer.open { transform:translateX(0); }
+  .ws-cmp-drawer-head { padding:24px 24px 20px; border-bottom:1px solid #F0EFE9; flex-shrink:0; }
+  .ws-cmp-drawer-close { width:32px; height:32px; border-radius:8px; background:#F5F4EF; border:none; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; color:var(--muted); float:right; margin-top:-4px; }
+  .ws-cmp-drawer-close:hover { background:#E8E7E1; }
+  .ws-cmp-drawer-title { font-size:17px; font-weight:800; color:var(--dark); margin-bottom:8px; padding-right:40px; }
+  .ws-cmp-drawer-body { flex:1; overflow-y:auto; padding:20px 24px; }
+  .ws-cmp-drawer-section { margin-bottom:20px; }
+  .ws-cmp-drawer-label { font-size:10px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .ws-cmp-drawer-meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+  .ws-cmp-drawer-meta-item { background:#F5F4EF; border-radius:10px; padding:12px 14px; }
+  .ws-cmp-drawer-meta-val { font-size:13px; font-weight:700; color:var(--dark); margin-top:2px; }
+  .ws-cmp-drawer-text { font-size:13px; color:#444; line-height:1.6; background:#F5F4EF; border-radius:10px; padding:12px 14px; }
+  .ws-cmp-update { padding:12px 0; border-bottom:1px solid #F0EFE9; }
+  .ws-cmp-update:last-child { border-bottom:none; }
+  .ws-cmp-update-author { font-size:11px; font-weight:700; color:var(--teal); margin-bottom:4px; }
+  .ws-cmp-update-text { font-size:13px; color:#444; line-height:1.55; }
+  .ws-cmp-update-time { font-size:11px; color:var(--muted); margin-top:4px; }
+  .ws-cmp-drawer-cta { padding:16px 24px; border-top:1px solid #F0EFE9; flex-shrink:0; }
+  .ws-cmp-drawer-cta-btn { width:100%; padding:12px; background:var(--teal); color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+  .ws-cmp-drawer-cta-btn:hover { background:#254d3a; }
   .ws-campaign-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
   .ws-campaign-name { font-size:13px; font-weight:600; color:var(--text); }
   .ws-campaign-meta { font-size:11px; color:var(--muted); }
@@ -1434,6 +1459,35 @@
   </div><!-- /ws-layout -->
 </div><!-- /appShell -->
 
+<!-- ── Campaign Detail Drawer ── -->
+<div class="ws-cmp-drawer-overlay" id="wsCmpDrawerOverlay" onclick="wsCloseCampaignDrawer()"></div>
+<div class="ws-cmp-drawer" id="wsCmpDrawer">
+  <div class="ws-cmp-drawer-head">
+    <button class="ws-cmp-drawer-close" onclick="wsCloseCampaignDrawer()">✕</button>
+    <div id="wsCmpDrawerStatus" style="margin-bottom:8px;"></div>
+    <div class="ws-cmp-drawer-title" id="wsCmpDrawerTitle"></div>
+    <div style="font-size:12px;color:var(--muted);" id="wsCmpDrawerMeta"></div>
+  </div>
+  <div class="ws-cmp-drawer-body">
+    <div class="ws-cmp-drawer-meta-grid" id="wsCmpDrawerGrid"></div>
+    <div class="ws-cmp-drawer-section" id="wsCmpDrawerAudienceWrap">
+      <div class="ws-cmp-drawer-label">Target Audience</div>
+      <div class="ws-cmp-drawer-text" id="wsCmpDrawerAudience"></div>
+    </div>
+    <div class="ws-cmp-drawer-section">
+      <div class="ws-cmp-drawer-label">Brief & Goals</div>
+      <div class="ws-cmp-drawer-text" id="wsCmpDrawerBrief"></div>
+    </div>
+    <div class="ws-cmp-drawer-section">
+      <div class="ws-cmp-drawer-label">Agency Updates</div>
+      <div id="wsCmpDrawerUpdates"></div>
+    </div>
+  </div>
+  <div class="ws-cmp-drawer-cta">
+    <button class="ws-cmp-drawer-cta-btn" onclick="wsCloseCampaignDrawer();wsSetView('ai');">💬 Ask your CMO about this campaign</button>
+  </div>
+</div>
+
 <script>
 // ── Config ──────────────────────────────────────────────────────────────────
 const WS_API = 'https://web-production-c959ce.up.railway.app';
@@ -1927,8 +1981,8 @@ function wsLoadCampaigns() {
     'SEO / Organic':'🌱','Email':'📧',
   };
 
-  const pendingRows = wsPendingCampaigns.map(c => `
-    <div class="ws-campaign" style="padding:14px 0;opacity:0.85;">
+  const pendingRows = wsPendingCampaigns.map((c, idx) => `
+    <div class="ws-campaign" onclick="wsOpenCampaign(${idx})">
       <div class="ws-campaign-icon" style="background:rgba(212,98,42,0.08);width:42px;height:42px;">${channelIcons[c.channel] || '🚀'}</div>
       <div>
         <div class="ws-campaign-name">${c.name}</div>
@@ -1936,7 +1990,7 @@ function wsLoadCampaigns() {
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
         <div style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(212,98,42,0.1);color:#D4622A;">Pending Review</div>
-        <div style="font-size:11px;color:#aaa;">Submitted to CMO</div>
+        <div style="font-size:11px;color:#aaa;">→</div>
       </div>
     </div>
   `).join('');
@@ -2762,6 +2816,79 @@ function wsMaybeTour() {
   if (!wsSession || wsSession.isAdmin) return; // Don't show tour to admin/partner viewing
   const toured = localStorage.getItem('cp_ws_toured_' + wsSession.workspaceId);
   if (!toured) setTimeout(wsStartTour, 900);
+}
+
+// ── Campaign Detail Drawer ────────────────────────────────────────────────────
+function wsOpenCampaign(idx) {
+  const c = wsPendingCampaigns[idx];
+  if (!c) return;
+
+  const statusColors = {
+    pending:  { bg:'rgba(212,98,42,0.1)',  color:'#D4622A',  label:'Pending Review' },
+    active:   { bg:'rgba(48,209,88,0.1)',  color:'#1C8C44',  label:'Active' },
+    paused:   { bg:'#F4F3EE',             color:'#888',      label:'Paused' },
+    complete: { bg:'rgba(10,132,255,0.1)', color:'#0A84FF',  label:'Completed' },
+  };
+  const st = statusColors[c.status] || statusColors.pending;
+  const submittedDate = c.requestedAt ? new Date(c.requestedAt).toLocaleDateString('en-AU', { day:'numeric', month:'short', year:'numeric' }) : '—';
+
+  document.getElementById('wsCmpDrawerStatus').innerHTML =
+    `<span style="display:inline-block;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;background:${st.bg};color:${st.color};">${st.label}</span>`;
+  document.getElementById('wsCmpDrawerTitle').textContent = c.name;
+  document.getElementById('wsCmpDrawerMeta').textContent = `Submitted ${submittedDate}`;
+
+  document.getElementById('wsCmpDrawerGrid').innerHTML = `
+    <div class="ws-cmp-drawer-meta-item">
+      <div class="ws-cmp-drawer-label">Channel</div>
+      <div class="ws-cmp-drawer-meta-val">${c.channel || '—'}</div>
+    </div>
+    <div class="ws-cmp-drawer-meta-item">
+      <div class="ws-cmp-drawer-label">Campaign Type</div>
+      <div class="ws-cmp-drawer-meta-val">${c.type || '—'}</div>
+    </div>
+    <div class="ws-cmp-drawer-meta-item">
+      <div class="ws-cmp-drawer-label">Monthly Budget</div>
+      <div class="ws-cmp-drawer-meta-val">${c.budget ? '$' + Number(c.budget).toLocaleString() : '—'}</div>
+    </div>
+    <div class="ws-cmp-drawer-meta-item">
+      <div class="ws-cmp-drawer-label">Status</div>
+      <div class="ws-cmp-drawer-meta-val" style="color:${st.color};">${st.label}</div>
+    </div>
+  `;
+
+  const audienceWrap = document.getElementById('wsCmpDrawerAudienceWrap');
+  if (c.audience) {
+    document.getElementById('wsCmpDrawerAudience').textContent = c.audience;
+    audienceWrap.style.display = 'block';
+  } else {
+    audienceWrap.style.display = 'none';
+  }
+
+  document.getElementById('wsCmpDrawerBrief').textContent = c.brief || 'No brief provided.';
+
+  // Updates — stored per campaign in localStorage
+  const updatesKey = 'cp_cmp_updates_' + wsSession.workspaceId + '_' + idx;
+  const updates = JSON.parse(localStorage.getItem(updatesKey) || '[]');
+  const updatesEl = document.getElementById('wsCmpDrawerUpdates');
+  if (updates.length) {
+    updatesEl.innerHTML = updates.map(u => `
+      <div class="ws-cmp-update">
+        <div class="ws-cmp-update-author">${u.author}</div>
+        <div class="ws-cmp-update-text">${u.text}</div>
+        <div class="ws-cmp-update-time">${new Date(u.at).toLocaleDateString('en-AU', { day:'numeric', month:'short' })}</div>
+      </div>
+    `).join('');
+  } else {
+    updatesEl.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px;">No updates yet — your agency team will post progress here.</div>`;
+  }
+
+  document.getElementById('wsCmpDrawerOverlay').classList.add('open');
+  document.getElementById('wsCmpDrawer').classList.add('open');
+}
+
+function wsCloseCampaignDrawer() {
+  document.getElementById('wsCmpDrawerOverlay').classList.remove('open');
+  document.getElementById('wsCmpDrawer').classList.remove('open');
 }
 </script>
 </body>
