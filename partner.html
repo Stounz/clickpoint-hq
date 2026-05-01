@@ -1028,6 +1028,17 @@ async function ptFetchData() {
 
   // Update badge
   document.getElementById('ptClientBadge').textContent = ptClients.length;
+
+  // Save partner session + client IDs to localStorage so workspace.html can bypass login
+  try {
+    localStorage.setItem('cp_pt_access', JSON.stringify({
+      partnerId:  ptSession.partnerId,
+      agencyName: ptSession.agencyName || ptSession.name || '',
+      clientIds:  ptClients.map(c => c.id),
+      savedAt:    Date.now()
+    }));
+  } catch(e) {}
+
   // Render dashboard
   ptRenderDashboard();
 }
@@ -1147,29 +1158,31 @@ function ptSetView(view) {
 function ptRenderDashboard() {
   const totalMrr     = ptClients.reduce((s,c) => s + (c.mrr||0), 0);
   const commission   = Math.round(totalMrr * 0.20);
-  const avgHealth    = ptClients.length ? (ptClients.reduce((s,c) => s + (c.health||0), 0) / ptClients.length).toFixed(1) : '—';
+  const healthClients = ptClients.filter(c => c.health != null && c.health > 0);
+  const avgHealth    = healthClients.length ? (healthClients.reduce((s,c) => s + c.health, 0) / healthClients.length).toFixed(1) : '—';
   const totalCamps   = ptClients.reduce((s,c) => s + (c.campaigns||0), 0);
-  const atRisk       = ptClients.filter(c => c.health < 6).length;
+  const atRisk       = healthClients.filter(c => c.health < 6).length;
 
   document.getElementById('ptKpiClients').textContent   = ptClients.length;
-  document.getElementById('ptKpiMrr').textContent       = '$' + commission.toLocaleString();
+  document.getElementById('ptKpiMrr').textContent       = totalMrr > 0 ? '$' + commission.toLocaleString() : '—';
   document.getElementById('ptKpiHealth').textContent    = avgHealth;
   document.getElementById('ptKpiCampaigns').textContent = totalCamps;
-  document.getElementById('ptKpiMrrD').textContent      = `20% of $${totalMrr.toLocaleString()} MRR`;
-  document.getElementById('ptKpiHealthD').textContent   = atRisk > 0 ? `⚠ ${atRisk} account${atRisk>1?'s':''} need attention` : '↑ All accounts healthy';
-  document.getElementById('ptKpiHealthD').style.color   = atRisk > 0 ? 'var(--amber)' : 'var(--green)';
+  document.getElementById('ptKpiMrrD').textContent      = totalMrr > 0 ? `20% of $${totalMrr.toLocaleString()} MRR` : 'Awaiting billing data';
+  document.getElementById('ptKpiHealthD').textContent   = healthClients.length === 0 ? 'Awaiting data' : atRisk > 0 ? `⚠ ${atRisk} account${atRisk>1?'s':''} need attention` : '↑ All accounts healthy';
+  document.getElementById('ptKpiHealthD').style.color   = healthClients.length === 0 ? 'var(--muted)' : atRisk > 0 ? 'var(--amber)' : 'var(--green)';
 
   // Client health list
   const sorted = [...ptClients].sort((a,b) => a.health - b.health);
   document.getElementById('ptDashClientList').innerHTML = sorted.map(c => {
-    const hclr = c.health >= 8 ? 'var(--green)' : c.health >= 6 ? 'var(--amber)' : 'var(--red)';
+    const hasH = c.health != null && c.health > 0;
+    const hclr = hasH ? (c.health >= 8 ? 'var(--green)' : c.health >= 6 ? 'var(--amber)' : 'var(--red)') : 'var(--muted)';
     return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
       <div>
         <div style="font-size:13px;font-weight:600;">${c.name}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px;">${c.campaigns||0} campaigns · ${c.lastActive||'—'}</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:12px;font-weight:700;color:${hclr};">● ${c.health}/10</span>
+        <span style="font-size:12px;font-weight:700;color:${hclr};">${hasH ? '● '+c.health+'/10' : '—'}</span>
         <button class="pt-open-btn" onclick="ptOpenWorkspace('${c.id}')">Open</button>
       </div>
     </div>`;
@@ -1219,16 +1232,21 @@ function ptRenderClients(filter) {
   }
 
   document.getElementById('ptClientsBody').innerHTML = data.map(c => {
-    const hcls = c.health >= 8 ? 'high' : c.health >= 6 ? 'mid' : 'low';
-    const hlbl = c.health >= 8 ? 'Good' : c.health >= 6 ? 'Average' : 'Needs attention';
-    const commission = Math.round((c.mrr||0) * 0.20);
+    const hasHealth = c.health != null && c.health > 0;
+    const hcls = hasHealth ? (c.health >= 8 ? 'high' : c.health >= 6 ? 'mid' : 'low') : '';
+    const hlbl = hasHealth ? `${c.health}/10 ${c.health >= 8 ? 'Good' : c.health >= 6 ? 'Average' : 'Needs attention'}` : '—';
+    const healthHtml = hasHealth
+      ? `<span class="pt-health-badge ${hcls}">${hlbl}</span>`
+      : `<span style="color:var(--muted);font-size:12px;">—</span>`;
+    const hasMrr = c.mrr != null && c.mrr > 0;
+    const commission = hasMrr ? Math.round(c.mrr * 0.20) : null;
     const plan = c.plan || 'starter';
     return `<tr>
       <td><strong>${c.name}</strong></td>
       <td><span class="pt-plan-badge ${plan}">${plan.charAt(0).toUpperCase()+plan.slice(1)}</span></td>
-      <td><span class="pt-health-badge ${hcls}">${c.health}/10 ${hlbl}</span></td>
-      <td style="font-weight:700;">$${(c.mrr||0).toLocaleString()}</td>
-      <td style="font-weight:700;color:var(--green);">$${commission.toLocaleString()}</td>
+      <td>${healthHtml}</td>
+      <td style="font-weight:700;color:${hasMrr?'inherit':'var(--muted)'};">${hasMrr ? '$'+c.mrr.toLocaleString() : '—'}</td>
+      <td style="font-weight:700;color:${commission!=null?'var(--green)':'var(--muted)'};">${commission!=null ? '$'+commission.toLocaleString() : '—'}</td>
       <td style="color:var(--muted);">${c.campaigns||0}</td>
       <td style="color:var(--muted);font-size:12px;">${c.lastActive||'—'}</td>
       <td style="display:flex;gap:6px;align-items:center;">
@@ -1396,9 +1414,17 @@ async function ptGenerateInvite() {
   } catch(e) { /* no email key configured */ }
 
   // Save locally so it appears in clients list immediately
-  const newClient = { name, id:wsId, health:10, mrr: plan==='pro'?599:plan==='growth'?299:0, lastActive:'Just now', campaigns:0, status:'active', plan, email };
+  const newClient = { name, id:wsId, health:null, mrr:null, lastActive:'Just now', campaigns:0, status:'active', plan, email };
   ptClients.unshift(newClient);
   document.getElementById('ptClientBadge').textContent = ptClients.length;
+
+  // Keep localStorage access list in sync
+  try {
+    const acc = JSON.parse(localStorage.getItem('cp_pt_access') || '{}');
+    acc.clientIds = [...new Set([wsId, ...(acc.clientIds||[])])];
+    acc.savedAt = Date.now();
+    localStorage.setItem('cp_pt_access', JSON.stringify(acc));
+  } catch(e) {}
 
   // Show result
   document.getElementById('ptInviteForm').style.display = 'none';

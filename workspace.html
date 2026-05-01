@@ -1314,8 +1314,14 @@ function wsInitApp() {
     if (img) { img.src = pt.logo; img.alt = pt.agencyName || 'Agency'; }
   }
 
-  // Admin banner
-  if (s.isAdmin) document.getElementById('wsAdminBanner').style.display = 'flex';
+  // Admin / Partner banner
+  if (s.isAdmin) {
+    const banner = document.getElementById('wsAdminBanner');
+    banner.style.display = 'flex';
+    if (s.isPartner) {
+      banner.innerHTML = `🤝 You are viewing this workspace as <strong style="margin:0 4px;">${s.partnerName}</strong> — the client cannot see this banner.`;
+    }
+  }
 
   // Trial banner
   const trialStatus = wsTrialStatus();
@@ -2179,9 +2185,34 @@ function wsUpdateBudgetTotal() {} // stub for campaign form budget input
   // Pre-fill workspace from URL
   if (wParam) {
     document.getElementById('wsIdInput').value = wParam;
+
     // Admin direct-access (from HQ "View Workspace" button)
     if (adminParam === '1' && localStorage.getItem('cp_admin_mode') === 'true') {
       wsStartSession({ workspaceId: wParam, companyName: wsIdToName(wParam), email: 'admin@clickpoint.agency', isAdmin: true });
+      return;
+    }
+
+    // Partner direct-access — bypass login if this workspace belongs to the partner's client list
+    const pParam = params.get('p');
+    if (pParam) {
+      try {
+        const ptAccess = JSON.parse(localStorage.getItem('cp_pt_access') || '{}');
+        const SESSION_TTL = 12 * 60 * 60 * 1000; // 12 hours
+        const fresh = ptAccess.savedAt && (Date.now() - ptAccess.savedAt) < SESSION_TTL;
+        const isPartnerClient = Array.isArray(ptAccess.clientIds) && ptAccess.clientIds.includes(wParam);
+        if (fresh && ptAccess.partnerId === pParam && isPartnerClient) {
+          wsStartSession({
+            workspaceId:  wParam,
+            companyName:  wsIdToName(wParam),
+            email:        'partner@' + pParam,
+            isAdmin:      true,
+            isPartner:    true,
+            partnerName:  ptAccess.agencyName || pParam,
+            createdAt:    new Date().toISOString()
+          });
+          return;
+        }
+      } catch(e) {}
     }
   }
 })();
