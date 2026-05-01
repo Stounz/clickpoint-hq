@@ -2236,18 +2236,19 @@ function _wsAiContext() {
   const connected = allIntegrations.filter(c => c.status === 'connected');
 
   // Summarise which platforms are live by category
-  const byCategory = { paid: [], email: [], social: [] };
+  const byCategory = { paid: [], email: [], social: [], design: [] };
   connected.forEach(c => {
     const p = WS_PLATFORMS.find(x => x.id === c.platform);
     if (p) byCategory[p.category || 'paid'].push(p.label);
   });
 
   const integrationSummary = connected.length === 0
-    ? 'NONE — no ad platforms, email tools, or social accounts are connected yet.'
+    ? 'NONE — no ad platforms, email tools, social accounts, or design tools are connected yet.'
     : [
-        byCategory.paid.length  ? `Paid/Analytics: ${byCategory.paid.join(', ')}`   : '',
-        byCategory.email.length ? `Email marketing: ${byCategory.email.join(', ')}` : '',
-        byCategory.social.length? `Organic social: ${byCategory.social.join(', ')}` : '',
+        byCategory.paid.length   ? `Paid/Analytics: ${byCategory.paid.join(', ')}`   : '',
+        byCategory.email.length  ? `Email marketing: ${byCategory.email.join(', ')}` : '',
+        byCategory.social.length ? `Organic social: ${byCategory.social.join(', ')}` : '',
+        byCategory.design.length ? `Design tools: ${byCategory.design.join(', ')}`   : '',
       ].filter(Boolean).join(' | ');
 
   const setupPath = hasPartner
@@ -2273,9 +2274,10 @@ ROUTING RULES:
 1. Campaign setup request → check if relevant platform is connected first. If not, ${setupPath}.
 2. Email marketing questions → needs Mailchimp, Klaviyo, or ActiveCampaign connected.
 3. Organic social / posting → needs Facebook Pages, Instagram, LinkedIn Pages, or TikTok connected.
-4. Performance / reporting → needs at least one platform connected to pull real data.
-5. Client says "you/agency do it" → confirm you'll raise it with the ${agencyLabel} team, ask for any missing details (e.g. which platform, account name).
-6. Strategy questions with no data → you can still give directional advice, but flag that connecting accounts will unlock specific recommendations.
+4. Design / creative asset requests → needs Canva, Figma, Adobe Express, or Google Drive connected so agents can access templates and brand assets automatically.
+5. Performance / reporting → needs at least one platform connected to pull real data.
+6. Client says "you/agency do it" → confirm you'll raise it with the ${agencyLabel} team, ask for any missing details (e.g. which platform, account name).
+7. Strategy questions with no data → you can still give directional advice, but flag that connecting accounts will unlock specific recommendations.
 
 PERSONA: Authoritative, warm, strategic, client-friendly CMO. No internal jargon. Keep responses to 3–5 sentences unless depth is genuinely needed. Use light formatting (bold for emphasis) when helpful. Always end with a clear next step or question.`.trim();
 }
@@ -2927,16 +2929,22 @@ const WS_PLATFORMS = [
   { id: 'klaviyo',          label: 'Klaviyo',            icon: '📧', hint: 'e.g. your Klaviyo account subdomain', category: 'email'  },
   { id: 'activecampaign',   label: 'ActiveCampaign',     icon: '⚡', hint: 'e.g. yourname.activehosted.com',     category: 'email'  },
   // ── Organic Social ──
-  { id: 'facebook_pages',   label: 'Facebook Pages',     icon: '🔵', hint: 'e.g. 123456789012345 (Page ID)',      category: 'social' },
-  { id: 'instagram',        label: 'Instagram',          icon: '📸', hint: 'e.g. @yourbrand or numeric user ID',  category: 'social' },
-  { id: 'linkedin_pages',   label: 'LinkedIn Pages',     icon: '💼', hint: 'e.g. company/your-company-slug',      category: 'social' },
-  { id: 'tiktok',           label: 'TikTok',             icon: '🎵', hint: 'e.g. @yourbrand',                    category: 'social' },
+  { id: 'facebook_pages',   label: 'Facebook Pages',     icon: '🔵', hint: 'e.g. 123456789012345 (Page ID)',           category: 'social'  },
+  { id: 'instagram',        label: 'Instagram',          icon: '📸', hint: 'e.g. @yourbrand or numeric user ID',       category: 'social'  },
+  { id: 'linkedin_pages',   label: 'LinkedIn Pages',     icon: '💼', hint: 'e.g. company/your-company-slug',           category: 'social'  },
+  { id: 'tiktok',           label: 'TikTok',             icon: '🎵', hint: 'e.g. @yourbrand',                         category: 'social'  },
+  // ── Design & Creative ──
+  { id: 'canva',            label: 'Canva',              icon: '🎨', hint: 'e.g. your Canva Team ID or brand kit URL', category: 'design'  },
+  { id: 'figma',            label: 'Figma',              icon: '🖊️', hint: 'e.g. your Figma Team ID (from team URL)',  category: 'design'  },
+  { id: 'adobe_express',    label: 'Adobe Express',      icon: '🅰️', hint: 'e.g. your Adobe Organization ID',         category: 'design'  },
+  { id: 'google_drive',     label: 'Google Drive',       icon: '🗂️', hint: 'e.g. shared folder URL or Drive ID',      category: 'design'  },
 ];
 
 const WS_PLATFORM_CATEGORIES = {
-  paid:   { label: 'Paid & Analytics', icon: '📈' },
-  email:  { label: 'Email Marketing',  icon: '✉️'  },
-  social: { label: 'Organic Social',   icon: '📱' },
+  paid:   { label: 'Paid & Analytics',   icon: '📈' },
+  email:  { label: 'Email Marketing',    icon: '✉️'  },
+  social: { label: 'Organic Social',     icon: '📱' },
+  design: { label: 'Design & Creative',  icon: '🎨' },
 };
 
 async function wsLoadIntegrations() {
@@ -2959,7 +2967,7 @@ async function wsLoadIntegrations() {
   connected.forEach(c => { connMap[c.platform] = c; });
 
   // Group platforms by category and render with section headers
-  const categoryOrder = ['paid', 'email', 'social'];
+  const categoryOrder = ['paid', 'email', 'social', 'design'];
   const grouped = {};
   WS_PLATFORMS.forEach(p => {
     const cat = p.category || 'paid';
@@ -3010,12 +3018,16 @@ function wsConnectIntegration(platformId) {
     paid:   'Your agency team will use their own credentials to manage your account — you never need to share passwords.',
     email:  'Your agency team will use their own API credentials. Providing your account ID lets them access your lists and campaigns on your behalf.',
     social: 'Providing your Page or profile ID allows the agency to schedule and post content. You\'ll also receive a separate Page access request to grant posting permission.',
+    design: 'Connecting your design workspace lets agents access your brand templates, assets, and files to create on-brand content automatically — no manual file sharing needed.',
   }[platform.category || 'paid'];
   backdrop.innerHTML = `
     <div class="ws-integration-modal" onclick="event.stopPropagation()">
       <div class="ws-integration-modal-title">${platform.icon} Connect ${platform.label}</div>
       <div class="ws-integration-modal-sub">${catNote}</div>
-      <label class="ws-brand-label">${platform.category === 'social' ? 'Page / Profile ID' : 'Account ID'}</label>
+      <label class="ws-brand-label">${
+        platform.category === 'social'  ? 'Page / Profile ID'  :
+        platform.category === 'design'  ? 'Workspace / Team ID' : 'Account ID'
+      }</label>
       <input id="wsIntAccountId" class="login-input" placeholder="${platform.hint}" style="margin-bottom:8px;">
       <div style="font-size:11px;color:var(--muted);margin-bottom:20px;">
         📍 Where to find it: ${_wsAccountIdHelp(platformId)}
@@ -3047,6 +3059,11 @@ function _wsAccountIdHelp(platformId) {
     instagram:        'Instagram → Profile → Edit Profile → scroll to bottom → see profile URL, or use your @handle',
     linkedin_pages:   'LinkedIn → your Company Page → Admin view → look at the URL: linkedin.com/company/YOUR-SLUG',
     tiktok:           'TikTok → Profile → your @username, or TikTok for Business → Account Settings → Account ID',
+    // Design & Creative
+    canva:            'Canva → your Team name (top-left) → Settings → Team details → Team ID, OR share your Brand Kit link',
+    figma:            'Figma → open your team workspace → Team ID is in the URL: figma.com/files/team/TEAM_ID/...',
+    adobe_express:    'Adobe Admin Console → Overview → Organization ID shown at the top of the page',
+    google_drive:     'Google Drive → right-click shared folder → Get link → copy the folder ID from the URL',
   };
   return helps[platformId] || 'Check your platform account settings';
 }
