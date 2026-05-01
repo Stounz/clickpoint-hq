@@ -327,7 +327,8 @@
   /* Colour palette */
   .ws-bh-palette { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
   .ws-bh-col-item { flex:1; min-width:100px; }
-  .ws-bh-swatch { height:52px; border-radius:10px 10px 0 0; border:1px solid rgba(0,0,0,0.07); transition:background 0.2s; }
+  .ws-bh-swatch { height:52px; border-radius:10px 10px 0 0; border:1px solid rgba(0,0,0,0.07); transition:background 0.2s; cursor:pointer; position:relative; overflow:hidden; }
+  .ws-bh-swatch:hover::after { content:'🎨'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.15); font-size:18px; display:flex; }
   .ws-bh-col-inputs { background:#F5F4EF; border:1.5px solid #E2E1DB; border-top:none; border-radius:0 0 10px 10px; padding:8px; display:flex; flex-direction:column; gap:5px; }
   .ws-bh-col-label { font-size:10px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--muted); }
   .ws-bh-col-hex { font-size:12px; font-family:monospace; font-weight:700; color:var(--dark); border:none; background:none; outline:none; width:100%; padding:0; }
@@ -1145,38 +1146,48 @@
               <div class="ws-bh-section-title">Colour Palette</div>
               <div class="ws-bh-palette">
                 <div class="ws-bh-col-item">
-                  <div class="ws-bh-swatch" id="bSwatch1" style="background:#1C3A2E;"></div>
+                  <div class="ws-bh-swatch" id="bSwatch1" style="background:#1C3A2E;" title="Click to pick colour" onclick="document.getElementById('bPicker1').click()">
+                    <input type="color" id="bPicker1" value="#1C3A2E" style="opacity:0;position:absolute;width:0;height:0;" oninput="wsBhPickerSync('bPicker1','bCol1','bSwatch1')" />
+                  </div>
                   <div class="ws-bh-col-inputs">
                     <span class="ws-bh-col-label">Primary</span>
-                    <input class="ws-bh-col-hex" id="bCol1" value="#1C3A2E" maxlength="7" oninput="wsBhUpdateSwatch('bCol1','bSwatch1')" />
+                    <input class="ws-bh-col-hex" id="bCol1" value="#1C3A2E" maxlength="7" oninput="wsBhUpdateSwatch('bCol1','bSwatch1','bPicker1')" />
                   </div>
                 </div>
                 <div class="ws-bh-col-item">
-                  <div class="ws-bh-swatch" id="bSwatch2" style="background:#D4622A;"></div>
+                  <div class="ws-bh-swatch" id="bSwatch2" style="background:#D4622A;" title="Click to pick colour" onclick="document.getElementById('bPicker2').click()">
+                    <input type="color" id="bPicker2" value="#D4622A" style="opacity:0;position:absolute;width:0;height:0;" oninput="wsBhPickerSync('bPicker2','bCol2','bSwatch2')" />
+                  </div>
                   <div class="ws-bh-col-inputs">
                     <span class="ws-bh-col-label">Secondary</span>
-                    <input class="ws-bh-col-hex" id="bCol2" value="#D4622A" maxlength="7" oninput="wsBhUpdateSwatch('bCol2','bSwatch2')" />
+                    <input class="ws-bh-col-hex" id="bCol2" value="#D4622A" maxlength="7" oninput="wsBhUpdateSwatch('bCol2','bSwatch2','bPicker2')" />
                   </div>
                 </div>
                 <div class="ws-bh-col-item">
-                  <div class="ws-bh-swatch" id="bSwatch3" style="background:#F5F4EF;"></div>
+                  <div class="ws-bh-swatch" id="bSwatch3" style="background:#F5F4EF;" title="Click to pick colour" onclick="document.getElementById('bPicker3').click()">
+                    <input type="color" id="bPicker3" value="#F5F4EF" style="opacity:0;position:absolute;width:0;height:0;" oninput="wsBhPickerSync('bPicker3','bCol3','bSwatch3')" />
+                  </div>
                   <div class="ws-bh-col-inputs">
                     <span class="ws-bh-col-label">Accent</span>
-                    <input class="ws-bh-col-hex" id="bCol3" value="#F5F4EF" maxlength="7" oninput="wsBhUpdateSwatch('bCol3','bSwatch3')" />
+                    <input class="ws-bh-col-hex" id="bCol3" value="#F5F4EF" maxlength="7" oninput="wsBhUpdateSwatch('bCol3','bSwatch3','bPicker3')" />
                   </div>
                 </div>
                 <div class="ws-bh-col-item">
-                  <div class="ws-bh-swatch" id="bSwatch4" style="background:#1A1A1A;"></div>
+                  <div class="ws-bh-swatch" id="bSwatch4" style="background:#1A1A1A;" title="Click to pick colour" onclick="document.getElementById('bPicker4').click()">
+                    <input type="color" id="bPicker4" value="#1A1A1A" style="opacity:0;position:absolute;width:0;height:0;" oninput="wsBhPickerSync('bPicker4','bCol4','bSwatch4')" />
+                  </div>
                   <div class="ws-bh-col-inputs">
                     <span class="ws-bh-col-label">Dark</span>
-                    <input class="ws-bh-col-hex" id="bCol4" value="#1A1A1A" maxlength="7" oninput="wsBhUpdateSwatch('bCol4','bSwatch4')" />
+                    <input class="ws-bh-col-hex" id="bCol4" value="#1A1A1A" maxlength="7" oninput="wsBhUpdateSwatch('bCol4','bSwatch4','bPicker4')" />
                   </div>
                 </div>
                 <div class="ws-bh-col-item">
-                  <div class="ws-bh-swatch" id="bSwatch5" style="background:#FFFFFF; border:1px solid #E2E1DB;"></div>
+                  <div class="ws-bh-swatch" id="bSwatch5" style="background:#FFFFFF;" title="Click to pick colour" onclick="document.getElementById('bPicker5').click()">
+                    <input type="color" id="bPicker5" value="#FFFFFF" style="opacity:0;position:absolute;width:0;height:0;" oninput="wsBhPickerSync('bPicker5','bCol5','bSwatch5')" />
+                  </div>
                   <div class="ws-bh-col-inputs">
                     <span class="ws-bh-col-label">Light</span>
-                    <input class="ws-bh-col-hex" id="bCol5" value="#FFFFFF" maxlength="7" oninput="wsBhUpdateSwatch('bCol5','bSwatch5')" />
+                    <input class="ws-bh-col-hex" id="bCol5" value="#FFFFFF" maxlength="7" oninput="wsBhUpdateSwatch('bCol5','bSwatch5','bPicker5')" />
                   </div>
                 </div>
               </div>
@@ -2289,11 +2300,15 @@ function wsLoadBrandHub() {
     const el = document.getElementById(id);
     if (el && saved[id] !== undefined) el.value = saved[id];
   });
-  // Restore live swatches
+  // Restore live swatches and pickers
   ['1','2','3','4','5'].forEach(n => {
-    const hexEl = document.getElementById('bCol' + n);
+    const hexEl  = document.getElementById('bCol' + n);
     const swatch = document.getElementById('bSwatch' + n);
-    if (hexEl && swatch && hexEl.value) swatch.style.background = hexEl.value;
+    const picker = document.getElementById('bPicker' + n);
+    if (hexEl && hexEl.value) {
+      if (swatch) swatch.style.background = hexEl.value;
+      if (picker) picker.value = hexEl.value;
+    }
   });
   // Restore personality traits
   if (Array.isArray(saved.bTraits)) {
@@ -2325,11 +2340,18 @@ function wsBhTab(panel, el) {
   document.getElementById('bhp-' + panel).classList.add('active');
 }
 
-function wsBhUpdateSwatch(inputId, swatchId) {
+function wsBhUpdateSwatch(inputId, swatchId, pickerId) {
   const val = document.getElementById(inputId).value;
-  if (/^#[0-9A-Fa-f]{3,6}$/.test(val)) {
+  if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
     document.getElementById(swatchId).style.background = val;
+    if (pickerId) document.getElementById(pickerId).value = val;
   }
+}
+
+function wsBhPickerSync(pickerId, hexId, swatchId) {
+  const val = document.getElementById(pickerId).value;
+  document.getElementById(hexId).value = val;
+  document.getElementById(swatchId).style.background = val;
 }
 
 function wsBhToggleTrait(el) {
