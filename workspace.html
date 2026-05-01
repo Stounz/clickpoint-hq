@@ -1797,34 +1797,23 @@ async function wsAiSend() {
   `;
   msgs.scrollTop = msgs.scrollHeight;
 
-  // Build rich client context for Sarah
-  const m = wsDemoMetrics();
-  const context = `IMPORTANT — CLIENT-FACING MODE: You are speaking directly with the client, not internally with your team. The client is ${wsSession.companyName} (workspace: ${wsSession.workspaceId}). Speak as their CMO — authoritative, warm, and client-friendly. No internal agency jargon. Keep responses to 3-5 sentences unless depth is needed. Their current account metrics: ${m.campaigns} active campaigns, ${m.spend} monthly ad spend, ${m.leads} leads this month (up 14% vs last month), ${m.roas} ROAS, account health score ${m.health}/10 (${m.healthLabel}). Active channels: Google Ads (strongest), Meta Ads, Organic SEO. Address them as a client you know well — you have full visibility into their account.`;
+  // Build context for Sarah — no fake metrics, just real session info
+  const context = `IMPORTANT — CLIENT-FACING MODE: You are Sarah Lin, CMO at the client's marketing agency. You are speaking directly with the client, not internally with your team. The client's company is ${wsSession.companyName} (workspace: ${wsSession.workspaceId}). Speak as their dedicated CMO — authoritative, warm, strategic, and client-friendly. No internal agency jargon. Keep responses to 3-5 sentences unless depth is needed. Their campaign data is being synced by your team. Be helpful, ask clarifying questions where needed, and focus on marketing strategy, priorities, and next steps.`;
 
   let reply = '';
   try {
-    const key = wsApiKey || localStorage.getItem('cp_agc_key') || '';
-    if (key) {
-      const res = await fetch(`${WS_API}/api/agent`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json','X-API-Key':key},
-        body: JSON.stringify({ agentId:'sarah', messages:[{role:'user',content:msg}], context, workspaceId: wsSession.workspaceId, client: wsSession.companyName })
-      });
-      const data = await res.json();
-      reply = data.content || '';
-    }
+    const res = await fetch(`${WS_API}/api/agent`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ agentId:'sarah', messages:[{role:'user',content:msg}], context, workspaceId: wsSession.workspaceId, client: wsSession.companyName })
+    });
+    const data = await res.json();
+    reply = data.content || '';
   } catch(e) {}
 
   if (!reply) {
-    // Sarah-voiced fallback responses
-    const lower = msg.toLowerCase();
-    if (lower.includes('perform') || lower.includes('how are')) reply = `Looking at your numbers right now — things are in good shape. Your ROAS is at ${m.roas}, which is above the 2.5x industry benchmark, and leads are up 14% on last month. Google Ads is your strongest performer. I'd say you're in a strong position to push a bit harder this quarter.`;
-    else if (lower.includes('focus') || lower.includes('priorit')) reply = `My honest advice: double down on paid search — it's converting well and there's headroom to scale. I'd want to see the Google Ads budget increase by 15-20% to capture demand before competitors do. The SEO work is also gaining momentum; give it another 4-6 weeks and you'll see more organic leads coming through consistently.`;
-    else if (lower.includes('report') || lower.includes('explain')) reply = `Your account health is ${m.health}/10 — that's ${m.healthLabel}. In plain terms: your ads are spending efficiently, you're getting solid leads per dollar spent, and the organic side is growing. The one thing I'd flag is Meta's lead cost — the team is already working on creative refreshes to bring that down.`;
-    else if (lower.includes('lead') || lower.includes('increase')) reply = `The fastest wins are usually on the landing page side — even a 10% lift in conversion rate means 10% more leads from your existing budget. Beyond that, I'd look at lookalike audiences on Meta based on your best clients, and more transactional SEO content targeting bottom-of-funnel queries. Your team can move on all three of these.`;
-    else if (lower.includes('budget') || lower.includes('spend') || lower.includes('effective')) reply = `Your ${m.spend}/month is working well — your ROAS of ${m.roas} means you're getting solid returns. Google is giving you the best efficiency; Meta has room to improve but we're managing it carefully. I wouldn't cut anything right now — if anything, the case is there to increase Google spend and hold Meta steady while we optimise creatives.`;
-    else if (lower.includes('best') || lower.includes('channel')) reply = `Google Ads, hands down, for lead quality and ROAS. SEO is your best long-term asset and it's growing steadily. Meta is working for reach and awareness but costs more per lead — we're improving that. I'd lean into Google and SEO for direct revenue, and keep Meta for brand presence and retargeting.`;
-    else reply = `Good question. With ${m.campaigns} campaigns running and a ${m.health}/10 health score, your account is in solid shape. If you want me to dig into a specific area — budget, creative, channel mix, whatever — just ask. That's what I'm here for.`;
+    // Generic fallback if API is unreachable
+    reply = `Thanks for reaching out. I'm having a brief connectivity issue right now — please try again in a moment and I'll be right with you.`;
   }
 
   document.getElementById(typingId).remove();
