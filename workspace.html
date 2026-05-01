@@ -348,6 +348,8 @@
   .ws-integration-modal { background:#fff; border-radius:18px; padding:32px; width:440px; max-width:100%; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
   .ws-integration-modal-title { font-size:18px; font-weight:800; color:var(--text); margin-bottom:6px; }
   .ws-integration-modal-sub { font-size:13px; color:var(--muted); margin-bottom:24px; line-height:1.5; }
+.ws-integration-category-header { font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); padding:18px 0 8px; border-bottom:1px solid var(--border); margin-bottom:4px; }
+.ws-integration-category-header:first-child { padding-top:4px; }
 
   /* ── Brand Hub ── */
   .ws-brand-label { font-size:12px; font-weight:700; color:var(--dark); margin-bottom:6px; display:block; }
@@ -2809,12 +2811,28 @@ function wsUpdateBudgetTotal() {} // stub for campaign form budget input
 // ── Connected Accounts (Integrations) ────────────────────────────────────────
 
 const WS_PLATFORMS = [
-  { id: 'google_ads',       label: 'Google Ads',       icon: '🟦', hint: 'e.g. 123-456-7890' },
-  { id: 'meta_ads',         label: 'Meta Ads',          icon: '🟣', hint: 'e.g. 123456789012345' },
-  { id: 'google_analytics', label: 'Google Analytics',  icon: '📊', hint: 'e.g. G-XXXXXXXXXX or UA-XXXXXXXX-X' },
-  { id: 'search_console',   label: 'Search Console',    icon: '🔍', hint: 'e.g. sc-domain:example.com' },
-  { id: 'linkedin_ads',     label: 'LinkedIn Ads',      icon: '🔷', hint: 'e.g. 123456789' },
+  // ── Paid & Analytics ──
+  { id: 'google_ads',       label: 'Google Ads',        icon: '🟦', hint: 'e.g. 123-456-7890',                  category: 'paid'   },
+  { id: 'meta_ads',         label: 'Meta Ads',           icon: '🟣', hint: 'e.g. 123456789012345',               category: 'paid'   },
+  { id: 'google_analytics', label: 'Google Analytics',   icon: '📊', hint: 'e.g. G-XXXXXXXXXX or UA-XXXXXXXX-X', category: 'paid'   },
+  { id: 'search_console',   label: 'Search Console',     icon: '🔍', hint: 'e.g. sc-domain:example.com',         category: 'paid'   },
+  { id: 'linkedin_ads',     label: 'LinkedIn Ads',       icon: '🔷', hint: 'e.g. 123456789',                     category: 'paid'   },
+  // ── Email Marketing ──
+  { id: 'mailchimp',        label: 'Mailchimp',          icon: '🐵', hint: 'e.g. abc123def456 (Audience ID)',     category: 'email'  },
+  { id: 'klaviyo',          label: 'Klaviyo',            icon: '📧', hint: 'e.g. your Klaviyo account subdomain', category: 'email'  },
+  { id: 'activecampaign',   label: 'ActiveCampaign',     icon: '⚡', hint: 'e.g. yourname.activehosted.com',     category: 'email'  },
+  // ── Organic Social ──
+  { id: 'facebook_pages',   label: 'Facebook Pages',     icon: '🔵', hint: 'e.g. 123456789012345 (Page ID)',      category: 'social' },
+  { id: 'instagram',        label: 'Instagram',          icon: '📸', hint: 'e.g. @yourbrand or numeric user ID',  category: 'social' },
+  { id: 'linkedin_pages',   label: 'LinkedIn Pages',     icon: '💼', hint: 'e.g. company/your-company-slug',      category: 'social' },
+  { id: 'tiktok',           label: 'TikTok',             icon: '🎵', hint: 'e.g. @yourbrand',                    category: 'social' },
 ];
+
+const WS_PLATFORM_CATEGORIES = {
+  paid:   { label: 'Paid & Analytics', icon: '📈' },
+  email:  { label: 'Email Marketing',  icon: '✉️'  },
+  social: { label: 'Organic Social',   icon: '📱' },
+};
 
 async function wsLoadIntegrations() {
   const el = document.getElementById('wsIntegrationsList');
@@ -2835,26 +2853,43 @@ async function wsLoadIntegrations() {
   const connMap = {};
   connected.forEach(c => { connMap[c.platform] = c; });
 
-  el.innerHTML = WS_PLATFORMS.map(p => {
-    const c = connMap[p.id];
-    const isConnected = !!(c && c.status === 'connected');
-    const accountDisplay = c && c.account_id ? `Account: ${c.account_id}` : 'Not connected';
-    const statusHtml = isConnected
-      ? `<span class="ws-integration-status connected">● Connected</span>`
-      : `<span class="ws-integration-status disconnected">Not connected</span>`;
-    const btnHtml = isConnected
-      ? `<button class="ws-integration-btn disconnect" onclick="wsDisconnectIntegration('${c.id}','${p.id}')">Disconnect</button>`
-      : `<button class="ws-integration-btn connect" onclick="wsConnectIntegration('${p.id}')">Connect</button>`;
+  // Group platforms by category and render with section headers
+  const categoryOrder = ['paid', 'email', 'social'];
+  const grouped = {};
+  WS_PLATFORMS.forEach(p => {
+    const cat = p.category || 'paid';
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(p);
+  });
+
+  el.innerHTML = categoryOrder.map(cat => {
+    const platforms = grouped[cat];
+    if (!platforms || !platforms.length) return '';
+    const catMeta = WS_PLATFORM_CATEGORIES[cat] || { label: cat, icon: '' };
+    const rows = platforms.map(p => {
+      const c = connMap[p.id];
+      const isConnected = !!(c && c.status === 'connected');
+      const accountDisplay = c && c.account_id ? `ID: ${c.account_id}` : 'Not connected';
+      const statusHtml = isConnected
+        ? `<span class="ws-integration-status connected">● Connected</span>`
+        : `<span class="ws-integration-status disconnected">Not connected</span>`;
+      const btnHtml = isConnected
+        ? `<button class="ws-integration-btn disconnect" onclick="wsDisconnectIntegration('${c.id}','${p.id}')">Disconnect</button>`
+        : `<button class="ws-integration-btn connect" onclick="wsConnectIntegration('${p.id}')">Connect</button>`;
+      return `
+        <div class="ws-integration-row" id="wsIntRow_${p.id}">
+          <div class="ws-integration-icon">${p.icon}</div>
+          <div class="ws-integration-info">
+            <div class="ws-integration-name">${p.label}</div>
+            <div class="ws-integration-meta">${accountDisplay}</div>
+          </div>
+          ${statusHtml}
+          ${btnHtml}
+        </div>`;
+    }).join('');
     return `
-      <div class="ws-integration-row" id="wsIntRow_${p.id}">
-        <div class="ws-integration-icon">${p.icon}</div>
-        <div class="ws-integration-info">
-          <div class="ws-integration-name">${p.label}</div>
-          <div class="ws-integration-meta">${accountDisplay}</div>
-        </div>
-        ${statusHtml}
-        ${btnHtml}
-      </div>`;
+      <div class="ws-integration-category-header">${catMeta.icon} ${catMeta.label}</div>
+      ${rows}`;
   }).join('');
 }
 
@@ -2866,17 +2901,19 @@ function wsConnectIntegration(platformId) {
   const backdrop = document.createElement('div');
   backdrop.className = 'ws-integration-modal-backdrop';
   backdrop.id = 'wsIntModalBackdrop';
+  const catNote = {
+    paid:   'Your agency team will use their own credentials to manage your account — you never need to share passwords.',
+    email:  'Your agency team will use their own API credentials. Providing your account ID lets them access your lists and campaigns on your behalf.',
+    social: 'Providing your Page or profile ID allows the agency to schedule and post content. You\'ll also receive a separate Page access request to grant posting permission.',
+  }[platform.category || 'paid'];
   backdrop.innerHTML = `
     <div class="ws-integration-modal" onclick="event.stopPropagation()">
       <div class="ws-integration-modal-title">${platform.icon} Connect ${platform.label}</div>
-      <div class="ws-integration-modal-sub">
-        Enter your ${platform.label} Account ID. Your agency team will use their own credentials
-        to manage your account — you never need to share passwords.
-      </div>
-      <label class="ws-brand-label">Account ID</label>
+      <div class="ws-integration-modal-sub">${catNote}</div>
+      <label class="ws-brand-label">${platform.category === 'social' ? 'Page / Profile ID' : 'Account ID'}</label>
       <input id="wsIntAccountId" class="login-input" placeholder="${platform.hint}" style="margin-bottom:8px;">
       <div style="font-size:11px;color:var(--muted);margin-bottom:20px;">
-        Where to find it: ${_wsAccountIdHelp(platformId)}
+        📍 Where to find it: ${_wsAccountIdHelp(platformId)}
       </div>
       <div style="display:flex;gap:10px;">
         <button onclick="wsCloseIntModal()" style="flex:1;padding:12px;background:#F4F3EE;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
@@ -2890,11 +2927,21 @@ function wsConnectIntegration(platformId) {
 
 function _wsAccountIdHelp(platformId) {
   const helps = {
-    google_ads:       'Google Ads → top-right account menu → your 10-digit Customer ID',
-    meta_ads:         'Meta Ads Manager → Account Overview → Ad Account ID',
-    google_analytics: 'GA4 Admin → Property Settings → Property ID (or Measurement ID)',
-    search_console:   'Google Search Console → Settings → Property details',
-    linkedin_ads:     'LinkedIn Campaign Manager → Account → Account ID in URL',
+    // Paid & Analytics
+    google_ads:       'Google Ads → top-right account switcher → your 10-digit Customer ID (xxx-xxx-xxxx)',
+    meta_ads:         'Meta Ads Manager → Account Overview → Ad Account ID (starts with "act_")',
+    google_analytics: 'GA4 → Admin → Property Settings → Property ID  (or Measurement ID starting with G-)',
+    search_console:   'Google Search Console → Settings → Property details → Property name',
+    linkedin_ads:     'LinkedIn Campaign Manager → Account dropdown → Account ID shown in the URL',
+    // Email Marketing
+    mailchimp:        'Mailchimp → Audience → Manage Audience → Settings → Audience ID',
+    klaviyo:          'Klaviyo → Account → Settings → API Keys → your account subdomain (before .klaviyo.com)',
+    activecampaign:   'ActiveCampaign → Settings → Developer → your account URL subdomain (e.g. "yourname" in yourname.activehosted.com)',
+    // Organic Social
+    facebook_pages:   'Facebook → your Page → About → scroll to "Page Transparency" → Page ID',
+    instagram:        'Instagram → Profile → Edit Profile → scroll to bottom → see profile URL, or use your @handle',
+    linkedin_pages:   'LinkedIn → your Company Page → Admin view → look at the URL: linkedin.com/company/YOUR-SLUG',
+    tiktok:           'TikTok → Profile → your @username, or TikTok for Business → Account Settings → Account ID',
   };
   return helps[platformId] || 'Check your platform account settings';
 }
