@@ -350,6 +350,10 @@
   .ws-integration-modal-sub { font-size:13px; color:var(--muted); margin-bottom:24px; line-height:1.5; }
 .ws-integration-category-header { font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); padding:18px 0 8px; border-bottom:1px solid var(--border); margin-bottom:4px; }
 .ws-integration-category-header:first-child { padding-top:4px; }
+.ws-integration-add-other { display:flex; align-items:center; gap:8px; padding:10px 6px; color:var(--teal); font-size:13px; font-weight:600; cursor:pointer; border-radius:8px; transition:background 0.12s; border:none; background:none; font-family:inherit; width:100%; }
+.ws-integration-add-other:hover { background:rgba(28,58,46,0.05); }
+.ws-integration-add-other-icon { width:32px; height:32px; border-radius:8px; border:1.5px dashed var(--teal); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; opacity:0.7; }
+.ws-int-modal-label { font-size:12px; font-weight:700; color:var(--text); margin-bottom:5px; display:block; }
 
   /* ── Brand Hub ── */
   .ws-brand-label { font-size:12px; font-weight:700; color:var(--dark); margin-bottom:6px; display:block; }
@@ -2979,6 +2983,8 @@ async function wsLoadIntegrations() {
     const platforms = grouped[cat];
     if (!platforms || !platforms.length) return '';
     const catMeta = WS_PLATFORM_CATEGORIES[cat] || { label: cat, icon: '' };
+
+    // Built-in platform rows
     const rows = platforms.map(p => {
       const c = connMap[p.id];
       const isConnected = !!(c && c.status === 'connected');
@@ -3000,10 +3006,111 @@ async function wsLoadIntegrations() {
           ${btnHtml}
         </div>`;
     }).join('');
+
+    // Custom "other_[cat]_*" rows added by the client
+    const customRows = connected
+      .filter(c => c.platform && c.platform.startsWith(`other_${cat}_`))
+      .map(c => {
+        const displayName = _wsCustomPlatformLabel(c.platform);
+        return `
+          <div class="ws-integration-row" id="wsIntRow_${CSS.escape(c.platform)}">
+            <div class="ws-integration-icon" style="font-size:15px;">🔧</div>
+            <div class="ws-integration-info">
+              <div class="ws-integration-name">${displayName}</div>
+              <div class="ws-integration-meta">ID: ${c.account_id || '—'}</div>
+            </div>
+            <span class="ws-integration-status connected">● Connected</span>
+            <button class="ws-integration-btn disconnect" onclick="wsDisconnectIntegration('${c.id}','${c.platform}')">Disconnect</button>
+          </div>`;
+      }).join('');
+
     return `
       <div class="ws-integration-category-header">${catMeta.icon} ${catMeta.label}</div>
-      ${rows}`;
+      ${rows}
+      ${customRows}
+      <button class="ws-integration-add-other" onclick="wsConnectOtherIntegration('${cat}')">
+        <div class="ws-integration-add-other-icon">＋</div>
+        Add another ${catMeta.label.toLowerCase()} tool
+      </button>`;
   }).join('');
+}
+
+/** Converts 'other_email_convertkit' → 'Convertkit' */
+function _wsCustomPlatformLabel(platformId) {
+  const m = platformId.match(/^other_\w+?_(.+)$/);
+  if (!m) return platformId;
+  const raw = m[1].replace(/_/g, ' ');
+  return raw.charAt(0).toUpperCase() + raw.slice(1);
+}
+
+/** Opens a two-field "add any tool" modal for the given category */
+function wsConnectOtherIntegration(category) {
+  const catMeta = WS_PLATFORM_CATEGORIES[category] || { label: 'Tool', icon: '🔧' };
+  const backdrop = document.createElement('div');
+  backdrop.className = 'ws-integration-modal-backdrop';
+  backdrop.id = 'wsIntModalBackdrop';
+  backdrop.innerHTML = `
+    <div class="ws-integration-modal" onclick="event.stopPropagation()">
+      <div class="ws-integration-modal-title">➕ Add ${catMeta.label} Tool</div>
+      <div class="ws-integration-modal-sub">
+        Don't see your tool in the list? Add any platform here — your agency team will be notified and will set up access on your behalf.
+      </div>
+      <label class="ws-int-modal-label">Tool / Platform name</label>
+      <input id="wsIntToolName" class="login-input" placeholder="e.g. HubSpot, Buffer, Hootsuite, Brevo…" style="margin-bottom:14px;">
+      <label class="ws-int-modal-label">Account ID, URL, or identifier</label>
+      <input id="wsIntAccountId" class="login-input" placeholder="e.g. your account ID, subdomain, or profile URL" style="margin-bottom:20px;">
+      <div style="display:flex;gap:10px;">
+        <button onclick="wsCloseIntModal()" style="flex:1;padding:12px;background:#F4F3EE;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
+        <button onclick="wsSaveOtherIntegration('${category}')" style="flex:2;padding:12px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Save Connection</button>
+      </div>
+    </div>`;
+  backdrop.addEventListener('click', wsCloseIntModal);
+  document.body.appendChild(backdrop);
+  setTimeout(() => { const inp = document.getElementById('wsIntToolName'); if (inp) inp.focus(); }, 60);
+}
+
+/** Saves a custom "other" integration — platform ID encodes category + tool name slug */
+async function wsSaveOtherIntegration(category) {
+  const toolNameEl  = document.getElementById('wsIntToolName');
+  const accountIdEl = document.getElementById('wsIntAccountId');
+  const toolName  = (toolNameEl  ? toolNameEl.value  : '').trim();
+  const accountId = (accountIdEl ? accountIdEl.value : '').trim();
+
+  let valid = true;
+  if (!toolName)  { toolNameEl  && (toolNameEl.style.borderColor  = 'var(--red)'); valid = false; }
+  if (!accountId) { accountIdEl && (accountIdEl.style.borderColor = 'var(--red)'); valid = false; }
+  if (!valid) return;
+
+  const slug = toolName.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  const platformId = `other_${category}_${slug}`;
+
+  const btn = document.querySelector('#wsIntModalBackdrop button:last-child');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  try {
+    const resp = await fetch('/api/integrations/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client:    wsSession.workspaceId,
+        platform:  platformId,
+        accountId: accountId,
+        token:     accountId,
+      }),
+    });
+    const data = await resp.json();
+    if (data.success || data.id) {
+      wsCloseIntModal();
+      wsLoadIntegrations();
+      if (typeof obShowToast === 'function') obShowToast(`${toolName} connected ✓`);
+    } else {
+      throw new Error(data.error || 'Unknown error');
+    }
+  } catch(e) {
+    console.error('connect other integration:', e);
+    if (btn) { btn.disabled = false; btn.textContent = 'Save Connection'; }
+    alert('Could not save: ' + e.message);
+  }
 }
 
 function wsConnectIntegration(platformId) {
