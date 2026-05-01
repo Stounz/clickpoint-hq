@@ -16,8 +16,8 @@
   body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--dark); min-height:100vh; }
 
   /* ── Login ── */
-  .pt-login { position:fixed; inset:0; background:#0E1F17; display:flex; align-items:center; justify-content:center; z-index:9999; }
-  .pt-login-card { width:100%; max-width:400px; padding:48px 40px; }
+  .pt-login { position:fixed; inset:0; background:#0E1F17; display:flex; align-items:flex-start; justify-content:center; z-index:9999; overflow-y:auto; }
+  .pt-login-card { width:100%; max-width:400px; padding:48px 40px; margin:auto; }
   .pt-login-logo { margin-bottom:28px; }
   .pt-login-logo img { height:30px; width:auto; }
   .pt-login-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; background:rgba(212,98,42,0.15); border:1px solid rgba(212,98,42,0.3); font-size:11px; color:var(--orange); font-weight:700; margin-bottom:24px; }
@@ -316,7 +316,7 @@
       <!-- Form -->
       <div id="ptRegisterForm">
         <div class="pt-login-title">Become a partner</div>
-        <div class="pt-login-sub" style="margin-bottom:24px;">Join the ClickPoint partner network and earn 20% commission on every client you manage.</div>
+        <div class="pt-login-sub" style="margin-bottom:24px;">Join the ClickPoint partner network and earn 20% of every client's monthly recurring subscription — for as long as they stay.</div>
         <label class="pt-login-label">Agency name</label>
         <input class="pt-login-input" id="ptRegAgency" placeholder="e.g. Acme Digital Agency" />
         <label class="pt-login-label">Your name</label>
@@ -344,8 +344,6 @@
     </div>
 
     <div class="pt-login-foot" style="margin-top:20px;">
-      Agency HQ? <a href="org-chart.html" target="_blank">Sign in here →</a> &nbsp;|&nbsp;
-      Client workspace? <a href="workspace.html" target="_blank">Sign in here →</a>
     </div>
   </div>
 </div>
