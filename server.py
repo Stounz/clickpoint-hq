@@ -2553,10 +2553,11 @@ class AgentHandler(BaseHTTPRequestHandler):
                     except Exception:
                         pass
                     self._json(200, {
-                        'success': True,
+                        'success':     True,
                         'companyName': company_name,
                         'contactName': contact_name,
                         'workspaceId': workspace_id,
+                        'createdAt':   row.get('created_at', ''),
                     })
                     return
             except Exception:

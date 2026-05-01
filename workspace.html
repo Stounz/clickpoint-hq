@@ -653,6 +653,10 @@
         👁 You are viewing this workspace as admin — clients cannot see this banner.
         <a href="org-chart.html" target="_blank">← Back to HQ</a>
       </div>
+      <div id="wsTrialBanner" style="display:none;background:linear-gradient(90deg,rgba(212,98,42,0.10),rgba(212,98,42,0.05));border:1.5px solid rgba(212,98,42,0.22);border-radius:12px;padding:12px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px;font-size:13px;color:var(--orange);font-weight:600;">
+        <span id="wsTrialBannerText"></span>
+        <button onclick="wsShowUpgrade()" style="margin-left:auto;padding:6px 16px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">Choose a plan →</button>
+      </div>
 
       <!-- ── Dashboard View ── -->
       <div class="ws-view active" id="view-dashboard">
@@ -1221,15 +1225,15 @@ function wsLogin() {
   .then(r => r.json())
   .then(d => {
     if (d.success || d.demo) {
-      wsStartSession({ workspaceId: id, companyName: d.companyName || wsIdToName(id), contactName: d.contactName || '', email, isAdmin: d.isAdmin || isAdmin });
+      wsStartSession({ workspaceId: id, companyName: d.companyName || wsIdToName(id), contactName: d.contactName || '', email, isAdmin: d.isAdmin || isAdmin, createdAt: d.createdAt || new Date().toISOString() });
     } else {
       // Demo fallback — accept any code for testing
-      wsStartSession({ workspaceId: id, companyName: wsIdToName(id), contactName: '', email, isAdmin });
+      wsStartSession({ workspaceId: id, companyName: wsIdToName(id), contactName: '', email, isAdmin, createdAt: new Date().toISOString() });
     }
   })
   .catch(() => {
     // Offline/demo fallback
-    wsStartSession({ workspaceId: id, companyName: wsIdToName(id), contactName: '', email, isAdmin });
+    wsStartSession({ workspaceId: id, companyName: wsIdToName(id), contactName: '', email, isAdmin, createdAt: new Date().toISOString() });
   });
 }
 
@@ -1312,6 +1316,21 @@ function wsInitApp() {
 
   // Admin banner
   if (s.isAdmin) document.getElementById('wsAdminBanner').style.display = 'flex';
+
+  // Trial banner
+  const trialStatus = wsTrialStatus();
+  const trialBanner = document.getElementById('wsTrialBanner');
+  const trialText   = document.getElementById('wsTrialBannerText');
+  if (trialStatus === 'active' && !s.isAdmin) {
+    const daysLeft = wsTrialDaysLeft();
+    trialText.textContent = daysLeft <= 3
+      ? `⚠️ Your free trial ends in ${daysLeft} day${daysLeft !== 1 ? 's' : ''} — all features will pause after that.`
+      : `🎉 You're on a free 14-day trial — ${daysLeft} days left. Full access to all features included.`;
+    trialBanner.style.display = 'flex';
+  } else if (trialStatus === 'expired' && !s.isAdmin) {
+    trialText.textContent = '⏰ Your free trial has ended — choose a plan to keep full access.';
+    trialBanner.style.display = 'flex';
+  }
 
   // Settings
   document.getElementById('wsSettingsId').textContent   = s.workspaceId;
@@ -1858,13 +1877,19 @@ function wsRenderGate(viewId, feature, planRequired) {
   const featureNames = { analytics:'Analytics & Attribution', library:'Deliverables Library', ai:'AI Marketing Assistant', brand:'Brand Hub' };
   const el = document.getElementById(viewId);
   if (!el) return;
-  // Remove old gate if any
   const old = el.querySelector('.ws-gate-overlay');
   if (old) old.remove();
   const gate = document.createElement('div');
   gate.className = 'ws-gate-overlay';
   gate.style.cssText = 'position:relative;min-height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:40px;background:#F9F8F4;border-radius:var(--radius);margin-top:24px;';
-  gate.innerHTML = `
+  const trialExpired = wsTrialStatus() === 'expired';
+  gate.innerHTML = trialExpired ? `
+    <div style="font-size:36px;">⏰</div>
+    <div style="font-size:18px;font-weight:800;color:var(--text);">Your free trial has ended</div>
+    <div style="font-size:13px;color:var(--muted);max-width:360px;line-height:1.6;">You had full access to all features during your 14-day trial. Choose a plan to keep using <strong>${featureNames[feature] || feature}</strong> and everything else.</div>
+    <button onclick="wsShowUpgrade()" style="margin-top:8px;padding:12px 28px;background:var(--teal);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Choose a plan →</button>
+    <div style="font-size:12px;color:var(--muted);">No commitment — cancel anytime.</div>
+  ` : `
     <div style="font-size:36px;">🔒</div>
     <div style="font-size:18px;font-weight:800;color:var(--text);">${featureNames[feature] || feature}</div>
     <div style="font-size:13px;color:var(--muted);max-width:320px;line-height:1.6;">Upgrade to <strong>${planNames[planRequired]}</strong> to unlock this feature.</div>
@@ -2122,7 +2147,30 @@ function wsPlanOverlaySignIn() {
 
 // ── Feature Gate ─────────────────────────────────────────────────────────────
 
+const WS_TRIAL_DAYS = 14;
+
+function wsTrialStatus() {
+  // Returns: 'active' | 'expired' | 'subscribed'
+  const plan = (wsSession && wsSession.plan) || 'starter';
+  if (['growth','pro','agency'].includes(plan)) return 'subscribed';
+  const created = wsSession && wsSession.createdAt;
+  if (!created) return 'active'; // can't determine — give benefit of doubt
+  const daysSince = (Date.now() - new Date(created).getTime()) / (1000 * 60 * 60 * 24);
+  return daysSince <= WS_TRIAL_DAYS ? 'active' : 'expired';
+}
+
+function wsTrialDaysLeft() {
+  const created = wsSession && wsSession.createdAt;
+  if (!created) return WS_TRIAL_DAYS;
+  const daysSince = (Date.now() - new Date(created).getTime()) / (1000 * 60 * 60 * 24);
+  return Math.max(0, Math.ceil(WS_TRIAL_DAYS - daysSince));
+}
+
 function wsPlanAllows(feature) {
+  // During active trial — full access to everything
+  const trial = wsTrialStatus();
+  if (trial === 'active') return true;
+  // Subscribed — check plan gates
   const plan = (wsSession && wsSession.plan) || 'starter';
   const gates = {
     campaigns_create: ['growth','pro','agency'],
