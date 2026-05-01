@@ -67,6 +67,24 @@
   .pt-ob-btn { width:100%; padding:13px; background:var(--orange); color:#fff; border:none; border-radius:11px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; margin-top:8px; transition:background 0.15s; }
   .pt-ob-btn:hover { background:#C0541E; }
 
+  /* ── Guided Tour ── */
+  .pt-tour-overlay { position:fixed; inset:0; background:rgba(10,18,14,0.72); z-index:9000; pointer-events:none; opacity:0; transition:opacity 0.3s; }
+  .pt-tour-overlay.visible { opacity:1; }
+  .pt-tour-tooltip { position:fixed; background:#fff; border-radius:16px; padding:24px 24px 20px; width:300px; box-shadow:0 20px 60px rgba(0,0,0,0.28); z-index:9002; pointer-events:all; opacity:0; transition:opacity 0.25s, top 0.25s, left 0.25s; }
+  .pt-tour-tooltip.visible { opacity:1; }
+  .pt-tour-step-label { font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--orange); margin-bottom:8px; }
+  .pt-tour-title { font-size:15px; font-weight:800; color:var(--dark); margin-bottom:6px; }
+  .pt-tour-body { font-size:13px; color:var(--muted); line-height:1.55; margin-bottom:20px; }
+  .pt-tour-foot { display:flex; align-items:center; gap:8px; }
+  .pt-tour-dots { display:flex; gap:5px; flex:1; }
+  .pt-tour-dot { width:6px; height:6px; border-radius:50%; background:#E2E1DB; transition:background 0.2s; }
+  .pt-tour-dot.active { background:var(--orange); width:16px; border-radius:3px; }
+  .pt-tour-skip { font-size:12px; color:var(--muted); background:none; border:none; cursor:pointer; font-family:inherit; padding:4px 6px; white-space:nowrap; }
+  .pt-tour-skip:hover { color:var(--dark); }
+  .pt-tour-next { padding:9px 18px; background:var(--orange); color:#fff; border:none; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+  .pt-tour-next:hover { background:#C0541E; }
+  .pt-tour-highlight { position:relative !important; z-index:9001 !important; box-shadow:0 0 0 4px rgba(212,98,42,0.6), 0 0 0 10px rgba(212,98,42,0.15) !important; border-radius:12px; transition:box-shadow 0.3s; }
+
   /* ── Invite Client Modal ── */
   .pt-modal-overlay { position:fixed; inset:0; background:rgba(10,18,14,0.7); z-index:2000; display:none; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
   .pt-modal-overlay.open { display:flex; }
@@ -537,14 +555,14 @@
 
         <!-- Quick Actions -->
         <div class="pt-quick-grid">
-          <div class="pt-quick-card" onclick="ptOpenInvite()">
+          <div class="pt-quick-card" id="ptTourCardInvite" onclick="ptOpenInvite()">
             <div class="pt-quick-icon orange">➕</div>
             <div>
               <div class="pt-quick-label">Invite new client</div>
               <div class="pt-quick-sub">Generate a workspace + access code</div>
             </div>
           </div>
-          <div class="pt-quick-card" onclick="ptSetView('settings');ptCopyLink()">
+          <div class="pt-quick-card" id="ptTourCardLink" onclick="ptSetView('settings');ptCopyLink()">
             <div class="pt-quick-icon teal">🔗</div>
             <div>
               <div class="pt-quick-label">Copy self-signup link</div>
@@ -917,6 +935,9 @@ function ptShowApp() {
   ptCheckOnboarding();
   ptShowTrialBanner();
   ptFetchData();
+  // Show tour only if onboarding already done (otherwise triggered from ptObComplete)
+  const _obKey = 'cp_pt_onboarded_' + (ptSession && ptSession.partnerId);
+  if (localStorage.getItem(_obKey)) ptMaybeTour();
 }
 
 // ── Trial ─────────────────────────────────────────────────────────────────────
@@ -1083,6 +1104,7 @@ function ptObComplete() {
   document.getElementById('ptObOverlay').style.display = 'none';
   ptLoadSavedConfig();
   ptUpdateWlLink();
+  ptMaybeTour();
 }
 
 // ── Config ────────────────────────────────────────────────────────────────────
@@ -1498,6 +1520,115 @@ function ptToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── Guided Tour ───────────────────────────────────────────────────────────────
+const PT_TOUR_STEPS = [
+  {
+    selector: '#ptTourCardInvite',
+    title: 'Invite a new client',
+    body: 'Generate a private workspace and access code to hand directly to your client. They log in with these credentials.',
+    position: 'bottom'
+  },
+  {
+    selector: '#ptTourCardLink',
+    title: 'Share your self-signup link',
+    body: 'Send this branded link to prospects and they sign themselves up — no manual setup needed on your end.',
+    position: 'bottom'
+  },
+  {
+    selector: '[data-view="settings"]',
+    title: 'Settings & your commission',
+    body: 'Find your unique partner link, manage your agency branding, and track your 20% recurring commission here.',
+    position: 'right'
+  }
+];
+
+let _ptTourStep = 0;
+let _ptTourTargetEl = null;
+let _ptTourOverlay = null;
+let _ptTourTooltip = null;
+
+function ptStartTour() {
+  if (_ptTourOverlay) return; // already running
+  _ptTourOverlay = document.createElement('div');
+  _ptTourOverlay.className = 'pt-tour-overlay';
+  document.body.appendChild(_ptTourOverlay);
+  _ptTourTooltip = document.createElement('div');
+  _ptTourTooltip.className = 'pt-tour-tooltip';
+  document.body.appendChild(_ptTourTooltip);
+  _ptTourStep = 0;
+  requestAnimationFrame(() => {
+    _ptTourOverlay.classList.add('visible');
+    _ptShowTourStep();
+  });
+}
+
+function _ptShowTourStep() {
+  if (_ptTourTargetEl) _ptTourTargetEl.classList.remove('pt-tour-highlight');
+  const step = PT_TOUR_STEPS[_ptTourStep];
+  _ptTourTargetEl = document.querySelector(step.selector);
+  if (!_ptTourTargetEl) { ptEndTour(); return; }
+  _ptTourTargetEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  setTimeout(() => {
+    _ptTourTargetEl.classList.add('pt-tour-highlight');
+    const rect = _ptTourTargetEl.getBoundingClientRect();
+    const isLast = _ptTourStep === PT_TOUR_STEPS.length - 1;
+    const dots = PT_TOUR_STEPS.map((_, i) =>
+      `<div class="pt-tour-dot${i === _ptTourStep ? ' active' : ''}"></div>`
+    ).join('');
+    _ptTourTooltip.innerHTML = `
+      <div class="pt-tour-step-label">Step ${_ptTourStep + 1} of ${PT_TOUR_STEPS.length}</div>
+      <div class="pt-tour-title">${step.title}</div>
+      <div class="pt-tour-body">${step.body}</div>
+      <div class="pt-tour-foot">
+        <div class="pt-tour-dots">${dots}</div>
+        <button class="pt-tour-skip" onclick="ptEndTour()">Skip</button>
+        <button class="pt-tour-next" onclick="ptTourNext()">${isLast ? 'Done ✓' : 'Next →'}</button>
+      </div>`;
+    _ptPositionTooltip(rect, step.position);
+    _ptTourTooltip.classList.add('visible');
+  }, 350);
+}
+
+function _ptPositionTooltip(rect, position) {
+  const tt = _ptTourTooltip;
+  const gap = 16;
+  const ttW = 300;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  let top, left;
+  if (position === 'right') {
+    top = rect.top + rect.height / 2 - 90;
+    left = rect.right + gap;
+  } else {
+    top = rect.bottom + gap;
+    left = rect.left + rect.width / 2 - ttW / 2;
+  }
+  left = Math.max(16, Math.min(left, vw - ttW - 16));
+  top  = Math.max(16, Math.min(top, vh - 200));
+  tt.style.left = left + 'px';
+  tt.style.top  = top + 'px';
+}
+
+function ptTourNext() {
+  _ptTourStep++;
+  if (_ptTourStep >= PT_TOUR_STEPS.length) { ptEndTour(); return; }
+  _ptShowTourStep();
+}
+
+function ptEndTour() {
+  if (_ptTourTargetEl) _ptTourTargetEl.classList.remove('pt-tour-highlight');
+  if (_ptTourOverlay)  { _ptTourOverlay.classList.remove('visible'); setTimeout(() => _ptTourOverlay && _ptTourOverlay.remove(), 300); }
+  if (_ptTourTooltip)  _ptTourTooltip.remove();
+  _ptTourTargetEl = _ptTourOverlay = _ptTourTooltip = null;
+  if (ptSession) localStorage.setItem('cp_pt_toured_' + ptSession.partnerId, '1');
+}
+
+function ptMaybeTour() {
+  if (!ptSession) return;
+  const toured = localStorage.getItem('cp_pt_toured_' + ptSession.partnerId);
+  if (!toured) setTimeout(ptStartTour, 900);
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
