@@ -1548,13 +1548,6 @@ async function wsNewCampaignSubmit() {
 }
 
 function wsLoadCampaigns() {
-  const camps = wsDemoCampaigns();
-  const existing = [
-    ...camps,
-    { name: 'LinkedIn Awareness', icon: '💼', platform: 'LinkedIn Ads', status: 'paused' },
-    { name: 'YouTube Pre-roll',   icon: '▶️', platform: 'YouTube Ads',  status: 'draft'  },
-  ];
-
   const channelIcons = {
     'Google Ads':'🔍','Meta Ads (Facebook / Instagram)':'📘','LinkedIn Ads':'💼',
     'Google Display':'🖥','YouTube Ads':'▶️','TikTok Ads':'🎵',
@@ -1575,32 +1568,23 @@ function wsLoadCampaigns() {
     </div>
   `).join('');
 
-  const existingRows = existing.map(c => `
-    <div class="ws-campaign" style="padding:14px 0;">
-      <div class="ws-campaign-icon" style="background:rgba(28,58,46,0.08);width:42px;height:42px;">${c.icon}</div>
-      <div>
-        <div class="ws-campaign-name">${c.name}</div>
-        <div class="ws-campaign-meta">${c.platform}</div>
-      </div>
-      <div style="margin-left:auto;">
-        <div class="ws-campaign-status ${c.status}">${c.status.charAt(0).toUpperCase()+c.status.slice(1)}</div>
-      </div>
+  const emptyState = `
+    <div style="text-align:center;padding:48px 24px;">
+      <div style="font-size:32px;margin-bottom:12px;">🚀</div>
+      <div style="font-weight:700;color:var(--dark);margin-bottom:6px;">No campaigns yet</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Request a new campaign and your CMO will review and launch it.</div>
+      <button class="ws-btn-primary" onclick="document.getElementById('wsCampModal').style.display='flex'" style="padding:10px 20px;font-size:13px;">+ New Campaign</button>
     </div>
-  `).join('');
+  `;
 
-  const pendingSection = wsPendingCampaigns.length ? `
-    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#D4622A;margin:16px 0 4px;">⏳ Pending CMO Review</div>
-    ${pendingRows}
-    <div style="height:1px;background:var(--border);margin:12px 0;"></div>
-  ` : '';
+  const total = wsPendingCampaigns.length;
 
   document.getElementById('wsCampaignsList').innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
       <div class="ws-card-title" style="margin-bottom:0;">🚀 All Campaigns</div>
-      <span style="font-size:12px;color:var(--muted);">${existing.length + wsPendingCampaigns.length} total</span>
+      <span style="font-size:12px;color:var(--muted);">${total} total</span>
     </div>
-    ${pendingSection}
-    ${existingRows}
+    ${total ? pendingRows : emptyState}
   `;
 }
 
