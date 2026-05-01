@@ -957,7 +957,8 @@ function ptShowTrialBanner() {
 
 function ptSignOut() {
   sessionStorage.removeItem('pt_session');
-  location.reload();
+  localStorage.removeItem('cp_pt_access');
+  location.href = location.pathname; // strip any URL params, force clean reload
 }
 
 // ── AI Strategist ─────────────────────────────────────────────────────────────
