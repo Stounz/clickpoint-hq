@@ -1143,7 +1143,7 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_memories_list()
         elif self.path.startswith('/api/metrics'):
             self._handle_metrics_get()
-        elif self.path == '/api/integrations/list':
+        elif self.path.startswith('/api/integrations/list'):
             self._handle_integrations_list()
         elif self.path == '/api/reports':
             self._handle_reports_list()
@@ -2913,18 +2913,110 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._error(500, str(e))
 
     def _handle_integrations_list(self):
-        """Return metadata only — never returns tokens."""
+        """Return metadata only — never returns tokens. Filter by workspaceId if provided."""
         try:
+            from urllib.parse import urlparse, parse_qs
+            qs = parse_qs(urlparse(self.path).query)
+            workspace_id = (qs.get('workspaceId') or [''])[0].strip()
+            filter_clause = f'&client=eq.{workspace_id}' if workspace_id else ''
             rows = _supabase_req(
                 'GET',
-                'client_integrations?select=id,client,platform,account_id,status,last_synced'
-                '&order=created_at.desc',
+                f'client_integrations?select=id,client,platform,account_id,status,last_synced'
+                f'&order=created_at.desc{filter_clause}',
             )
-            self._json(200, {'integrations': rows})
+            self._json(200, {'integrations': rows or []})
         except Exception as e:
-            self._error(500, str(e))
+            # Table may not exist yet — return empty list so UI degrades gracefully
+            print(f'  integrations_list: {e}')
+            self._json(200, {'integrations': [], 'note': str(e)})
 
     # ── Campaign Pipeline ─────────────────────────────────────────────────────
+
+    @staticmethod
+    def _parse_assigned_agent(sarah_text, channel):
+        """Determine which specialist Sarah assigned based on her response + channel."""
+        t = (sarah_text or '').lower()
+        if 'derek' in t: return 'derek'
+        if 'jess'  in t: return 'jess'
+        if 'zara'  in t: return 'zara'
+        if 'cleo'  in t: return 'cleo'
+        if 'raj'   in t: return 'raj'
+        ch = (channel or '').lower()
+        if any(x in ch for x in ['google ads','microsoft','bing','ppc','search ads']): return 'derek'
+        if any(x in ch for x in ['meta','facebook','instagram','tiktok','linkedin']): return 'cleo'
+        if any(x in ch for x in ['seo','organic','content','blog','email']): return 'jess'
+        if any(x in ch for x in ['display','youtube','creative','brand']): return 'zara'
+        return 'derek'
+
+    @staticmethod
+    def _agent_display_name(a):
+        return {'derek':'Derek Wu · Paid Search','jess':'Jess Park · Content & SEO',
+                'zara':'Zara Osei · Creative','cleo':'Cleo Chan · Social Media',
+                'raj':'Raj Nair · SEO & Analytics'}.get(a, a)
+
+    @staticmethod
+    def _agent_deliverable_type(a):
+        return {'derek':'Ads','jess':'Content','zara':'Creative','cleo':'Ads','raj':'SEO'}.get(a,'Strategy')
+
+    SPECIALIST_PROMPTS = {
+        'derek': (
+            "You've just been assigned lead on this paid search campaign.\n"
+            "Produce your actual deliverable — not a plan, not a framework. Real work, ready to use.\n\n"
+            "Deliver:\n"
+            "1. KEYWORD LIST — 15–20 keywords with: match type, estimated CPC range, search intent (info/commercial/transactional), and ad group assignment\n"
+            "2. CAMPAIGN STRUCTURE — campaign name, 3–4 ad group names, bidding strategy recommendation and why\n"
+            "3. AD COPY — 3 complete Responsive Search Ad variants:\n"
+            "   • 5 headlines each (max 30 chars), 2 descriptions each (max 90 chars)\n"
+            "   • Each variant uses a different angle: pain point / benefit / proof\n\n"
+            "Use real copy. Every headline and description must be ready to upload to Google Ads."
+        ),
+        'jess': (
+            "You've just been assigned content & copy on this campaign.\n"
+            "Produce the actual deliverable — real copy, ready to use.\n\n"
+            "Deliver:\n"
+            "1. MESSAGING FRAMEWORK — primary value prop (1 sentence), 3 core messages, key differentiator vs competitors\n"
+            "2. AD COPY — 5 headline variants + 3 description variants (Google Ads format, char limits respected)\n"
+            "3. LANDING PAGE COPY BRIEF — H1, subheadline, 3 bullet benefits (specific, benefit-led), primary CTA text, secondary CTA text\n"
+            "4. EMAIL SUBJECT LINES — 5 subject line variants for a nurture sequence targeting this audience\n\n"
+            "All copy should be on-brand for the client brief. No placeholder text."
+        ),
+        'zara': (
+            "You've just been assigned creative direction on this campaign.\n"
+            "Produce the actual deliverable — specific specs, not vague direction.\n\n"
+            "Deliver:\n"
+            "1. VISUAL DIRECTION — overall aesthetic, mood, colour palette (hex codes), typography guidance\n"
+            "2. AD CREATIVE SPECS — for each format (static image 1200x628, square 1080x1080, story 1080x1920):\n"
+            "   • Message hierarchy (what goes where)\n"
+            "   • Headline on creative, supporting copy, CTA button style\n"
+            "3. CREATIVE DO'S AND DON'TS — 5 specific rules for this campaign\n"
+            "4. VIDEO BRIEF (if applicable) — hook (first 3 seconds), narrative arc, closing CTA\n\n"
+            "Be precise — a freelance designer should be able to build from this brief alone."
+        ),
+        'cleo': (
+            "You've just been assigned paid social on this campaign.\n"
+            "Produce the actual deliverable — real campaign setup, ready to build.\n\n"
+            "Deliver:\n"
+            "1. CAMPAIGN STRUCTURE — objective, campaign type (Advantage+ / manual), budget split recommendation\n"
+            "2. AUDIENCE TARGETING — 3 distinct ad set audiences:\n"
+            "   • Core: interests/demographics with specifics\n"
+            "   • Lookalike: based on what existing data (explain the seed)\n"
+            "   • Retargeting: trigger and window\n"
+            "3. AD COPY — 3 primary text variants + 3 headline variants (Meta format)\n"
+            "4. CREATIVE RECOMMENDATION — format (video/image/carousel), hook style, first-3-second hook script\n\n"
+            "Real targeting parameters, real copy. Ready to build in Ads Manager."
+        ),
+        'raj': (
+            "You've just been assigned SEO & analytics on this campaign.\n"
+            "Produce the actual deliverable — ready to implement.\n\n"
+            "Deliver:\n"
+            "1. KEYWORD RESEARCH — 20 target keywords: monthly volume (est.), KD (1–100), intent, recommended page\n"
+            "2. CONTENT PRIORITIES — top 3 pages to create or optimise:\n"
+            "   • Target keyword, recommended title, word count, top 3 competitors to outrank\n"
+            "3. TRACKING SETUP — UTM structure for this campaign (exact URL format), GA4 events to track, conversion event definition\n"
+            "4. QUICK WINS — 3 immediate technical/on-page actions with specific instructions (which page, what to change)\n\n"
+            "Real keywords, real UTMs, real page recommendations. Ready to implement."
+        ),
+    }
 
     def _handle_campaign_request(self):
         """Client submits a campaign brief → Supabase campaigns table → Sarah auto-reviews.
@@ -2995,14 +3087,47 @@ class AgentHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 print(f'  ⚠️  Sarah auto-review error: {e}')
 
+        # ── Auto-assign specialist and produce first deliverable ──────────────
+        assigned_agent   = self._parse_assigned_agent(sarah_reply, channel)
+        deliverable_text = ''
+        if sarah_reply and API_KEY:
+            try:
+                specialist_context = (
+                    f"Campaign: {name}\nClient: {company_name or workspace_id}\n"
+                    f"Type: {ctype}\nChannel: {channel}\n"
+                    f"Budget: {'$'+budget+'/mo' if budget else 'TBD'}\n"
+                    f"Target Audience: {audience or 'Not specified'}\n"
+                    f"Brief: {brief or 'No brief provided'}\n\n"
+                    f"CMO Assessment (Sarah Lin):\n{sarah_reply[:800]}"
+                )
+                spec_prompt = self.SPECIALIST_PROMPTS.get(assigned_agent, '')
+                deliverable_text = call_anthropic(
+                    API_KEY, AGENT_PROMPTS.get(assigned_agent, ''),
+                    [{'role': 'user', 'content': spec_prompt + '\n\n--- CONTEXT ---\n' + specialist_context}],
+                    max_tokens=1500
+                )
+                print(f'  📋 {assigned_agent} deliverable ready for "{name}"')
+            except Exception as e:
+                print(f'  ⚠️  {assigned_agent} deliverable error: {e}')
+
         # ── Encode all extra fields into the brief JSON blob ──────────────────
+        deliverable_entry = {
+            'agent':      assigned_agent,
+            'agentName':  self._agent_display_name(assigned_agent),
+            'type':       self._agent_deliverable_type(assigned_agent),
+            'content':    deliverable_text,
+            'created_at': datetime.datetime.utcnow().isoformat(),
+        } if deliverable_text else None
+
         brief_blob = json.dumps({
-            'brief':       brief,
-            'channel':     channel,
-            'budget':      budget,
-            'partner_id':  partner_id,
-            'company_name': company_name or workspace_id,
-            'sarah_reply': sarah_reply,
+            'brief':         brief,
+            'channel':       channel,
+            'budget':        budget,
+            'partner_id':    partner_id,
+            'company_name':  company_name or workspace_id,
+            'sarah_reply':   sarah_reply,
+            'assigned_agent': assigned_agent,
+            'deliverables':  [deliverable_entry] if deliverable_entry else [],
         })
 
         # ── Save to existing campaigns table ──────────────────────────────────
@@ -3026,11 +3151,13 @@ class AgentHandler(BaseHTTPRequestHandler):
                 print(f'  ⚠️  campaigns insert error: {e}')
 
         self._json(200, {
-            'ok':          True,
-            'campaignId':  campaign_id,
-            'partnerId':   partner_id,
-            'status':      sarah_status,
-            'sarahReply':  sarah_reply,  # returned immediately for instant display
+            'ok':            True,
+            'campaignId':    campaign_id,
+            'partnerId':     partner_id,
+            'status':        sarah_status,
+            'sarahReply':    sarah_reply,
+            'assignedAgent': assigned_agent,
+            'deliverable':   deliverable_entry,  # specialist's first deliverable, ready for Library
         })
 
     def _handle_campaigns_list(self):
@@ -3059,18 +3186,20 @@ class AgentHandler(BaseHTTPRequestHandler):
                 except Exception:
                     pass
                 out.append({
-                    'id':           c['id'],
-                    'name':         c.get('name', ''),
-                    'type':         c.get('types', ''),
-                    'channel':      blob.get('channel') or c.get('assigned', ''),
-                    'budget':       blob.get('budget', ''),
-                    'audience':     c.get('audience', ''),
-                    'brief':        blob.get('brief', ''),
-                    'status':       c.get('status', 'pending'),
-                    'created_at':   c.get('created_at', ''),
-                    'workspace_id': c.get('client', ''),
-                    'company_name': blob.get('company_name', ''),
-                    'sarah_reply':  blob.get('sarah_reply', ''),
+                    'id':             c['id'],
+                    'name':           c.get('name', ''),
+                    'type':           c.get('types', ''),
+                    'channel':        blob.get('channel') or c.get('assigned', ''),
+                    'budget':         blob.get('budget', ''),
+                    'audience':       c.get('audience', ''),
+                    'brief':          blob.get('brief', ''),
+                    'status':         c.get('status', 'pending'),
+                    'created_at':     c.get('created_at', ''),
+                    'workspace_id':   c.get('client', ''),
+                    'company_name':   blob.get('company_name', ''),
+                    'sarah_reply':    blob.get('sarah_reply', ''),
+                    'assigned_agent': blob.get('assigned_agent', ''),
+                    'deliverables':   blob.get('deliverables', []),
                 })
             self._json(200, {'campaigns': out})
         except Exception as e:

@@ -329,6 +329,26 @@
   .ws-save-btn:hover { background:rgba(28,58,46,0.12); }
   .ws-save-btn.saved { color:#aaa; border-color:#ddd; background:#fafafa; cursor:default; }
 
+  /* ── Connected Accounts ── */
+  .ws-integration-row { display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); }
+  .ws-integration-row:last-child { border-bottom:none; }
+  .ws-integration-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; background:rgba(28,58,46,0.06); }
+  .ws-integration-info { flex:1; min-width:0; }
+  .ws-integration-name { font-size:14px; font-weight:700; color:var(--text); }
+  .ws-integration-meta { font-size:12px; color:var(--muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ws-integration-status { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700; flex-shrink:0; }
+  .ws-integration-status.connected { background:rgba(48,209,88,0.1); color:#1a8a3c; }
+  .ws-integration-status.disconnected { background:rgba(153,153,144,0.12); color:var(--muted); }
+  .ws-integration-btn { flex-shrink:0; padding:7px 16px; border-radius:9px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; border:1.5px solid; transition:all 0.15s; }
+  .ws-integration-btn.connect { background:var(--teal); color:#fff; border-color:var(--teal); }
+  .ws-integration-btn.connect:hover { background:var(--teal-md); border-color:var(--teal-md); }
+  .ws-integration-btn.disconnect { background:#fff; color:var(--red); border-color:rgba(255,69,58,0.3); }
+  .ws-integration-btn.disconnect:hover { background:rgba(255,69,58,0.06); }
+  .ws-integration-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .ws-integration-modal { background:#fff; border-radius:18px; padding:32px; width:440px; max-width:100%; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+  .ws-integration-modal-title { font-size:18px; font-weight:800; color:var(--text); margin-bottom:6px; }
+  .ws-integration-modal-sub { font-size:13px; color:var(--muted); margin-bottom:24px; line-height:1.5; }
+
   /* ── Brand Hub ── */
   .ws-brand-label { font-size:12px; font-weight:700; color:var(--dark); margin-bottom:6px; display:block; }
   .ws-brand-input { width:100%; padding:10px 13px; border:1.5px solid #E2E1DB; border-radius:10px; font-size:13px; font-family:inherit; outline:none; box-sizing:border-box; transition:border 0.15s; margin-bottom:0; }
@@ -998,6 +1018,18 @@
               <div class="ws-settings-label">Signed in as <span class="ws-settings-sub" id="wsSettingsEmail">—</span></div>
               <button class="ws-copy-btn" style="background:#FF453A;" onclick="wsSignOut()">Sign Out</button>
             </div>
+          </div>
+        </div>
+
+        <!-- Connected Accounts Card -->
+        <div class="ws-card" style="max-width:600px;margin-top:20px;" id="wsIntegrationsCard">
+          <div class="ws-settings-title" style="margin-bottom:4px;">🔗 Connected Accounts</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5;">
+            Connect your ad platforms so the agency team can access and manage your accounts directly.
+            Enter your account ID — your agency will use their own credentials to access it.
+          </div>
+          <div id="wsIntegrationsList">
+            <div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">Loading…</div>
           </div>
         </div>
 
@@ -1912,18 +1944,22 @@ async function wsLoadCampaignsFromServer() {
     const data = await resp.json();
     if (Array.isArray(data.campaigns)) {
       wsPendingCampaigns = data.campaigns.map(c => ({
-        id:          c.id,
-        name:        c.name,
-        type:        c.type,
-        channel:     c.channel,
-        budget:      c.budget,
-        audience:    c.audience,
-        brief:       c.brief,
-        status:      c.status || 'pending',
-        requestedAt: c.created_at,
-        workspaceId: c.workspace_id,
-        companyName: c.company_name,
+        id:           c.id,
+        name:         c.name,
+        type:         c.type,
+        channel:      c.channel,
+        budget:       c.budget,
+        audience:     c.audience,
+        brief:        c.brief,
+        status:       c.status || 'pending',
+        requestedAt:  c.created_at,
+        workspaceId:  c.workspace_id,
+        companyName:  c.company_name,
+        sarah_reply:  c.sarah_reply,
+        deliverables: c.deliverables || [],
       }));
+      // Auto-merge any agent deliverables into the Library
+      wsMergeDeliverablesToLibrary(data.campaigns);
       return;
     }
   } catch(e) { /* fall through to sessionStorage */ }
@@ -1988,23 +2024,43 @@ async function wsNewCampaignSubmit() {
     const data = await resp.json();
     if (data.ok) {
       serverOk = true;
-      // Store Sarah's reply in session so it's immediately visible in the drawer
       if (data.sarahReply && data.campaignId) {
         sessionStorage.setItem('ws_sarah_' + data.campaignId, data.sarahReply);
       }
+      // Auto-save specialist deliverable straight to Library
+      if (data.deliverable && data.deliverable.content) {
+        const d = data.deliverable;
+        const libId = 'srv_' + data.campaignId + '_' + (d.agent || 'agent');
+        const items = wsGetLibrary();
+        if (!items.find(i => i.id === libId)) {
+          items.unshift({
+            id: libId, type: d.type || 'Strategy',
+            author: (d.agentName || d.agent) + ' — ' + name,
+            content: d.content, savedAt: new Date().toISOString(),
+            status: 'pending', campaignId: data.campaignId, campaignName: name, fromServer: true,
+          });
+          wsSaveLib(items);
+          // Update Library badge
+          const badge = document.getElementById('wsNavLibBadge');
+          if (badge) { badge.textContent = items.filter(i=>i.status==='pending').length; badge.style.display='inline'; }
+        }
+      }
+      const agentLine = data.deliverable
+        ? `<div style="color:#1C3A2E;font-size:12px;margin-top:6px;">📁 ${data.deliverable.agentName || 'Your specialist'} has produced your first deliverable — check the <span style="text-decoration:underline;cursor:pointer;" onclick="wsCloseCampaignDrawer();wsSetView('library')">Library tab</span>.</div>`
+        : '';
       result.style.background = '#F0F8F4';
       result.style.borderColor = '#D4E8DA';
       result.innerHTML = `
-        <div style="font-weight:700;color:#1C3A2E;margin-bottom:6px;">✅ Campaign request submitted!</div>
+        <div style="font-weight:700;color:#1C3A2E;margin-bottom:6px;">✅ Campaign submitted & assigned!</div>
         <div style="color:#555;margin-bottom:4px;"><strong>${name}</strong> · ${type} · ${channel}</div>
-        <div style="color:#777;font-size:12px;margin-top:8px;">Sarah has reviewed your brief — click the campaign to read her response.</div>
+        <div style="color:#777;font-size:12px;margin-top:6px;">Sarah has reviewed your brief — click the campaign to read her response.</div>
+        ${agentLine}
       `;
-      // Reload from server right away (Sarah's reply is already saved)
       setTimeout(async () => {
         await wsLoadCampaignsFromServer();
         wsLoadCampaigns();
         wsNewCampaignClose();
-      }, 2000);
+      }, 3500);
     }
   } catch(e) { /* fall through */ }
 
@@ -2315,6 +2371,35 @@ function wsLibKey() { return 'cp_library_' + wsSession.workspaceId; }
 function wsGetLibrary() { return JSON.parse(localStorage.getItem(wsLibKey()) || '[]'); }
 function wsSaveLib(items) { localStorage.setItem(wsLibKey(), JSON.stringify(items)); }
 
+// Merge server campaign deliverables into localStorage library (deduplicates by id)
+function wsMergeDeliverablesToLibrary(campaigns) {
+  if (!campaigns || !campaigns.length) return;
+  const items = wsGetLibrary();
+  const existingIds = new Set(items.map(i => i.id));
+  let added = 0;
+  campaigns.forEach(c => {
+    (c.deliverables || []).forEach(d => {
+      if (!d || !d.content) return;
+      const libId = 'srv_' + c.id + '_' + (d.agent || 'agent');
+      if (existingIds.has(libId)) return;
+      items.unshift({
+        id:          libId,
+        type:        d.type || 'Strategy',
+        author:      (d.agentName || d.agent || 'Agency Team') + ' — ' + c.name,
+        content:     d.content,
+        savedAt:     d.created_at || c.created_at || new Date().toISOString(),
+        status:      'pending',
+        campaignId:  c.id,
+        campaignName: c.name,
+        fromServer:  true,
+      });
+      existingIds.add(libId);
+      added++;
+    });
+  });
+  if (added > 0) wsSaveLib(items);
+}
+
 function wsSaveToLibrary(type, author, content, msgId, btn) {
   if (btn.classList.contains('saved')) return;
   const item = {
@@ -2355,29 +2440,35 @@ function wsLoadLibrary(filter = 'all') {
   if (!filtered.length) {
     el.innerHTML = `<div class="ws-lib-empty">
       <div class="ws-lib-empty-icon">📁</div>
-      <div class="ws-lib-empty-text">${filter === 'all' ? 'No deliverables saved yet.<br>Use the <strong>💾 Save to Library</strong> button in your CMO chat.' : 'No ' + filter + ' deliverables saved yet.'}</div>
+      <div class="ws-lib-empty-text">${filter === 'all' ? 'No deliverables yet.<br>Submit a campaign and your agency team will produce work here automatically.' : 'No ' + filter + ' deliverables yet.'}</div>
     </div>`;
     return;
   }
 
   el.innerHTML = filtered.map(item => {
     const date = new Date(item.savedAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
-    const preview = item.content.length > 200 ? item.content.substring(0,200) + '…' : item.content;
+    const isExpanded = item._expanded;
+    const previewText = isExpanded ? item.content : (item.content.length > 300 ? item.content.substring(0,300) + '…' : item.content);
     const statusLabel = { pending:'Pending Review', approved:'Approved ✓', changes:'Changes Requested' }[item.status] || 'Pending';
+    const statusClass = { pending:'pending', approved:'approved', changes:'changes' }[item.status] || 'pending';
     const actionBtns = item.status === 'pending' ? `
       <button class="ws-lib-approve" onclick="wsLibApprove('${item.id}')">✓ Approve</button>
       <button class="ws-lib-changes" onclick="wsLibRequestChanges('${item.id}')">Request Changes</button>
     ` : '';
-    return `<div class="ws-lib-item" id="libitem_${item.id}">
+    const campaignTag = item.campaignName ? `<span style="font-size:10px;color:var(--muted);background:#F4F3EE;padding:2px 7px;border-radius:10px;">${item.campaignName}</span>` : '';
+    return `<div class="ws-lib-item" id="libitem_${item.id.replace(/[^a-zA-Z0-9_-]/g,'_')}">
       <div class="ws-lib-item-header">
         <span class="ws-lib-type-badge">${item.type}</span>
-        <span class="ws-lib-item-title">${item.author}</span>
+        ${campaignTag}
+        <span class="ws-lib-item-title" style="flex:1;">${item.author}</span>
         <span class="ws-lib-item-date">${date}</span>
       </div>
-      <div class="ws-lib-item-preview">${preview}</div>
+      <div class="ws-lib-item-preview" style="white-space:pre-wrap;line-height:1.6;">${previewText.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
       <div class="ws-lib-actions">
         ${actionBtns}
-        <span class="ws-lib-status ${item.status}">${statusLabel}</span>
+        <button onclick="wsLibCopy('${item.id}')" style="padding:6px 14px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📋 Copy</button>
+        <button onclick="wsLibToggleExpand('${item.id}')" style="padding:6px 14px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">${isExpanded ? '▲ Collapse' : '▼ Expand'}</button>
+        <span class="ws-lib-status ${statusClass}" style="margin-left:auto;">${statusLabel}</span>
       </div>
     </div>`;
   }).join('');
@@ -2393,6 +2484,26 @@ function wsLibRequestChanges(id) {
   const items = wsGetLibrary();
   const item = items.find(i => i.id === id);
   if (item) { item.status = 'changes'; wsSaveLib(items); wsLoadLibrary(); wsLogActivity('changes_requested', `Changes requested on: ${item.author} — ${item.type}`); }
+}
+
+function wsLibCopy(id) {
+  const items = wsGetLibrary();
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  navigator.clipboard.writeText(item.content).then(() => {
+    const safeId = id.replace(/[^a-zA-Z0-9_-]/g,'_');
+    const el = document.getElementById('libitem_' + safeId);
+    if (el) {
+      const btn = [...el.querySelectorAll('button')].find(b => b.textContent.includes('Copy'));
+      if (btn) { const orig = btn.textContent; btn.textContent = '✓ Copied!'; setTimeout(() => btn.textContent = orig, 1800); }
+    }
+  });
+}
+
+function wsLibToggleExpand(id) {
+  const items = wsGetLibrary();
+  const item = items.find(i => i.id === id);
+  if (item) { item._expanded = !item._expanded; wsLoadLibrary(); }
 }
 
 // ── Brand Hub ─────────────────────────────────────────────────────────────────
@@ -2669,6 +2780,9 @@ function wsLoadBilling() {
       existing.remove();
     }
   }
+
+  // Load connected accounts section
+  wsLoadIntegrations();
 }
 
 function wsCalcTotalBudget() {
@@ -2691,6 +2805,168 @@ function wsSaveAdBudget() {
 }
 
 function wsUpdateBudgetTotal() {} // stub for campaign form budget input
+
+// ── Connected Accounts (Integrations) ────────────────────────────────────────
+
+const WS_PLATFORMS = [
+  { id: 'google_ads',       label: 'Google Ads',       icon: '🟦', hint: 'e.g. 123-456-7890' },
+  { id: 'meta_ads',         label: 'Meta Ads',          icon: '🟣', hint: 'e.g. 123456789012345' },
+  { id: 'google_analytics', label: 'Google Analytics',  icon: '📊', hint: 'e.g. G-XXXXXXXXXX or UA-XXXXXXXX-X' },
+  { id: 'search_console',   label: 'Search Console',    icon: '🔍', hint: 'e.g. sc-domain:example.com' },
+  { id: 'linkedin_ads',     label: 'LinkedIn Ads',      icon: '🔷', hint: 'e.g. 123456789' },
+];
+
+async function wsLoadIntegrations() {
+  const el = document.getElementById('wsIntegrationsList');
+  if (!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:16px;color:var(--muted);font-size:13px;">Loading…</div>';
+
+  let connected = [];
+  try {
+    const wid = wsSession && wsSession.workspaceId ? wsSession.workspaceId : '';
+    const r = await fetch(`/api/integrations/list?workspaceId=${encodeURIComponent(wid)}`);
+    const d = await r.json();
+    connected = d.integrations || [];
+  } catch(e) {
+    console.warn('integrations load:', e);
+  }
+
+  // Build a map: platformId → integration row
+  const connMap = {};
+  connected.forEach(c => { connMap[c.platform] = c; });
+
+  el.innerHTML = WS_PLATFORMS.map(p => {
+    const c = connMap[p.id];
+    const isConnected = !!(c && c.status === 'connected');
+    const accountDisplay = c && c.account_id ? `Account: ${c.account_id}` : 'Not connected';
+    const statusHtml = isConnected
+      ? `<span class="ws-integration-status connected">● Connected</span>`
+      : `<span class="ws-integration-status disconnected">Not connected</span>`;
+    const btnHtml = isConnected
+      ? `<button class="ws-integration-btn disconnect" onclick="wsDisconnectIntegration('${c.id}','${p.id}')">Disconnect</button>`
+      : `<button class="ws-integration-btn connect" onclick="wsConnectIntegration('${p.id}')">Connect</button>`;
+    return `
+      <div class="ws-integration-row" id="wsIntRow_${p.id}">
+        <div class="ws-integration-icon">${p.icon}</div>
+        <div class="ws-integration-info">
+          <div class="ws-integration-name">${p.label}</div>
+          <div class="ws-integration-meta">${accountDisplay}</div>
+        </div>
+        ${statusHtml}
+        ${btnHtml}
+      </div>`;
+  }).join('');
+}
+
+function wsConnectIntegration(platformId) {
+  const platform = WS_PLATFORMS.find(p => p.id === platformId);
+  if (!platform) return;
+
+  // Build modal
+  const backdrop = document.createElement('div');
+  backdrop.className = 'ws-integration-modal-backdrop';
+  backdrop.id = 'wsIntModalBackdrop';
+  backdrop.innerHTML = `
+    <div class="ws-integration-modal" onclick="event.stopPropagation()">
+      <div class="ws-integration-modal-title">${platform.icon} Connect ${platform.label}</div>
+      <div class="ws-integration-modal-sub">
+        Enter your ${platform.label} Account ID. Your agency team will use their own credentials
+        to manage your account — you never need to share passwords.
+      </div>
+      <label class="ws-brand-label">Account ID</label>
+      <input id="wsIntAccountId" class="login-input" placeholder="${platform.hint}" style="margin-bottom:8px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:20px;">
+        Where to find it: ${_wsAccountIdHelp(platformId)}
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="wsCloseIntModal()" style="flex:1;padding:12px;background:#F4F3EE;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
+        <button onclick="wsSaveIntegration('${platformId}')" style="flex:2;padding:12px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Save Connection</button>
+      </div>
+    </div>`;
+  backdrop.addEventListener('click', wsCloseIntModal);
+  document.body.appendChild(backdrop);
+  setTimeout(() => { const inp = document.getElementById('wsIntAccountId'); if (inp) inp.focus(); }, 60);
+}
+
+function _wsAccountIdHelp(platformId) {
+  const helps = {
+    google_ads:       'Google Ads → top-right account menu → your 10-digit Customer ID',
+    meta_ads:         'Meta Ads Manager → Account Overview → Ad Account ID',
+    google_analytics: 'GA4 Admin → Property Settings → Property ID (or Measurement ID)',
+    search_console:   'Google Search Console → Settings → Property details',
+    linkedin_ads:     'LinkedIn Campaign Manager → Account → Account ID in URL',
+  };
+  return helps[platformId] || 'Check your platform account settings';
+}
+
+function wsCloseIntModal() {
+  const el = document.getElementById('wsIntModalBackdrop');
+  if (el) el.remove();
+}
+
+async function wsSaveIntegration(platformId) {
+  const accountIdEl = document.getElementById('wsIntAccountId');
+  const accountId = (accountIdEl ? accountIdEl.value : '').trim();
+  if (!accountId) {
+    accountIdEl && (accountIdEl.style.borderColor = 'var(--red)');
+    return;
+  }
+
+  const btn = document.querySelector('#wsIntModalBackdrop button:last-child');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  try {
+    const resp = await fetch('/api/integrations/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client:    wsSession.workspaceId,
+        platform:  platformId,
+        accountId: accountId,
+        token:     accountId,   // account ID doubles as the reference token
+      }),
+    });
+    const data = await resp.json();
+    if (data.success || data.id) {
+      wsCloseIntModal();
+      wsLoadIntegrations();   // refresh list
+      if (typeof obShowToast === 'function') obShowToast('Account connected ✓');
+    } else {
+      throw new Error(data.error || 'Unknown error');
+    }
+  } catch(e) {
+    console.error('connect integration:', e);
+    if (btn) { btn.disabled = false; btn.textContent = 'Save Connection'; }
+    alert('Could not save: ' + e.message);
+  }
+}
+
+async function wsDisconnectIntegration(integrationId, platformId) {
+  if (!confirm('Disconnect this account? Your agency will lose access until you reconnect.')) return;
+
+  // Optimistic UI — grey out the row
+  const row = document.getElementById('wsIntRow_' + platformId);
+  if (row) row.style.opacity = '0.4';
+
+  try {
+    const resp = await fetch('/api/integrations/disconnect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: integrationId }),
+    });
+    const data = await resp.json();
+    if (data.success) {
+      wsLoadIntegrations();
+      if (typeof obShowToast === 'function') obShowToast('Account disconnected');
+    } else {
+      throw new Error(data.error || 'Unknown error');
+    }
+  } catch(e) {
+    console.error('disconnect integration:', e);
+    if (row) row.style.opacity = '1';
+    alert('Could not disconnect: ' + e.message);
+  }
+}
 
 // ── Auto-restore session ──────────────────────────────────────────────────────
 (function() {
