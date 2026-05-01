@@ -1183,6 +1183,14 @@ async function wsSignup() {
       document.getElementById('suCredsCode').textContent  = d.code;
       document.getElementById('signupForm').style.display    = 'none';
       document.getElementById('signupSuccess').style.display = 'block';
+      // Partner self-signup: skip plan selection, go straight to workspace
+      if (_partnerId) {
+        const planBtn = document.querySelector('#signupSuccess .login-btn');
+        if (planBtn) {
+          planBtn.textContent = 'Open my workspace →';
+          planBtn.onclick = function() { wsSignupLogin(); };
+        }
+      }
     } else {
       err.textContent = d.error || 'Something went wrong. Please try again.';
       err.style.display = 'block';
