@@ -2952,12 +2952,23 @@ class AgentHandler(BaseHTTPRequestHandler):
     def _parse_assigned_agent(sarah_text, channel):
         """Determine which specialist Sarah assigned based on her response + channel."""
         t = (sarah_text or '').lower()
+        # Look for primary lead assignment phrases first (most reliable)
+        import re as _re
+        lead_match = _re.search(
+            r'lead assignment[^\n]*?(emma|derek|jess|zara|cleo|raj)|'
+            r'(emma|derek|jess|zara|cleo|raj)[^\n]*?will own',
+            t
+        )
+        if lead_match:
+            name = (lead_match.group(1) or lead_match.group(2) or '').strip()
+            if name: return name
+        # Fall back to first-name-mentioned order — Emma before Jess (Jess is often mentioned as support)
+        if 'emma'  in t: return 'emma'
         if 'derek' in t: return 'derek'
-        if 'jess'  in t: return 'jess'
-        if 'zara'  in t: return 'zara'
         if 'cleo'  in t: return 'cleo'
         if 'raj'   in t: return 'raj'
-        if 'emma'  in t: return 'emma'
+        if 'zara'  in t: return 'zara'
+        if 'jess'  in t: return 'jess'
         ch = (channel or '').lower()
         if any(x in ch for x in ['email','newsletter','drip','nurture','klaviyo','mailchimp','activecampaign']): return 'emma'
         if any(x in ch for x in ['google ads','microsoft','bing','ppc','search ads']): return 'derek'
