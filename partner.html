@@ -886,7 +886,6 @@ async function ptRegister() {
       const credsEl = document.getElementById('ptRegCreds');
       credsEl.innerHTML = `
         <div class="pt-signup-cred-row"><span class="pt-signup-cred-label">Email</span><span class="pt-signup-cred-val">${email}</span></div>
-        <div class="pt-signup-cred-row"><span class="pt-signup-cred-label">Partner ID</span><span class="pt-signup-cred-val">${d.partnerId || '—'}</span></div>
       `;
       document.getElementById('ptRegisterForm').style.display    = 'none';
       document.getElementById('ptRegisterSuccess').style.display = 'block';
