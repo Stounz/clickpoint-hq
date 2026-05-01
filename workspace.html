@@ -304,18 +304,49 @@
   .ws-save-btn.saved { color:#aaa; border-color:#ddd; background:#fafafa; cursor:default; }
 
   /* ── Brand Hub ── */
-  .ws-brand-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
-  .ws-brand-field { }
   .ws-brand-label { font-size:12px; font-weight:700; color:var(--dark); margin-bottom:6px; display:block; }
-  .ws-brand-input { width:100%; padding:10px 13px; border:1.5px solid #E2E1DB; border-radius:10px; font-size:13px; font-family:inherit; outline:none; box-sizing:border-box; transition:border 0.15s; }
+  .ws-brand-input { width:100%; padding:10px 13px; border:1.5px solid #E2E1DB; border-radius:10px; font-size:13px; font-family:inherit; outline:none; box-sizing:border-box; transition:border 0.15s; margin-bottom:0; }
   .ws-brand-input:focus { border-color:var(--teal); }
   .ws-brand-textarea { width:100%; padding:10px 13px; border:1.5px solid #E2E1DB; border-radius:10px; font-size:13px; font-family:inherit; outline:none; box-sizing:border-box; resize:vertical; min-height:80px; transition:border 0.15s; }
   .ws-brand-textarea:focus { border-color:var(--teal); }
-  .ws-brand-color-wrap { display:flex; align-items:center; gap:10px; }
-  .ws-brand-color-swatch { width:36px; height:36px; border-radius:8px; border:1.5px solid #E2E1DB; cursor:pointer; flex-shrink:0; }
   .ws-brand-save { padding:11px 28px; background:var(--teal); color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
   .ws-brand-save:hover { background:#254d3a; }
   .ws-brand-saved-toast { display:none; color:#1a8a3c; font-size:13px; font-weight:600; margin-left:12px; }
+  /* Brand Hub tabs */
+  .ws-bh-tabs { display:flex; gap:4px; margin-bottom:24px; background:#ECEAE3; border-radius:12px; padding:4px; }
+  .ws-bh-tab { flex:1; padding:9px 8px; text-align:center; font-size:12px; font-weight:600; color:var(--muted); border-radius:9px; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+  .ws-bh-tab.active { background:#fff; color:var(--teal); box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+  .ws-bh-tab:hover:not(.active) { color:var(--dark); }
+  .ws-bh-panel { display:none; }
+  .ws-bh-panel.active { display:block; }
+  .ws-bh-section { margin-bottom:24px; }
+  .ws-bh-section-title { font-size:11px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--muted); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+  .ws-bh-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+  .ws-bh-grid.cols3 { grid-template-columns:1fr 1fr 1fr; }
+  .ws-bh-field { display:flex; flex-direction:column; gap:6px; }
+  /* Colour palette */
+  .ws-bh-palette { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+  .ws-bh-col-item { flex:1; min-width:100px; }
+  .ws-bh-swatch { height:52px; border-radius:10px 10px 0 0; border:1px solid rgba(0,0,0,0.07); transition:background 0.2s; }
+  .ws-bh-col-inputs { background:#F5F4EF; border:1.5px solid #E2E1DB; border-top:none; border-radius:0 0 10px 10px; padding:8px; display:flex; flex-direction:column; gap:5px; }
+  .ws-bh-col-label { font-size:10px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--muted); }
+  .ws-bh-col-hex { font-size:12px; font-family:monospace; font-weight:700; color:var(--dark); border:none; background:none; outline:none; width:100%; padding:0; }
+  /* Personality traits */
+  .ws-bh-traits { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:4px; }
+  .ws-bh-trait { padding:7px 14px; border-radius:20px; border:1.5px solid #E2E1DB; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; transition:all 0.15s; user-select:none; }
+  .ws-bh-trait.selected { border-color:var(--teal); background:rgba(28,58,46,0.08); color:var(--teal); }
+  /* Messaging pillars */
+  .ws-bh-pillar { display:flex; gap:10px; align-items:flex-start; margin-bottom:12px; }
+  .ws-bh-pillar-num { width:24px; height:24px; border-radius:8px; background:var(--teal); color:#fff; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:9px; }
+  /* Do / Don't */
+  .ws-bh-do-dont { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .ws-bh-do-box { background:#F0FAF4; border:1.5px solid #B8E6C8; border-radius:12px; padding:16px; }
+  .ws-bh-dont-box { background:#FFF5F5; border:1.5px solid #F5C0C0; border-radius:12px; padding:16px; }
+  .ws-bh-do-title { font-size:12px; font-weight:800; color:#1a8a3c; margin-bottom:10px; }
+  .ws-bh-dont-title { font-size:12px; font-weight:800; color:#C0392B; margin-bottom:10px; }
+  .ws-bh-do-input { width:100%; padding:8px 10px; border:1px solid #B8E6C8; border-radius:8px; font-size:12px; font-family:inherit; background:#fff; outline:none; box-sizing:border-box; margin-bottom:8px; }
+  .ws-bh-dont-input { width:100%; padding:8px 10px; border:1px solid #F5C0C0; border-radius:8px; font-size:12px; font-family:inherit; background:#fff; outline:none; box-sizing:border-box; margin-bottom:8px; }
+  .ws-bh-do-input:last-child, .ws-bh-dont-input:last-child { margin-bottom:0; }
 
   /* ── Budget Pacing ── */
   .ws-pacing-wrap { margin-top:16px; }
@@ -1027,87 +1058,373 @@
 
       <!-- ── Brand Hub View ── -->
       <div class="ws-view" id="view-brand">
-        <div class="ws-page-title">🎨 Brand Hub</div>
-        <div class="ws-page-sub">Your brand assets and guidelines — used by the team across all content, ads, and creative.</div>
-        <div style="max-width:680px;">
-          <div class="ws-card" style="margin-bottom:20px;">
-            <div class="ws-card-title">Brand Identity</div>
-            <div class="ws-brand-grid">
-              <div class="ws-brand-field">
-                <label class="ws-brand-label">Brand Name</label>
-                <input class="ws-brand-input" id="bBrandName" placeholder="e.g. Apex Dynamics" />
-              </div>
-              <div class="ws-brand-field">
-                <label class="ws-brand-label">Tagline</label>
-                <input class="ws-brand-input" id="bTagline" placeholder="e.g. Built for speed." />
-              </div>
-              <div class="ws-brand-field">
-                <label class="ws-brand-label">Primary Colour</label>
-                <div class="ws-brand-color-wrap">
-                  <input type="color" class="ws-brand-color-swatch" id="bColor1" value="#1C3A2E" />
-                  <input class="ws-brand-input" id="bColor1Hex" placeholder="#1C3A2E" style="margin-bottom:0;" oninput="document.getElementById('bColor1').value=this.value" />
-                </div>
-              </div>
-              <div class="ws-brand-field">
-                <label class="ws-brand-label">Secondary Colour</label>
-                <div class="ws-brand-color-wrap">
-                  <input type="color" class="ws-brand-color-swatch" id="bColor2" value="#D4622A" />
-                  <input class="ws-brand-input" id="bColor2Hex" placeholder="#D4622A" style="margin-bottom:0;" oninput="document.getElementById('bColor2').value=this.value" />
-                </div>
-              </div>
-              <div class="ws-brand-field">
-                <label class="ws-brand-label">Primary Font</label>
-                <input class="ws-brand-input" id="bFont" placeholder="e.g. Inter, Helvetica Neue" />
-              </div>
-              <div class="ws-brand-field">
-                <label class="ws-brand-label">Logo URL</label>
-                <input class="ws-brand-input" id="bLogoUrl" placeholder="https://…" />
-              </div>
-            </div>
-            <div style="margin-bottom:16px;">
-              <label class="ws-brand-label">Tone of Voice</label>
-              <select class="ws-onboard-select" id="bTone" style="margin-bottom:0;">
-                <option value="">Select…</option>
-                <option>Professional & authoritative</option>
-                <option>Friendly & conversational</option>
-                <option>Bold & direct</option>
-                <option>Empathetic & human</option>
-                <option>Technical & precise</option>
-                <option>Playful & creative</option>
-                <option>Luxury & aspirational</option>
-              </select>
-            </div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
+          <div>
+            <div class="ws-page-title">🎨 Brand Hub</div>
+            <div class="ws-page-sub">Your complete brand guidelines — used by the team across every campaign, ad, and piece of content.</div>
           </div>
-          <div class="ws-card" style="margin-bottom:20px;">
-            <div class="ws-card-title">Messaging</div>
-            <div style="margin-bottom:16px;">
-              <label class="ws-brand-label">Value Proposition (1–2 sentences)</label>
-              <textarea class="ws-brand-textarea" id="bValueProp" placeholder="What does your brand do and for who? What's the key benefit?"></textarea>
-            </div>
-            <div style="margin-bottom:16px;">
-              <label class="ws-brand-label">Words We Use ✅</label>
-              <input class="ws-brand-input" id="bWordsUse" placeholder="e.g. innovative, proven, trusted, fast, results" />
-            </div>
-            <div>
-              <label class="ws-brand-label">Words We Avoid ❌</label>
-              <input class="ws-brand-input" id="bWordsAvoid" placeholder="e.g. cheap, basic, simple, just, easy" />
-            </div>
-          </div>
-          <div class="ws-card" style="margin-bottom:20px;">
-            <div class="ws-card-title">Target Audience</div>
-            <div style="margin-bottom:16px;">
-              <label class="ws-brand-label">Primary Audience</label>
-              <input class="ws-brand-input" id="bAudience" placeholder="e.g. B2B SaaS founders, 30–50, Series A–C companies" />
-            </div>
-            <div>
-              <label class="ws-brand-label">Key Pain Points</label>
-              <textarea class="ws-brand-textarea" id="bPainPoints" placeholder="What problems does your audience have that you solve?"></textarea>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;">
-            <button class="ws-brand-save" onclick="wsSaveBrandHub()">Save Brand Hub</button>
+          <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;margin-top:4px;">
             <span class="ws-brand-saved-toast" id="bSavedToast">✓ Saved</span>
+            <button class="ws-brand-save" onclick="wsSaveBrandHub()">Save Guidelines</button>
           </div>
+        </div>
+
+        <div style="max-width:860px;margin-top:20px;">
+          <!-- Tab nav -->
+          <div class="ws-bh-tabs">
+            <div class="ws-bh-tab active" onclick="wsBhTab('identity',this)">Identity</div>
+            <div class="ws-bh-tab" onclick="wsBhTab('visual',this)">Visual</div>
+            <div class="ws-bh-tab" onclick="wsBhTab('voice',this)">Voice & Messaging</div>
+            <div class="ws-bh-tab" onclick="wsBhTab('audience',this)">Audience</div>
+            <div class="ws-bh-tab" onclick="wsBhTab('guidelines',this)">Guidelines</div>
+          </div>
+
+          <!-- ── Identity ── -->
+          <div class="ws-bh-panel active" id="bhp-identity">
+            <div class="ws-card" style="margin-bottom:16px;">
+              <div class="ws-bh-section-title">Core Identity</div>
+              <div class="ws-bh-grid">
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Brand Name</label>
+                  <input class="ws-brand-input" id="bBrandName" placeholder="e.g. Apex Dynamics" />
+                </div>
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Tagline / Slogan</label>
+                  <input class="ws-brand-input" id="bTagline" placeholder="e.g. Built for speed." />
+                </div>
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Industry</label>
+                  <input class="ws-brand-input" id="bIndustry" placeholder="e.g. B2B SaaS, Retail, Healthcare" />
+                </div>
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Website</label>
+                  <input class="ws-brand-input" id="bWebsite" placeholder="https://yourbrand.com" />
+                </div>
+              </div>
+              <div class="ws-bh-section-title" style="margin-top:8px;">Brand Story</div>
+              <div class="ws-bh-field" style="margin-bottom:14px;">
+                <label class="ws-brand-label">Mission Statement</label>
+                <input class="ws-brand-input" id="bMission" placeholder="Why does your brand exist? e.g. To help small businesses compete like enterprises." />
+              </div>
+              <div class="ws-bh-field" style="margin-bottom:14px;">
+                <label class="ws-brand-label">Brand Story</label>
+                <textarea class="ws-brand-textarea" id="bStory" placeholder="The origin and purpose of your brand — what drove you to start, what problem you set out to solve."></textarea>
+              </div>
+              <div class="ws-bh-section-title">Brand Values</div>
+              <div class="ws-bh-grid cols3">
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Value 1</label>
+                  <input class="ws-brand-input" id="bVal1" placeholder="e.g. Transparency" />
+                </div>
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Value 2</label>
+                  <input class="ws-brand-input" id="bVal2" placeholder="e.g. Innovation" />
+                </div>
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Value 3</label>
+                  <input class="ws-brand-input" id="bVal3" placeholder="e.g. Results-first" />
+                </div>
+              </div>
+              <div class="ws-bh-section-title" style="margin-top:8px;">Logo Assets</div>
+              <div class="ws-bh-grid">
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Primary Logo URL</label>
+                  <input class="ws-brand-input" id="bLogoUrl" placeholder="https://… (dark / colour version)" />
+                </div>
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Reversed Logo URL</label>
+                  <input class="ws-brand-input" id="bLogoReverse" placeholder="https://… (white / light version)" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Visual ── -->
+          <div class="ws-bh-panel" id="bhp-visual">
+            <div class="ws-card" style="margin-bottom:16px;">
+              <div class="ws-bh-section-title">Colour Palette</div>
+              <div class="ws-bh-palette">
+                <div class="ws-bh-col-item">
+                  <div class="ws-bh-swatch" id="bSwatch1" style="background:#1C3A2E;"></div>
+                  <div class="ws-bh-col-inputs">
+                    <span class="ws-bh-col-label">Primary</span>
+                    <input class="ws-bh-col-hex" id="bCol1" value="#1C3A2E" maxlength="7" oninput="wsBhUpdateSwatch('bCol1','bSwatch1')" />
+                  </div>
+                </div>
+                <div class="ws-bh-col-item">
+                  <div class="ws-bh-swatch" id="bSwatch2" style="background:#D4622A;"></div>
+                  <div class="ws-bh-col-inputs">
+                    <span class="ws-bh-col-label">Secondary</span>
+                    <input class="ws-bh-col-hex" id="bCol2" value="#D4622A" maxlength="7" oninput="wsBhUpdateSwatch('bCol2','bSwatch2')" />
+                  </div>
+                </div>
+                <div class="ws-bh-col-item">
+                  <div class="ws-bh-swatch" id="bSwatch3" style="background:#F5F4EF;"></div>
+                  <div class="ws-bh-col-inputs">
+                    <span class="ws-bh-col-label">Accent</span>
+                    <input class="ws-bh-col-hex" id="bCol3" value="#F5F4EF" maxlength="7" oninput="wsBhUpdateSwatch('bCol3','bSwatch3')" />
+                  </div>
+                </div>
+                <div class="ws-bh-col-item">
+                  <div class="ws-bh-swatch" id="bSwatch4" style="background:#1A1A1A;"></div>
+                  <div class="ws-bh-col-inputs">
+                    <span class="ws-bh-col-label">Dark</span>
+                    <input class="ws-bh-col-hex" id="bCol4" value="#1A1A1A" maxlength="7" oninput="wsBhUpdateSwatch('bCol4','bSwatch4')" />
+                  </div>
+                </div>
+                <div class="ws-bh-col-item">
+                  <div class="ws-bh-swatch" id="bSwatch5" style="background:#FFFFFF; border:1px solid #E2E1DB;"></div>
+                  <div class="ws-bh-col-inputs">
+                    <span class="ws-bh-col-label">Light</span>
+                    <input class="ws-bh-col-hex" id="bCol5" value="#FFFFFF" maxlength="7" oninput="wsBhUpdateSwatch('bCol5','bSwatch5')" />
+                  </div>
+                </div>
+              </div>
+              <div class="ws-bh-section-title">Typography</div>
+              <div class="ws-bh-grid">
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Heading Font</label>
+                  <input class="ws-brand-input" id="bHFont" placeholder="e.g. DM Sans, Playfair Display" />
+                </div>
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Body Font</label>
+                  <input class="ws-brand-input" id="bBFont" placeholder="e.g. Inter, Georgia" />
+                </div>
+              </div>
+              <div class="ws-bh-field" style="margin-bottom:14px;">
+                <label class="ws-brand-label">Typography Notes</label>
+                <input class="ws-brand-input" id="bFontNotes" placeholder="e.g. Headings always bold, body text sentence case, never all caps." />
+              </div>
+              <div class="ws-bh-section-title">Imagery & Style</div>
+              <div class="ws-bh-grid">
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Photography Style</label>
+                  <select class="ws-onboard-select" id="bImgStyle" style="margin-bottom:0;">
+                    <option value="">Select…</option>
+                    <option>Authentic & candid</option>
+                    <option>Clean & minimal</option>
+                    <option>Bold & high-contrast</option>
+                    <option>Warm & lifestyle</option>
+                    <option>Corporate & professional</option>
+                    <option>Dark & moody</option>
+                    <option>Bright & colourful</option>
+                  </select>
+                </div>
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Illustration / Icon Style</label>
+                  <input class="ws-brand-input" id="bIllustStyle" placeholder="e.g. Flat line icons, 3D renders, hand-drawn" />
+                </div>
+              </div>
+              <div class="ws-bh-field">
+                <label class="ws-brand-label">Visual Direction Notes</label>
+                <textarea class="ws-brand-textarea" id="bVisualNotes" placeholder="Anything else the team should know about your visual style — what to use, what to avoid, mood board references."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Voice & Messaging ── -->
+          <div class="ws-bh-panel" id="bhp-voice">
+            <div class="ws-card" style="margin-bottom:16px;">
+              <div class="ws-bh-section-title">Tone of Voice</div>
+              <div class="ws-bh-grid" style="margin-bottom:14px;">
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Primary Tone</label>
+                  <select class="ws-onboard-select" id="bTone" style="margin-bottom:0;">
+                    <option value="">Select…</option>
+                    <option>Professional & authoritative</option>
+                    <option>Friendly & conversational</option>
+                    <option>Bold & direct</option>
+                    <option>Empathetic & human</option>
+                    <option>Technical & precise</option>
+                    <option>Playful & creative</option>
+                    <option>Luxury & aspirational</option>
+                    <option>Urgent & action-oriented</option>
+                  </select>
+                </div>
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Formality Level</label>
+                  <select class="ws-onboard-select" id="bFormality" style="margin-bottom:0;">
+                    <option value="">Select…</option>
+                    <option>Very formal</option>
+                    <option>Formal</option>
+                    <option>Neutral</option>
+                    <option>Casual</option>
+                    <option>Very casual / colloquial</option>
+                  </select>
+                </div>
+              </div>
+              <div class="ws-bh-section-title">Brand Personality</div>
+              <div style="margin-bottom:4px;font-size:12px;color:var(--muted);">Select all that apply</div>
+              <div class="ws-bh-traits" id="bTraitsWrap">
+                <div class="ws-bh-trait" onclick="wsBhToggleTrait(this)" data-trait="Bold">Bold</div>
+                <div class="ws-bh-trait" onclick="wsBhToggleTrait(this)" data-trait="Approachable">Approachable</div>
+                <div class="ws-bh-trait" onclick="wsBhToggleTrait(this)" data-trait="Expert">Expert</div>
+                <div class="ws-bh-trait" onclick="wsBhToggleTrait(this)" data-trait="Innovative">Innovative</div>
+                <div class="ws-bh-trait" onclick="wsBhToggleTrait(this)" data-trait="Trustworthy">Trustworthy</div>
+                <div class="ws-bh-trait" onclick="wsBhToggleTrait(this)" data-trait="Playful">Playful</div>
+                <div class="ws-bh-trait" onclick="wsBhToggleTrait(this)" data-trait="Premium">Premium</div>
+                <div class="ws-bh-trait" onclick="wsBhToggleTrait(this)" data-trait="Empathetic">Empathetic</div>
+                <div class="ws-bh-trait" onclick="wsBhToggleTrait(this)" data-trait="Direct">Direct</div>
+                <div class="ws-bh-trait" onclick="wsBhToggleTrait(this)" data-trait="Inclusive">Inclusive</div>
+                <div class="ws-bh-trait" onclick="wsBhToggleTrait(this)" data-trait="Disruptive">Disruptive</div>
+                <div class="ws-bh-trait" onclick="wsBhToggleTrait(this)" data-trait="Reassuring">Reassuring</div>
+              </div>
+              <div class="ws-bh-section-title" style="margin-top:20px;">Messaging</div>
+              <div class="ws-bh-field" style="margin-bottom:14px;">
+                <label class="ws-brand-label">Value Proposition <span style="font-weight:400;color:var(--muted);">— 1–2 sentences</span></label>
+                <textarea class="ws-brand-textarea" id="bValueProp" placeholder="What does your brand do, for who, and what's the key benefit they get?"></textarea>
+              </div>
+              <div class="ws-bh-field" style="margin-bottom:14px;">
+                <label class="ws-brand-label">Elevator Pitch <span style="font-weight:400;color:var(--muted);">— 30-second version</span></label>
+                <textarea class="ws-brand-textarea" id="bElevator" placeholder="The version you'd say out loud at a networking event or in a sales call opener."></textarea>
+              </div>
+              <div class="ws-bh-section-title">Messaging Pillars</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">The 3 core themes every piece of content should ladder up to.</div>
+              <div class="ws-bh-pillar">
+                <div class="ws-bh-pillar-num">1</div>
+                <div style="flex:1;">
+                  <input class="ws-brand-input" id="bPillar1Title" placeholder="Pillar name e.g. Speed" style="margin-bottom:6px;" />
+                  <input class="ws-brand-input" id="bPillar1Desc" placeholder="What this pillar means — e.g. We move faster than any agency in the market." />
+                </div>
+              </div>
+              <div class="ws-bh-pillar">
+                <div class="ws-bh-pillar-num">2</div>
+                <div style="flex:1;">
+                  <input class="ws-brand-input" id="bPillar2Title" placeholder="Pillar name e.g. Proof" style="margin-bottom:6px;" />
+                  <input class="ws-brand-input" id="bPillar2Desc" placeholder="What this pillar means" />
+                </div>
+              </div>
+              <div class="ws-bh-pillar">
+                <div class="ws-bh-pillar-num">3</div>
+                <div style="flex:1;">
+                  <input class="ws-brand-input" id="bPillar3Title" placeholder="Pillar name e.g. People" style="margin-bottom:6px;" />
+                  <input class="ws-brand-input" id="bPillar3Desc" placeholder="What this pillar means" />
+                </div>
+              </div>
+              <div class="ws-bh-section-title" style="margin-top:8px;">Language</div>
+              <div class="ws-bh-grid">
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Words We Use ✅</label>
+                  <textarea class="ws-brand-textarea" id="bWordsUse" placeholder="e.g. proven, trusted, results, growth, precision" style="min-height:60px;"></textarea>
+                </div>
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Words We Avoid ❌</label>
+                  <textarea class="ws-brand-textarea" id="bWordsAvoid" placeholder="e.g. cheap, basic, just, easy, simply" style="min-height:60px;"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Audience ── -->
+          <div class="ws-bh-panel" id="bhp-audience">
+            <div class="ws-card" style="margin-bottom:16px;">
+              <div class="ws-bh-section-title">Target Audience</div>
+              <div class="ws-bh-grid">
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Business Type</label>
+                  <select class="ws-onboard-select" id="bBizType" style="margin-bottom:0;">
+                    <option value="">Select…</option>
+                    <option>B2C (direct to consumer)</option>
+                    <option>B2B (business to business)</option>
+                    <option>Both B2C and B2B</option>
+                    <option>D2C (direct to consumer, e-commerce)</option>
+                    <option>Marketplace / Platform</option>
+                  </select>
+                </div>
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Geography</label>
+                  <input class="ws-brand-input" id="bGeo" placeholder="e.g. Australia-wide, South-East Queensland, Global" />
+                </div>
+              </div>
+              <div class="ws-bh-field" style="margin-bottom:14px;">
+                <label class="ws-brand-label">Primary Audience</label>
+                <input class="ws-brand-input" id="bAudience" placeholder="e.g. B2B SaaS founders aged 30–50 at Series A–C stage companies" />
+              </div>
+              <div class="ws-bh-field" style="margin-bottom:14px;">
+                <label class="ws-brand-label">Secondary Audience</label>
+                <input class="ws-brand-input" id="bAudSecondary" placeholder="e.g. Marketing managers at mid-market companies" />
+              </div>
+              <div class="ws-bh-section-title">Buyer Persona</div>
+              <div class="ws-bh-grid" style="margin-bottom:14px;">
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Persona Name & Role</label>
+                  <input class="ws-brand-input" id="bPersonaName" placeholder="e.g. Sarah — Head of Marketing" />
+                </div>
+                <div class="ws-bh-field">
+                  <label class="ws-brand-label">Age Range & Background</label>
+                  <input class="ws-brand-input" id="bPersonaDemog" placeholder="e.g. 35–45, university educated, data-driven" />
+                </div>
+              </div>
+              <div class="ws-bh-field" style="margin-bottom:14px;">
+                <label class="ws-brand-label">Persona Description</label>
+                <textarea class="ws-brand-textarea" id="bPersonaDesc" placeholder="Day-to-day responsibilities, how they make decisions, what they care about."></textarea>
+              </div>
+              <div class="ws-bh-section-title">Insights</div>
+              <div class="ws-bh-field" style="margin-bottom:14px;">
+                <label class="ws-brand-label">Key Pain Points</label>
+                <textarea class="ws-brand-textarea" id="bPainPoints" placeholder="What frustrations, problems or challenges does your audience face that you solve?"></textarea>
+              </div>
+              <div class="ws-bh-field">
+                <label class="ws-brand-label">Goals & Motivations</label>
+                <textarea class="ws-brand-textarea" id="bGoals" placeholder="What does your audience want to achieve? What does success look like for them?"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Guidelines ── -->
+          <div class="ws-bh-panel" id="bhp-guidelines">
+            <div class="ws-card" style="margin-bottom:16px;">
+              <div class="ws-bh-section-title">Writing Style</div>
+              <div class="ws-bh-field" style="margin-bottom:14px;">
+                <label class="ws-brand-label">Headline Style</label>
+                <input class="ws-brand-input" id="bHeadlineStyle" placeholder="e.g. Short punchy statements, always a verb, max 8 words, no punctuation at end." />
+              </div>
+              <div class="ws-bh-field" style="margin-bottom:14px;">
+                <label class="ws-brand-label">Body Copy Guidance</label>
+                <textarea class="ws-brand-textarea" id="bBodyStyle" placeholder="e.g. Short sentences, no jargon, use second person (you/your), active voice always."></textarea>
+              </div>
+              <div class="ws-bh-field" style="margin-bottom:14px;">
+                <label class="ws-brand-label">Social Media Notes</label>
+                <textarea class="ws-brand-textarea" id="bSocialNotes" placeholder="e.g. LinkedIn: thought leadership + data. Instagram: lifestyle + behind the scenes. Always reply to comments within 24 hrs."></textarea>
+              </div>
+              <div class="ws-bh-section-title">Content Pillars</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">The topic areas your content will consistently cover.</div>
+              <div class="ws-bh-field" style="margin-bottom:10px;">
+                <input class="ws-brand-input" id="bCPillar1" placeholder="Content pillar 1 — e.g. Industry insights & education" />
+              </div>
+              <div class="ws-bh-field" style="margin-bottom:10px;">
+                <input class="ws-brand-input" id="bCPillar2" placeholder="Content pillar 2 — e.g. Customer success stories" />
+              </div>
+              <div class="ws-bh-field" style="margin-bottom:20px;">
+                <input class="ws-brand-input" id="bCPillar3" placeholder="Content pillar 3 — e.g. Behind the brand" />
+              </div>
+              <div class="ws-bh-section-title">Do's & Don'ts</div>
+              <div class="ws-bh-do-dont">
+                <div class="ws-bh-do-box">
+                  <div class="ws-bh-do-title">✅ Always do this</div>
+                  <input class="ws-bh-do-input" id="bDo1" placeholder="e.g. Lead with the customer benefit" />
+                  <input class="ws-bh-do-input" id="bDo2" placeholder="e.g. Use real data and proof points" />
+                  <input class="ws-bh-do-input" id="bDo3" placeholder="e.g. Keep visuals consistent with the palette" />
+                </div>
+                <div class="ws-bh-dont-box">
+                  <div class="ws-bh-dont-title">❌ Never do this</div>
+                  <input class="ws-bh-dont-input" id="bDont1" placeholder="e.g. Make promises we can't keep" />
+                  <input class="ws-bh-dont-input" id="bDont2" placeholder="e.g. Use competitor brand names" />
+                  <input class="ws-bh-dont-input" id="bDont3" placeholder="e.g. Publish without a CTA" />
+                </div>
+              </div>
+              <div class="ws-bh-section-title" style="margin-top:20px;">Campaign Notes</div>
+              <div class="ws-bh-field" style="margin-bottom:14px;">
+                <label class="ws-brand-label">Approval & Sign-off Notes</label>
+                <textarea class="ws-brand-textarea" id="bApprovalNotes" placeholder="e.g. All ads must be approved by CEO before going live. Budget changes over $500 require sign-off."></textarea>
+              </div>
+              <div class="ws-bh-field">
+                <label class="ws-brand-label">Compliance & Legal Notes</label>
+                <textarea class="ws-brand-textarea" id="bComplianceNotes" placeholder="e.g. Must include AFSL disclaimer on all financial content. No claims about guaranteed returns."></textarea>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -1958,23 +2275,73 @@ function wsLibRequestChanges(id) {
 // ── Brand Hub ─────────────────────────────────────────────────────────────────
 function wsBrandKey() { return 'cp_brand_' + wsSession.workspaceId; }
 
+const WS_BH_FIELDS = [
+  'bBrandName','bTagline','bIndustry','bWebsite','bMission','bStory',
+  'bVal1','bVal2','bVal3','bLogoUrl','bLogoReverse',
+  'bCol1','bCol2','bCol3','bCol4','bCol5',
+  'bHFont','bBFont','bFontNotes','bImgStyle','bIllustStyle','bVisualNotes',
+  'bTone','bFormality','bValueProp','bElevator',
+  'bPillar1Title','bPillar1Desc','bPillar2Title','bPillar2Desc','bPillar3Title','bPillar3Desc',
+  'bWordsUse','bWordsAvoid',
+  'bBizType','bGeo','bAudience','bAudSecondary',
+  'bPersonaName','bPersonaDemog','bPersonaDesc','bPainPoints','bGoals',
+  'bHeadlineStyle','bBodyStyle','bSocialNotes',
+  'bCPillar1','bCPillar2','bCPillar3',
+  'bDo1','bDo2','bDo3','bDont1','bDont2','bDont3',
+  'bApprovalNotes','bComplianceNotes'
+];
+
 function wsLoadBrandHub() {
   const saved = JSON.parse(localStorage.getItem(wsBrandKey()) || '{}');
-  const fields = ['bBrandName','bTagline','bColor1Hex','bColor2Hex','bFont','bLogoUrl','bTone','bValueProp','bWordsUse','bWordsAvoid','bAudience','bPainPoints'];
-  fields.forEach(id => { if (saved[id]) document.getElementById(id).value = saved[id]; });
-  if (saved.bColor1Hex) document.getElementById('bColor1').value = saved.bColor1Hex;
-  if (saved.bColor2Hex) document.getElementById('bColor2').value = saved.bColor2Hex;
+  WS_BH_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && saved[id] !== undefined) el.value = saved[id];
+  });
+  // Restore live swatches
+  ['1','2','3','4','5'].forEach(n => {
+    const hexEl = document.getElementById('bCol' + n);
+    const swatch = document.getElementById('bSwatch' + n);
+    if (hexEl && swatch && hexEl.value) swatch.style.background = hexEl.value;
+  });
+  // Restore personality traits
+  if (Array.isArray(saved.bTraits)) {
+    document.querySelectorAll('.ws-bh-trait').forEach(el => {
+      if (saved.bTraits.includes(el.dataset.trait)) el.classList.add('selected');
+    });
+  }
 }
 
 function wsSaveBrandHub() {
-  const fields = ['bBrandName','bTagline','bColor1Hex','bColor2Hex','bFont','bLogoUrl','bTone','bValueProp','bWordsUse','bWordsAvoid','bAudience','bPainPoints'];
   const data = {};
-  fields.forEach(id => { data[id] = document.getElementById(id).value; });
+  WS_BH_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) data[id] = el.value;
+  });
+  // Save personality traits
+  data.bTraits = Array.from(document.querySelectorAll('.ws-bh-trait.selected')).map(el => el.dataset.trait);
   localStorage.setItem(wsBrandKey(), JSON.stringify(data));
   const toast = document.getElementById('bSavedToast');
   toast.style.display = 'inline';
   setTimeout(() => toast.style.display = 'none', 2500);
-  wsLogActivity('brand_hub_updated', 'Brand Hub updated by client.');
+  wsLogActivity('brand_hub_updated', 'Brand guidelines updated.');
+}
+
+function wsBhTab(panel, el) {
+  document.querySelectorAll('.ws-bh-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.ws-bh-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('bhp-' + panel).classList.add('active');
+}
+
+function wsBhUpdateSwatch(inputId, swatchId) {
+  const val = document.getElementById(inputId).value;
+  if (/^#[0-9A-Fa-f]{3,6}$/.test(val)) {
+    document.getElementById(swatchId).style.background = val;
+  }
+}
+
+function wsBhToggleTrait(el) {
+  el.classList.toggle('selected');
 }
 
 // ── Plan Selection ───────────────────────────────────────────────────────────
