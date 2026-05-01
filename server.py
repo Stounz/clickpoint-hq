@@ -2879,7 +2879,30 @@ class AgentHandler(BaseHTTPRequestHandler):
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
+def _run_db_migrations():
+    """Run lightweight schema migrations on startup (idempotent)."""
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        return
+    migrations = [
+        "ALTER TABLE workspace_access ADD COLUMN IF NOT EXISTS partner_id TEXT DEFAULT NULL;",
+    ]
+    for sql in migrations:
+        try:
+            import urllib.request as _ur2, json as _json2
+            req = _ur2.Request(
+                f"{SUPABASE_URL}/rest/v1/rpc/exec_sql",
+                data=_json2.dumps({'query': sql}).encode(),
+                headers={'apikey': SUPABASE_SERVICE_KEY, 'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                         'Content-Type': 'application/json'},
+                method='POST')
+            _ur2.urlopen(req, timeout=6)
+            print(f'  ✅ Migration OK: {sql[:60]}')
+        except Exception as e:
+            # exec_sql may not exist — that's fine, column may already exist
+            print(f'  ℹ️  Migration skipped (run manually if needed): {sql[:60]}')
+
 if __name__ == '__main__':
+    _run_db_migrations()   # add partner_id column etc.
     load_db_agents()   # merge Supabase agent overrides/additions into AGENT_PROMPTS
     server = HTTPServer(('0.0.0.0', PORT), AgentHandler)
     print(f'\n🎯 ClickPoint Agent API')
