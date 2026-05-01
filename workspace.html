@@ -244,6 +244,24 @@
   .ws-admin-banner { background:linear-gradient(90deg,rgba(212,98,42,0.12),rgba(212,98,42,0.06)); border:1.5px solid rgba(212,98,42,0.25); border-radius:12px; padding:12px 16px; margin-bottom:20px; display:flex; align-items:center; gap:12px; font-size:13px; color:var(--orange); font-weight:600; }
   .ws-admin-banner a { color:var(--orange); text-decoration:underline; margin-left:auto; font-size:12px; }
 
+  /* ── Guided Tour ── */
+  .ws-tour-overlay { position:fixed; inset:0; background:rgba(10,18,14,0.72); z-index:9000; pointer-events:none; opacity:0; transition:opacity 0.3s; }
+  .ws-tour-overlay.visible { opacity:1; }
+  .ws-tour-tooltip { position:fixed; background:#fff; border-radius:16px; padding:24px 24px 20px; width:300px; box-shadow:0 20px 60px rgba(0,0,0,0.28); z-index:9002; pointer-events:all; opacity:0; transition:opacity 0.25s, top 0.25s, left 0.25s; }
+  .ws-tour-tooltip.visible { opacity:1; }
+  .ws-tour-step-label { font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--teal); margin-bottom:8px; }
+  .ws-tour-title { font-size:15px; font-weight:800; color:var(--dark); margin-bottom:6px; }
+  .ws-tour-body { font-size:13px; color:var(--muted); line-height:1.55; margin-bottom:20px; }
+  .ws-tour-foot { display:flex; align-items:center; gap:8px; }
+  .ws-tour-dots { display:flex; gap:5px; flex:1; }
+  .ws-tour-dot { width:6px; height:6px; border-radius:50%; background:#E2E1DB; transition:background 0.2s; }
+  .ws-tour-dot.active { background:var(--teal); width:16px; border-radius:3px; }
+  .ws-tour-skip { font-size:12px; color:var(--muted); background:none; border:none; cursor:pointer; font-family:inherit; padding:4px 6px; white-space:nowrap; }
+  .ws-tour-skip:hover { color:var(--dark); }
+  .ws-tour-next { padding:9px 18px; background:var(--teal); color:#fff; border:none; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+  .ws-tour-next:hover { background:var(--teal-md); }
+  .ws-tour-highlight { position:relative !important; z-index:9001 !important; box-shadow:0 0 0 4px rgba(28,58,46,0.5), 0 0 0 10px rgba(28,58,46,0.12) !important; border-radius:12px; transition:box-shadow 0.3s; }
+
   /* ── Onboarding Modal ── */
   .ws-onboard-overlay { position:fixed; inset:0; background:rgba(10,18,14,0.72); z-index:1000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
   .ws-onboard-modal { background:#fff; border-radius:20px; padding:40px; max-width:520px; width:calc(100% - 40px); box-shadow:0 24px 80px rgba(0,0,0,0.22); }
@@ -716,9 +734,9 @@
             <div class="ws-card">
               <div class="ws-card-title">⚡ Quick Actions</div>
               <div class="ws-actions">
-                <button class="ws-action-btn" onclick="wsSetView('ai')"><span class="btn-icon">🎯</span>Ask your CMO</button>
-                <button class="ws-action-btn" onclick="wsSetView('campaigns');setTimeout(wsNewCampaignOpen,100)"><span class="btn-icon">➕</span>New Campaign</button>
-                <button class="ws-action-btn secondary" onclick="wsSetView('reports')"><span class="btn-icon">📋</span>View Reports</button>
+                <button class="ws-action-btn" id="wsTourBtnCmo" onclick="wsSetView('ai')"><span class="btn-icon">🎯</span>Ask your CMO</button>
+                <button class="ws-action-btn" id="wsTourBtnCampaign" onclick="wsSetView('campaigns');setTimeout(wsNewCampaignOpen,100)"><span class="btn-icon">➕</span>New Campaign</button>
+                <button class="ws-action-btn secondary" id="wsTourBtnReports" onclick="wsSetView('reports')"><span class="btn-icon">📋</span>View Reports</button>
                 <button class="ws-action-btn secondary" onclick="wsSetView('analytics')"><span class="btn-icon">📈</span>Analytics</button>
               </div>
             </div>
@@ -1362,6 +1380,9 @@ function wsInitApp() {
   wsLoadDashboard();
   wsCheckOnboarding();
   wsLogActivity('workspace_open', `Workspace opened by ${s.email}`);
+  // Tour only if onboarding already done (otherwise triggered from wsOnboardComplete)
+  const _wsObKey = 'cp_onboarded_' + (wsSession && wsSession.workspaceId);
+  if (localStorage.getItem(_wsObKey)) wsMaybeTour();
 
   // Check if returning from Stripe — URL param ?plan_success=1
   const urlParams = new URLSearchParams(location.search);
@@ -1846,6 +1867,7 @@ function wsOnboardComplete() {
   localStorage.setItem('cp_onboarded_' + wsSession.workspaceId, JSON.stringify(data));
   document.getElementById('wsOnboardOverlay').style.display = 'none';
   wsLogActivity('onboarding_complete', `Onboarding completed. Goal: ${data.goal}. Budget: ${data.budget}. Channels: ${data.channels.join(', ')}.`);
+  wsMaybeTour();
 }
 
 // ── Deliverables Library ──────────────────────────────────────────────────────
@@ -2243,6 +2265,124 @@ function wsUpdateBudgetTotal() {} // stub for campaign form budget input
     }
   }
 })();
+
+// ── Guided Tour ───────────────────────────────────────────────────────────────
+const WS_TOUR_STEPS = [
+  {
+    selector: '#wsTourBtnCampaign',
+    title: 'Request a new campaign',
+    body: 'Brief your team on a new campaign — Google Ads, Meta, SEO, email, and more. We handle the rest.',
+    position: 'top'
+  },
+  {
+    selector: '#wsTourBtnReports',
+    title: 'View your reports',
+    body: 'Monthly performance reports land here. Track what\'s working and see your results over time.',
+    position: 'top'
+  },
+  {
+    selector: '[data-view="ai"]',
+    title: 'Ask your CMO',
+    body: 'Sarah has full visibility into your account. Ask her anything — strategy, spend, priorities, what the numbers mean.',
+    position: 'right'
+  },
+  {
+    selector: '[data-view="brand"]',
+    title: 'Your Brand Hub',
+    body: 'Store your brand guidelines, colours, logos, and tone of voice so every campaign stays on-brand.',
+    position: 'right'
+  }
+];
+
+let _wsTourStep = 0;
+let _wsTourTargetEl = null;
+let _wsTourOverlay = null;
+let _wsTourTooltip = null;
+
+function wsStartTour() {
+  if (_wsTourOverlay) return;
+  _wsTourOverlay = document.createElement('div');
+  _wsTourOverlay.className = 'ws-tour-overlay';
+  document.body.appendChild(_wsTourOverlay);
+  _wsTourTooltip = document.createElement('div');
+  _wsTourTooltip.className = 'ws-tour-tooltip';
+  document.body.appendChild(_wsTourTooltip);
+  _wsTourStep = 0;
+  requestAnimationFrame(() => {
+    _wsTourOverlay.classList.add('visible');
+    _wsShowTourStep();
+  });
+}
+
+function _wsShowTourStep() {
+  if (_wsTourTargetEl) _wsTourTargetEl.classList.remove('ws-tour-highlight');
+  const step = WS_TOUR_STEPS[_wsTourStep];
+  _wsTourTargetEl = document.querySelector(step.selector);
+  if (!_wsTourTargetEl) { wsEndTour(); return; }
+  _wsTourTargetEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  setTimeout(() => {
+    _wsTourTargetEl.classList.add('ws-tour-highlight');
+    const rect = _wsTourTargetEl.getBoundingClientRect();
+    const isLast = _wsTourStep === WS_TOUR_STEPS.length - 1;
+    const dots = WS_TOUR_STEPS.map((_, i) =>
+      `<div class="ws-tour-dot${i === _wsTourStep ? ' active' : ''}"></div>`
+    ).join('');
+    _wsTourTooltip.innerHTML = `
+      <div class="ws-tour-step-label">Step ${_wsTourStep + 1} of ${WS_TOUR_STEPS.length}</div>
+      <div class="ws-tour-title">${step.title}</div>
+      <div class="ws-tour-body">${step.body}</div>
+      <div class="ws-tour-foot">
+        <div class="ws-tour-dots">${dots}</div>
+        <button class="ws-tour-skip" onclick="wsEndTour()">Skip</button>
+        <button class="ws-tour-next" onclick="wsTourNext()">${isLast ? 'Done ✓' : 'Next →'}</button>
+      </div>`;
+    _wsPosTooltip(rect, step.position);
+    _wsTourTooltip.classList.add('visible');
+  }, 350);
+}
+
+function _wsPosTooltip(rect, position) {
+  const tt = _wsTourTooltip;
+  const gap = 16;
+  const ttW = 300;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  let top, left;
+  if (position === 'right') {
+    top  = rect.top + rect.height / 2 - 90;
+    left = rect.right + gap;
+  } else if (position === 'top') {
+    top  = rect.top - 180 - gap;
+    left = rect.left + rect.width / 2 - ttW / 2;
+  } else {
+    top  = rect.bottom + gap;
+    left = rect.left + rect.width / 2 - ttW / 2;
+  }
+  left = Math.max(16, Math.min(left, vw - ttW - 16));
+  top  = Math.max(16, Math.min(top, vh - 210));
+  tt.style.left = left + 'px';
+  tt.style.top  = top + 'px';
+}
+
+function wsTourNext() {
+  _wsTourStep++;
+  if (_wsTourStep >= WS_TOUR_STEPS.length) { wsEndTour(); return; }
+  _wsShowTourStep();
+}
+
+function wsEndTour() {
+  if (_wsTourTargetEl) _wsTourTargetEl.classList.remove('ws-tour-highlight');
+  if (_wsTourOverlay)  { _wsTourOverlay.classList.remove('visible'); setTimeout(() => _wsTourOverlay && _wsTourOverlay.remove(), 300); }
+  if (_wsTourTooltip)  _wsTourTooltip.remove();
+  _wsTourTargetEl = _wsTourOverlay = _wsTourTooltip = null;
+  if (wsSession) localStorage.setItem('cp_ws_toured_' + wsSession.workspaceId, '1');
+}
+
+function wsMaybeTour() {
+  if (!wsSession || wsSession.isAdmin) return; // Don't show tour to admin/partner viewing
+  const toured = localStorage.getItem('cp_ws_toured_' + wsSession.workspaceId);
+  if (!toured) setTimeout(wsStartTour, 900);
+}
 </script>
 </body>
 </html>
