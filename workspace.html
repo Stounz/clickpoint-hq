@@ -1434,23 +1434,29 @@ function wsLoadDashboard() {
   document.getElementById('wsHealthDesc').textContent = m.healthDesc;
   setTimeout(() => { document.getElementById('wsHealthBar').style.width = (m.health * 10) + '%'; }, 100);
 
-  // Campaigns
-  const camps = wsDemoCampaigns();
-  document.getElementById('wsDashCampaigns').innerHTML = camps.map(c => `
-    <div class="ws-campaign">
-      <div class="ws-campaign-icon" style="background:rgba(28,58,46,0.08)">${c.icon}</div>
-      <div>
-        <div class="ws-campaign-name">${c.name}</div>
-        <div class="ws-campaign-meta">${c.platform}</div>
-      </div>
-      <div class="ws-campaign-status ${c.status}">${c.status.charAt(0).toUpperCase()+c.status.slice(1)}</div>
-    </div>
-  `).join('');
+  // Campaigns — show pending only, or empty state
+  const dashCamps = wsPendingCampaigns;
+  document.getElementById('wsDashCampaigns').innerHTML = dashCamps.length
+    ? dashCamps.map(c => `
+        <div class="ws-campaign">
+          <div class="ws-campaign-icon" style="background:rgba(212,98,42,0.08)">🚀</div>
+          <div>
+            <div class="ws-campaign-name">${c.name}</div>
+            <div class="ws-campaign-meta">${c.channel}</div>
+          </div>
+          <div class="ws-campaign-status" style="color:#D4622A;">Pending</div>
+        </div>
+      `).join('')
+    : `<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">No active campaigns yet — <span style="color:var(--teal);cursor:pointer;" onclick="wsSetView('campaigns')">request one →</span></div>`;
 
-  // Campaign badge
-  const activeCnt = camps.filter(c=>c.status==='active').length;
+  // Campaign badge — only show when there are pending campaigns
   const badge = document.getElementById('wsNavCampaignBadge');
-  badge.textContent = activeCnt; badge.style.display = 'inline';
+  if (wsPendingCampaigns.length) {
+    badge.textContent = wsPendingCampaigns.length;
+    badge.style.display = 'inline';
+  } else {
+    badge.style.display = 'none';
+  }
 
   // Activity
   const acts = wsDemoActivity();
