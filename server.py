@@ -14,6 +14,7 @@ import urllib.parse
 import os
 import sys
 import datetime
+import threading
 
 # ── Optional encryption (pip3 install cryptography) ───────────────────────────
 try:
@@ -3072,15 +3073,17 @@ class AgentHandler(BaseHTTPRequestHandler):
     }
 
     def _handle_campaign_request(self):
-        """Client submits a campaign brief → Supabase campaigns table → Sarah auto-reviews.
+        """Client submits a campaign brief → Supabase campaigns table → Sarah + specialist async.
 
         Uses the existing 'campaigns' table with column remapping:
           client   → workspace_id
           types    → campaign type
           assigned → channel
           brief    → JSON blob with {brief, channel, budget, partner_id, company_name, sarah_reply}
-        Sarah's reply is stored back into the 'brief' JSON and returned directly
-        in the response so the client can display it instantly without a second fetch.
+
+        The AI pipeline (Sarah review + specialist deliverable) runs in a background thread so
+        the HTTP response is returned immediately, avoiding Railway's ~30s gateway timeout.
+        The frontend polls /api/campaign/updates?campaignId=X for the results.
         """
         try:
             body = self._read_body()
@@ -3116,110 +3119,151 @@ class AgentHandler(BaseHTTPRequestHandler):
             except Exception:
                 pass
 
-        # ── Auto-trigger Sarah BEFORE saving (so we can store reply in DB) ────
-        sarah_reply = ''
-        sarah_status = 'pending'
-        if API_KEY:
-            try:
-                budget_str = f'${budget}/mo' if budget else 'Not specified'
-                sarah_prompt = (
-                    f"A new campaign request has just come in from {company_name or workspace_id}. "
-                    f"Review this brief and provide your initial strategic assessment.\n\n"
-                    f"Campaign Name: {name}\nType: {ctype}\nChannel: {channel}\n"
-                    f"Budget: {budget_str}\nTarget Audience: {audience or 'Not specified'}\n"
-                    f"Brief: {brief or 'No brief provided'}\n\n"
-                    f"Respond as Sarah Lin, CMO. Give a warm but professional acknowledgement, "
-                    f"your immediate strategic read on this brief, which team member you're assigning "
-                    f"to lead execution, and 2–3 clear next steps. Keep it concise — this goes "
-                    f"directly into the client's campaign dashboard."
-                )
-                sarah_reply = call_anthropic(
-                    API_KEY, AGENT_PROMPTS.get('sarah', ''),
-                    [{'role': 'user', 'content': sarah_prompt}], max_tokens=500
-                )
-                sarah_status = 'reviewing'
-                print(f'  🤖 Sarah reviewed "{name}" for {company_name}')
-            except Exception as e:
-                print(f'  ⚠️  Sarah auto-review error: {e}')
-
-        # ── Auto-assign specialist and produce first deliverable ──────────────
-        assigned_agent   = self._parse_assigned_agent(sarah_reply, channel)
-        deliverable_text = ''
-        if sarah_reply and API_KEY:
-            try:
-                integration_line = (
-                    f"CONNECTED_PLATFORMS: {connected_platforms}"
-                    if connected_platforms else
-                    "CONNECTED_PLATFORMS: None — no third-party platforms are currently connected for this client."
-                )
-                specialist_context = (
-                    f"Campaign: {name}\nClient: {company_name or workspace_id}\n"
-                    f"Type: {ctype}\nChannel: {channel}\n"
-                    f"Budget: {'$'+budget+'/mo' if budget else 'TBD'}\n"
-                    f"Target Audience: {audience or 'Not specified'}\n"
-                    f"Brief: {brief or 'No brief provided'}\n"
-                    f"{integration_line}\n\n"
-                    f"CMO Assessment (Sarah Lin):\n{sarah_reply[:800]}"
-                )
-                spec_prompt = self.SPECIALIST_PROMPTS.get(assigned_agent, '')
-                deliverable_text = call_anthropic(
-                    API_KEY, AGENT_PROMPTS.get(assigned_agent, ''),
-                    [{'role': 'user', 'content': spec_prompt + '\n\n--- CONTEXT ---\n' + specialist_context}],
-                    max_tokens=1500
-                )
-                print(f'  📋 {assigned_agent} deliverable ready for "{name}"')
-            except Exception as e:
-                print(f'  ⚠️  {assigned_agent} deliverable error: {e}')
-
-        # ── Encode all extra fields into the brief JSON blob ──────────────────
-        deliverable_entry = {
-            'agent':      assigned_agent,
-            'agentName':  self._agent_display_name(assigned_agent),
-            'type':       self._agent_deliverable_type(assigned_agent),
-            'content':    deliverable_text,
-            'created_at': datetime.datetime.utcnow().isoformat(),
-        } if deliverable_text else None
-
-        brief_blob = json.dumps({
-            'brief':         brief,
-            'channel':       channel,
-            'budget':        budget,
-            'partner_id':    partner_id,
-            'company_name':  company_name or workspace_id,
-            'sarah_reply':   sarah_reply,
-            'assigned_agent': assigned_agent,
-            'deliverables':  [deliverable_entry] if deliverable_entry else [],
+        # ── Save to Supabase immediately (status = 'processing') ──────────────
+        brief_blob_initial = json.dumps({
+            'brief':          brief,
+            'channel':        channel,
+            'budget':         budget,
+            'partner_id':     partner_id,
+            'company_name':   company_name or workspace_id,
+            'sarah_reply':    '',
+            'assigned_agent': '',
+            'deliverables':   [],
         })
-
-        # ── Save to existing campaigns table ──────────────────────────────────
         campaign_id = None
         if SUPABASE_URL and SUPABASE_SERVICE_KEY:
             try:
                 row = {
                     'name':     name,
-                    'client':   workspace_id,   # repurposed as workspace_id
-                    'types':    ctype,           # campaign type
+                    'client':   workspace_id,
+                    'types':    ctype,
                     'audience': audience,
-                    'assigned': channel,         # repurposed as channel
-                    'brief':    brief_blob,      # JSON blob with all extras
-                    'status':   sarah_status,
+                    'assigned': channel,
+                    'brief':    brief_blob_initial,
+                    'status':   'processing',
                 }
                 result = _supabase_req('POST', 'campaigns', row, service_role=True)
                 if result and isinstance(result, list) and result[0].get('id'):
                     campaign_id = result[0]['id']
-                    print(f'  📥 Campaign saved: id={campaign_id} ws={workspace_id}')
+                    print(f'  📥 Campaign saved (async): id={campaign_id} ws={workspace_id}')
             except Exception as e:
                 print(f'  ⚠️  campaigns insert error: {e}')
 
+        # ── Respond to client immediately (no blocking on AI calls) ───────────
         self._json(200, {
             'ok':            True,
             'campaignId':    campaign_id,
             'partnerId':     partner_id,
-            'status':        sarah_status,
-            'sarahReply':    sarah_reply,
-            'assignedAgent': assigned_agent,
-            'deliverable':   deliverable_entry,  # specialist's first deliverable, ready for Library
+            'status':        'processing',
+            'sarahReply':    None,
+            'assignedAgent': None,
+            'deliverable':   None,
         })
+
+        # ── Background thread: Sarah review + specialist deliverable ──────────
+        # Capture all locals needed by the thread (avoid closure over mutable state)
+        _cid  = campaign_id
+        _name = name; _ctype = ctype; _ch = channel; _bud = budget
+        _aud  = audience; _br = brief; _co = company_name or workspace_id
+        _plat = connected_platforms; _pid = partner_id; _ws = workspace_id
+
+        def _bg_process():
+            sarah_reply      = ''
+            assigned_agent   = 'derek'
+            deliverable_text = ''
+
+            # — Sarah review —
+            if API_KEY:
+                try:
+                    budget_str  = f'${_bud}/mo' if _bud else 'Not specified'
+                    sarah_prompt = (
+                        f"A new campaign request has just come in from {_co}. "
+                        f"Review this brief and provide your initial strategic assessment.\n\n"
+                        f"Campaign Name: {_name}\nType: {_ctype}\nChannel: {_ch}\n"
+                        f"Budget: {budget_str}\nTarget Audience: {_aud or 'Not specified'}\n"
+                        f"Brief: {_br or 'No brief provided'}\n\n"
+                        f"Respond as Sarah Lin, CMO. Give a warm but professional acknowledgement, "
+                        f"your immediate strategic read on this brief, which team member you're assigning "
+                        f"to lead execution, and 2–3 clear next steps. Keep it concise — this goes "
+                        f"directly into the client's campaign dashboard."
+                    )
+                    sarah_reply = call_anthropic(
+                        API_KEY, AGENT_PROMPTS.get('sarah', ''),
+                        [{'role': 'user', 'content': sarah_prompt}], max_tokens=500
+                    )
+                    print(f'  🤖 Sarah reviewed "{_name}" for {_co}')
+                except Exception as e:
+                    print(f'  ⚠️  Sarah async error: {e}')
+
+            assigned_agent = AgentHandler._parse_assigned_agent(sarah_reply, _ch)
+
+            # — Specialist deliverable —
+            if sarah_reply and API_KEY:
+                try:
+                    integration_line = (
+                        f"CONNECTED_PLATFORMS: {_plat}"
+                        if _plat else
+                        "CONNECTED_PLATFORMS: None — no third-party platforms are currently connected for this client."
+                    )
+                    specialist_context = (
+                        f"Campaign: {_name}\nClient: {_co}\n"
+                        f"Type: {_ctype}\nChannel: {_ch}\n"
+                        f"Budget: {'$'+_bud+'/mo' if _bud else 'TBD'}\n"
+                        f"Target Audience: {_aud or 'Not specified'}\n"
+                        f"Brief: {_br or 'No brief provided'}\n"
+                        f"{integration_line}\n\n"
+                        f"CMO Assessment (Sarah Lin):\n{sarah_reply[:800]}"
+                    )
+                    spec_prompt      = AgentHandler.SPECIALIST_PROMPTS.get(assigned_agent, '')
+                    deliverable_text = call_anthropic(
+                        API_KEY, AGENT_PROMPTS.get(assigned_agent, ''),
+                        [{'role': 'user', 'content': spec_prompt + '\n\n--- CONTEXT ---\n' + specialist_context}],
+                        max_tokens=1500
+                    )
+                    print(f'  📋 {assigned_agent} deliverable ready for "{_name}"')
+                except Exception as e:
+                    print(f'  ⚠️  {assigned_agent} async deliverable error: {e}')
+
+            # — Build updated brief blob —
+            deliverable_entry = {
+                'agent':      assigned_agent,
+                'agentName':  AgentHandler._agent_display_name(assigned_agent),
+                'type':       AgentHandler._agent_deliverable_type(assigned_agent),
+                'content':    deliverable_text,
+                'created_at': datetime.datetime.utcnow().isoformat(),
+            } if deliverable_text else None
+
+            new_brief_blob = json.dumps({
+                'brief':          _br,
+                'channel':        _ch,
+                'budget':         _bud,
+                'partner_id':     _pid,
+                'company_name':   _co,
+                'sarah_reply':    sarah_reply,
+                'assigned_agent': assigned_agent,
+                'deliverables':   [deliverable_entry] if deliverable_entry else [],
+            })
+
+            # — PATCH Supabase with results —
+            if _cid and SUPABASE_URL and SUPABASE_SERVICE_KEY:
+                try:
+                    patch_payload = {
+                        'brief':  new_brief_blob,
+                        'status': 'reviewing' if sarah_reply else 'pending',
+                    }
+                    import urllib.parse as _up_bg
+                    _supabase_req(
+                        'PATCH',
+                        f'campaigns?id=eq.{_up_bg.quote(str(_cid))}',
+                        patch_payload,
+                        service_role=True
+                    )
+                    print(f'  ✅ Campaign #{_cid} updated with Sarah+{assigned_agent} output')
+                except Exception as e:
+                    print(f'  ⚠️  Campaign async PATCH error: {e}')
+
+        t = threading.Thread(target=_bg_process, daemon=True)
+        t.start()
 
     def _handle_campaigns_list(self):
         """List all campaign requests for a workspace (reads from campaigns table)."""

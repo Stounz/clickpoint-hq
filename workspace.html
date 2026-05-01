@@ -2026,6 +2026,7 @@ async function wsNewCampaignSubmit() {
     .join(', ');
 
   let serverOk = false;
+  let campaignIdForPoll = null;
   try {
     const resp = await fetch(`${WS_API}/api/campaign/request`, {
       method: 'POST',
@@ -2040,43 +2041,60 @@ async function wsNewCampaignSubmit() {
     const data = await resp.json();
     if (data.ok) {
       serverOk = true;
-      if (data.sarahReply && data.campaignId) {
-        sessionStorage.setItem('ws_sarah_' + data.campaignId, data.sarahReply);
-      }
-      // Auto-save specialist deliverable straight to Library
-      if (data.deliverable && data.deliverable.content) {
-        const d = data.deliverable;
-        const libId = 'srv_' + data.campaignId + '_' + (d.agent || 'agent');
-        const items = wsGetLibrary();
-        if (!items.find(i => i.id === libId)) {
-          items.unshift({
-            id: libId, type: d.type || 'Strategy',
-            author: (d.agentName || d.agent) + ' — ' + name,
-            content: d.content, savedAt: new Date().toISOString(),
-            status: 'pending', campaignId: data.campaignId, campaignName: name, fromServer: true,
-          });
-          wsSaveLib(items);
-          // Update Library badge
-          const badge = document.getElementById('wsNavLibBadge');
-          if (badge) { badge.textContent = items.filter(i=>i.status==='pending').length; badge.style.display='inline'; }
-        }
-      }
-      const agentLine = data.deliverable
-        ? `<div style="color:#1C3A2E;font-size:12px;margin-top:6px;">📁 ${data.deliverable.agentName || 'Your specialist'} has produced your first deliverable — check the <span style="text-decoration:underline;cursor:pointer;" onclick="wsCloseCampaignDrawer();wsSetView('library')">Library tab</span>.</div>`
-        : '';
+      campaignIdForPoll = data.campaignId;
+
+      // Show immediate confirmation — agents are processing in the background
       result.style.background = '#F0F8F4';
       result.style.borderColor = '#D4E8DA';
       result.innerHTML = `
-        <div style="font-weight:700;color:#1C3A2E;margin-bottom:6px;">✅ Campaign submitted & assigned!</div>
+        <div style="font-weight:700;color:#1C3A2E;margin-bottom:6px;">✅ Campaign submitted!</div>
         <div style="color:#555;margin-bottom:4px;"><strong>${name}</strong> · ${type} · ${channel}</div>
-        <div style="color:#777;font-size:12px;margin-top:6px;">Sarah has reviewed your brief — click the campaign to read her response.</div>
-        ${agentLine}
+        <div style="color:#777;font-size:12px;margin-top:6px;" id="wsCampaignStatusLine">
+          ⏳ Sarah is reviewing your brief and assigning your specialist…
+        </div>
       `;
-      setTimeout(async () => {
-        await wsLoadCampaignsFromServer();
-        wsLoadCampaigns();
-        wsNewCampaignClose();
-      }, 3500);
+
+      // Poll the campaigns list until the deliverable appears (up to ~90 seconds)
+      let pollCount = 0;
+      const maxPolls = 18; // 18 × 5s = 90s
+      const pollTimer = setInterval(async () => {
+        pollCount++;
+        try {
+          await wsLoadCampaignsFromServer();
+          // Check if a deliverable has landed for this campaign
+          const thisCampaign = wsPendingCampaigns.find(c => c.id == campaignIdForPoll);
+          const hasDeliverable = thisCampaign && (thisCampaign.deliverables || []).length > 0;
+          const hasSarahReply  = thisCampaign && thisCampaign.sarah_reply;
+
+          if (hasSarahReply && !hasDeliverable) {
+            const line = document.getElementById('wsCampaignStatusLine');
+            if (line) line.textContent = '🤖 Sarah has reviewed — your specialist is producing the deliverable…';
+          }
+
+          if (hasDeliverable) {
+            clearInterval(pollTimer);
+            // Merge into Library (wsMergeDeliverablesToLibrary already called inside wsLoadCampaignsFromServer)
+            wsLoadCampaigns();
+            const d = thisCampaign.deliverables[0];
+            const line = document.getElementById('wsCampaignStatusLine');
+            if (line) line.innerHTML = `📁 <strong>${d.agentName || 'Your specialist'}</strong> has produced your deliverable — <span style="text-decoration:underline;cursor:pointer;" onclick="wsCloseCampaignDrawer();wsSetView('library')">check the Library tab</span>.`;
+            const badge = document.getElementById('wsNavLibBadge');
+            const libItems = wsGetLibrary();
+            const pending = libItems.filter(i => i.status === 'pending').length;
+            if (badge && pending > 0) { badge.textContent = pending; badge.style.display = 'inline'; }
+            setTimeout(() => { wsNewCampaignClose(); }, 4000);
+          } else if (pollCount >= maxPolls) {
+            clearInterval(pollTimer);
+            wsLoadCampaigns();
+            const line = document.getElementById('wsCampaignStatusLine');
+            if (line) line.textContent = '📬 Sarah will update this campaign shortly — check back in a few minutes.';
+            setTimeout(() => { wsNewCampaignClose(); }, 3000);
+          }
+        } catch(pe) { /* keep polling */ }
+      }, 5000);
+
+      // Also reload campaigns list immediately so the new card shows up
+      setTimeout(async () => { await wsLoadCampaignsFromServer(); wsLoadCampaigns(); }, 1200);
     }
   } catch(e) { /* fall through */ }
 
