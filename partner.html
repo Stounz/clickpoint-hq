@@ -459,6 +459,8 @@
       <div class="pt-nav-item" data-view="revenue" onclick="ptSetView('revenue')">💰 &nbsp;Revenue</div>
       <div class="pt-nav-section">Reports</div>
       <div class="pt-nav-item" data-view="reports" onclick="ptSetView('reports')">📋 &nbsp;Monthly Reports</div>
+      <div class="pt-nav-section">AI Assistant</div>
+      <div class="pt-nav-item" data-view="ai" onclick="ptSetView('ai')">🤖 &nbsp;Your Strategist</div>
       <div class="pt-nav-section">Account</div>
       <div class="pt-nav-item" data-view="settings" onclick="ptSetView('settings')">🎨 &nbsp;Settings</div>
     </nav>
@@ -640,6 +642,38 @@
         <div class="pt-page-title">Monthly Reports</div>
         <div class="pt-page-sub">Performance reports for all your clients — generated on the 1st of each month.</div>
         <div class="pt-card" id="ptReportsList"><div style="color:var(--muted);font-size:13px;padding:8px 0;">Loading…</div></div>
+      </div>
+
+      <!-- ── AI Assistant View ── -->
+      <div class="pt-view" id="pt-view-ai">
+        <div class="pt-page-title">Your Strategist</div>
+        <div class="pt-page-sub">Ask Sarah anything about growing your agency, managing clients, or marketing strategy.</div>
+        <div class="pt-card" style="display:flex;flex-direction:column;height:calc(100vh - 220px);min-height:480px;">
+          <!-- Agent header -->
+          <div style="display:flex;align-items:center;gap:14px;padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:16px;">
+            <div style="width:44px;height:44px;border-radius:50%;background:#D4622A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;flex-shrink:0;">SL</div>
+            <div>
+              <div style="font-weight:700;font-size:15px;color:var(--dark);">Sarah Lin</div>
+              <div style="font-size:12px;color:var(--muted);">Chief Marketing Strategist · ClickPoint</div>
+            </div>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:#30D158;font-weight:600;"><div style="width:7px;height:7px;border-radius:50%;background:#30D158;"></div>Online</div>
+          </div>
+          <!-- Messages -->
+          <div id="ptAiMsgs" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:16px;padding-right:4px;">
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:32px;height:32px;border-radius:50%;background:#D4622A;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;flex-shrink:0;">SL</div>
+              <div style="flex:1;">
+                <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:4px;">Sarah Lin <span style="font-weight:400;color:var(--muted);">· Strategist</span></div>
+                <div style="background:#F5F4EF;border-radius:0 12px 12px 12px;padding:12px 16px;font-size:14px;color:var(--dark);line-height:1.6;" id="ptAiWelcome">Hi! I'm Sarah, your dedicated marketing strategist at ClickPoint. I can help you grow your agency, optimise your client portfolio, develop marketing strategies, and think through challenges. What would you like to work on?</div>
+              </div>
+            </div>
+          </div>
+          <!-- Input -->
+          <div style="display:flex;gap:10px;padding-top:16px;border-top:1px solid var(--border);margin-top:16px;">
+            <textarea id="ptAiInput" placeholder="Ask anything about your clients, agency growth, or marketing strategy…" rows="1" style="flex:1;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;resize:none;line-height:1.5;transition:border 0.15s;" onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();ptAiSend()}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+            <button onclick="ptAiSend()" style="padding:11px 20px;background:var(--green);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.15s;white-space:nowrap;" onmouseover="this.style.background='#254d3a'" onmouseout="this.style.background='var(--green)'">Send</button>
+          </div>
+        </div>
       </div>
 
       <!-- ── Settings / White-label View ── -->
@@ -925,6 +959,61 @@ function ptSignOut() {
   location.reload();
 }
 
+// ── AI Strategist ─────────────────────────────────────────────────────────────
+async function ptAiSend() {
+  const input = document.getElementById('ptAiInput');
+  const msgs  = document.getElementById('ptAiMsgs');
+  const msg   = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  input.style.height = 'auto';
+
+  // User bubble
+  msgs.innerHTML += `
+    <div style="display:flex;justify-content:flex-end;">
+      <div style="background:var(--green);color:#fff;border-radius:12px 12px 0 12px;padding:10px 16px;font-size:14px;max-width:75%;line-height:1.6;">${msg}</div>
+    </div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+
+  // Typing indicator
+  const typingId = 'ptTyping_' + Date.now();
+  msgs.innerHTML += `
+    <div id="${typingId}" style="display:flex;gap:12px;align-items:flex-start;">
+      <div style="width:32px;height:32px;border-radius:50%;background:#D4622A;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;flex-shrink:0;">SL</div>
+      <div style="background:#F5F4EF;border-radius:0 12px 12px 12px;padding:12px 16px;font-size:14px;color:var(--muted);">Thinking…</div>
+    </div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+
+  // Build partner context
+  const clientCount = ptClients.length;
+  const totalMrr    = ptClients.reduce((s,c) => s + (c.mrr||0), 0);
+  const context = `You are Sarah Lin, a senior marketing strategist at ClickPoint. You are speaking with a partner agency — not a client. The partner's agency is "${ptSession.agencyName || ptSession.name}" and they currently manage ${clientCount} client${clientCount !== 1 ? 's' : ''} with a combined MRR of $${totalMrr.toLocaleString()}. Help them grow their agency, improve client outcomes, develop marketing strategies, and manage their portfolio. Be direct, strategic, and commercially minded. Keep responses to 4-6 sentences unless more depth is needed.`;
+
+  let reply = '';
+  try {
+    const res = await fetch(`${PT_API}/api/agent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agentId: 'sarah', messages: [{ role: 'user', content: msg }], context, client: ptSession.agencyName || 'partner' })
+    });
+    const data = await res.json();
+    reply = data.content || '';
+  } catch(e) {}
+
+  if (!reply) reply = `Thanks for your message — I'm having a brief connectivity issue. Please try again in a moment.`;
+
+  document.getElementById(typingId).remove();
+  msgs.innerHTML += `
+    <div style="display:flex;gap:12px;align-items:flex-start;">
+      <div style="width:32px;height:32px;border-radius:50%;background:#D4622A;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;flex-shrink:0;">SL</div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:4px;">Sarah Lin <span style="font-weight:400;color:var(--muted);">· Strategist</span></div>
+        <div style="background:#F5F4EF;border-radius:0 12px 12px 12px;padding:12px 16px;font-size:14px;color:var(--dark);line-height:1.6;">${reply}</div>
+      </div>
+    </div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
 // ── Data ──────────────────────────────────────────────────────────────────────
 async function ptFetchData() {
   try {
@@ -1046,7 +1135,7 @@ function ptSetView(view) {
   document.querySelectorAll('.pt-view').forEach(v => v.classList.remove('active'));
   document.getElementById('pt-view-' + view).classList.add('active');
   document.querySelectorAll('.pt-nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
-  const titles = { dashboard:'Partner Dashboard', clients:'All Clients', revenue:'Revenue', reports:'Monthly Reports', settings:'Settings' };
+  const titles = { dashboard:'Partner Dashboard', clients:'All Clients', revenue:'Revenue', reports:'Monthly Reports', ai:'Your Strategist', settings:'Settings' };
   document.getElementById('ptTopbarTitle').textContent = titles[view] || 'Partner Portal';
   if (view === 'clients') ptRenderClients();
   if (view === 'revenue') ptRenderRevenue();
