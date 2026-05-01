@@ -337,7 +337,8 @@
   .ws-integration-name { font-size:14px; font-weight:700; color:var(--text); }
   .ws-integration-meta { font-size:12px; color:var(--muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .ws-integration-status { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700; flex-shrink:0; }
-  .ws-integration-status.connected { background:rgba(48,209,88,0.1); color:#1a8a3c; }
+  .ws-integration-status.connected    { background:rgba(48,209,88,0.1);   color:#1a8a3c; }
+  .ws-integration-status.pending      { background:rgba(255,159,10,0.12);  color:#b36200; }
   .ws-integration-status.disconnected { background:rgba(153,153,144,0.12); color:var(--muted); }
   .ws-integration-btn { flex-shrink:0; padding:7px 16px; border-radius:9px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; border:1.5px solid; transition:all 0.15s; }
   .ws-integration-btn.connect { background:var(--teal); color:#fff; border-color:var(--teal); }
@@ -2921,27 +2922,47 @@ function wsUpdateBudgetTotal() {} // stub for campaign form budget input
 
 // ── Connected Accounts (Integrations) ────────────────────────────────────────
 
+// conn types:
+//   'agency_access' — client provides Account ID; agency connects via their own MCC/Business Manager
+//   'api_key'       — client generates an API key from the platform and pastes it in
+//   'oauth'         — client clicks Authorise → OAuth flow → token stored securely
 const WS_PLATFORMS = [
   // ── Paid & Analytics ──
-  { id: 'google_ads',       label: 'Google Ads',        icon: '🟦', hint: 'e.g. 123-456-7890',                  category: 'paid'   },
-  { id: 'meta_ads',         label: 'Meta Ads',           icon: '🟣', hint: 'e.g. 123456789012345',               category: 'paid'   },
-  { id: 'google_analytics', label: 'Google Analytics',   icon: '📊', hint: 'e.g. G-XXXXXXXXXX or UA-XXXXXXXX-X', category: 'paid'   },
-  { id: 'search_console',   label: 'Search Console',     icon: '🔍', hint: 'e.g. sc-domain:example.com',         category: 'paid'   },
-  { id: 'linkedin_ads',     label: 'LinkedIn Ads',       icon: '🔷', hint: 'e.g. 123456789',                     category: 'paid'   },
+  { id: 'google_ads',       label: 'Google Ads',       icon: '🟦', category: 'paid',   conn: 'agency_access',
+    hint: 'e.g. 123-456-7890',                   idLabel: 'Customer ID' },
+  { id: 'meta_ads',         label: 'Meta Ads',          icon: '🟣', category: 'paid',   conn: 'agency_access',
+    hint: 'e.g. 123456789012345',                idLabel: 'Ad Account ID' },
+  { id: 'google_analytics', label: 'Google Analytics',  icon: '📊', category: 'paid',   conn: 'agency_access',
+    hint: 'e.g. G-XXXXXXXXXX',                   idLabel: 'Property / Measurement ID' },
+  { id: 'search_console',   label: 'Search Console',    icon: '🔍', category: 'paid',   conn: 'agency_access',
+    hint: 'e.g. sc-domain:example.com',          idLabel: 'Property URL or domain' },
+  { id: 'linkedin_ads',     label: 'LinkedIn Ads',      icon: '🔷', category: 'paid',   conn: 'agency_access',
+    hint: 'e.g. 123456789',                      idLabel: 'Account ID' },
   // ── Email Marketing ──
-  { id: 'mailchimp',        label: 'Mailchimp',          icon: '🐵', hint: 'e.g. abc123def456 (Audience ID)',     category: 'email'  },
-  { id: 'klaviyo',          label: 'Klaviyo',            icon: '📧', hint: 'e.g. your Klaviyo account subdomain', category: 'email'  },
-  { id: 'activecampaign',   label: 'ActiveCampaign',     icon: '⚡', hint: 'e.g. yourname.activehosted.com',     category: 'email'  },
+  { id: 'mailchimp',        label: 'Mailchimp',         icon: '🐵', category: 'email',  conn: 'api_key',
+    hint: 'e.g. abc123def456ghijklmno',          idLabel: 'Audience ID (optional)',   keyHint: 'Mailchimp → Account → Extras → API keys → Create A Key' },
+  { id: 'klaviyo',          label: 'Klaviyo',           icon: '📧', category: 'email',  conn: 'api_key',
+    hint: 'e.g. your-subdomain',                 idLabel: 'Account subdomain (optional)', keyHint: 'Klaviyo → Settings → API Keys → Create Private API Key' },
+  { id: 'activecampaign',   label: 'ActiveCampaign',    icon: '⚡', category: 'email',  conn: 'api_key',
+    hint: 'e.g. yourname.activehosted.com',      idLabel: 'Account URL',              keyHint: 'ActiveCampaign → Settings → Developer → API Key' },
   // ── Organic Social ──
-  { id: 'facebook_pages',   label: 'Facebook Pages',     icon: '🔵', hint: 'e.g. 123456789012345 (Page ID)',           category: 'social'  },
-  { id: 'instagram',        label: 'Instagram',          icon: '📸', hint: 'e.g. @yourbrand or numeric user ID',       category: 'social'  },
-  { id: 'linkedin_pages',   label: 'LinkedIn Pages',     icon: '💼', hint: 'e.g. company/your-company-slug',           category: 'social'  },
-  { id: 'tiktok',           label: 'TikTok',             icon: '🎵', hint: 'e.g. @yourbrand',                         category: 'social'  },
+  { id: 'facebook_pages',   label: 'Facebook Pages',    icon: '🔵', category: 'social', conn: 'oauth',
+    hint: 'e.g. Your Page name',                 idLabel: 'Page name or ID' },
+  { id: 'instagram',        label: 'Instagram',         icon: '📸', category: 'social', conn: 'oauth',
+    hint: 'e.g. @yourbrand',                     idLabel: 'Instagram handle' },
+  { id: 'linkedin_pages',   label: 'LinkedIn Pages',    icon: '💼', category: 'social', conn: 'oauth',
+    hint: 'e.g. company/your-company',           idLabel: 'Company page URL' },
+  { id: 'tiktok',           label: 'TikTok',            icon: '🎵', category: 'social', conn: 'oauth',
+    hint: 'e.g. @yourbrand',                     idLabel: 'TikTok handle' },
   // ── Design & Creative ──
-  { id: 'canva',            label: 'Canva',              icon: '🎨', hint: 'e.g. your Canva Team ID or brand kit URL', category: 'design'  },
-  { id: 'figma',            label: 'Figma',              icon: '🖊️', hint: 'e.g. your Figma Team ID (from team URL)',  category: 'design'  },
-  { id: 'adobe_express',    label: 'Adobe Express',      icon: '🅰️', hint: 'e.g. your Adobe Organization ID',         category: 'design'  },
-  { id: 'google_drive',     label: 'Google Drive',       icon: '🗂️', hint: 'e.g. shared folder URL or Drive ID',      category: 'design'  },
+  { id: 'canva',            label: 'Canva',             icon: '🎨', category: 'design', conn: 'api_key',
+    hint: 'e.g. your Team name',                 idLabel: 'Team name or ID (optional)', keyHint: 'Canva → Settings → Apps & Integrations → Canva Connect → Create token' },
+  { id: 'figma',            label: 'Figma',             icon: '🖊️', category: 'design', conn: 'api_key',
+    hint: 'e.g. Team ID from URL',               idLabel: 'Team ID (optional)',         keyHint: 'Figma → Account Settings → Personal access tokens → Generate new token' },
+  { id: 'adobe_express',    label: 'Adobe Express',     icon: '🅰️', category: 'design', conn: 'oauth',
+    hint: 'e.g. your Adobe org',                 idLabel: 'Organization name' },
+  { id: 'google_drive',     label: 'Google Drive',      icon: '🗂️', category: 'design', conn: 'oauth',
+    hint: 'e.g. shared folder URL',              idLabel: 'Shared folder URL or name' },
 ];
 
 const WS_PLATFORM_CATEGORIES = {
@@ -2987,14 +3008,20 @@ async function wsLoadIntegrations() {
     // Built-in platform rows
     const rows = platforms.map(p => {
       const c = connMap[p.id];
+      const isPending   = !!(c && c.status === 'pending');
       const isConnected = !!(c && c.status === 'connected');
-      const accountDisplay = c && c.account_id ? `ID: ${c.account_id}` : 'Not connected';
+      const accountDisplay = isConnected && c.account_id ? `${p.idLabel || 'ID'}: ${c.account_id}` :
+                             isPending                   ? 'Awaiting authorisation' : 'Not connected';
+      const connBadge = p.conn === 'api_key' ? ' · API Key' : p.conn === 'oauth' ? ' · OAuth' : '';
       const statusHtml = isConnected
-        ? `<span class="ws-integration-status connected">● Connected</span>`
-        : `<span class="ws-integration-status disconnected">Not connected</span>`;
-      const btnHtml = isConnected
-        ? `<button class="ws-integration-btn disconnect" onclick="wsDisconnectIntegration('${c.id}','${p.id}')">Disconnect</button>`
-        : `<button class="ws-integration-btn connect" onclick="wsConnectIntegration('${p.id}')">Connect</button>`;
+        ? `<span class="ws-integration-status connected">● Connected${connBadge}</span>`
+        : isPending
+          ? `<span class="ws-integration-status pending">⏳ Pending</span>`
+          : `<span class="ws-integration-status disconnected">Not connected</span>`;
+      const connectLabel = p.conn === 'api_key' ? 'Add API Key' : p.conn === 'oauth' ? 'Authorise' : 'Connect';
+      const btnHtml = (isConnected || isPending)
+        ? `<button class="ws-integration-btn disconnect" onclick="wsDisconnectIntegration('${c.id}','${p.id}')">Remove</button>`
+        : `<button class="ws-integration-btn connect" onclick="wsConnectIntegration('${p.id}')">${connectLabel}</button>`;
       return `
         <div class="ws-integration-row" id="wsIntRow_${p.id}">
           <div class="ws-integration-icon">${p.icon}</div>
@@ -3114,63 +3141,191 @@ async function wsSaveOtherIntegration(category) {
 }
 
 function wsConnectIntegration(platformId) {
-  const platform = WS_PLATFORMS.find(p => p.id === platformId);
-  if (!platform) return;
+  const p = WS_PLATFORMS.find(x => x.id === platformId);
+  if (!p) return;
 
-  // Build modal
   const backdrop = document.createElement('div');
   backdrop.className = 'ws-integration-modal-backdrop';
   backdrop.id = 'wsIntModalBackdrop';
-  const catNote = {
-    paid:   'Your agency team will use their own credentials to manage your account — you never need to share passwords.',
-    email:  'Your agency team will use their own API credentials. Providing your account ID lets them access your lists and campaigns on your behalf.',
-    social: 'Providing your Page or profile ID allows the agency to schedule and post content. You\'ll also receive a separate Page access request to grant posting permission.',
-    design: 'Connecting your design workspace lets agents access your brand templates, assets, and files to create on-brand content automatically — no manual file sharing needed.',
-  }[platform.category || 'paid'];
-  backdrop.innerHTML = `
-    <div class="ws-integration-modal" onclick="event.stopPropagation()">
-      <div class="ws-integration-modal-title">${platform.icon} Connect ${platform.label}</div>
-      <div class="ws-integration-modal-sub">${catNote}</div>
-      <label class="ws-brand-label">${
-        platform.category === 'social'  ? 'Page / Profile ID'  :
-        platform.category === 'design'  ? 'Workspace / Team ID' : 'Account ID'
-      }</label>
-      <input id="wsIntAccountId" class="login-input" placeholder="${platform.hint}" style="margin-bottom:8px;">
-      <div style="font-size:11px;color:var(--muted);margin-bottom:20px;">
-        📍 Where to find it: ${_wsAccountIdHelp(platformId)}
-      </div>
-      <div style="display:flex;gap:10px;">
-        <button onclick="wsCloseIntModal()" style="flex:1;padding:12px;background:#F4F3EE;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
-        <button onclick="wsSaveIntegration('${platformId}')" style="flex:2;padding:12px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Save Connection</button>
-      </div>
-    </div>`;
-  backdrop.addEventListener('click', wsCloseIntModal);
-  document.body.appendChild(backdrop);
-  setTimeout(() => { const inp = document.getElementById('wsIntAccountId'); if (inp) inp.focus(); }, 60);
+
+  // ── AGENCY ACCESS modal (account ID only) ──────────────────────────────
+  if (p.conn === 'agency_access') {
+    backdrop.innerHTML = `
+      <div class="ws-integration-modal" onclick="event.stopPropagation()">
+        <div class="ws-integration-modal-title">${p.icon} Connect ${p.label}</div>
+        <div class="ws-integration-modal-sub">
+          Your agency uses their own credentials to access your account — you only need to share your Account ID.
+          No passwords or API keys required.
+        </div>
+        <label class="ws-int-modal-label">${p.idLabel || 'Account ID'}</label>
+        <input id="wsIntAccountId" class="login-input" placeholder="${p.hint}" style="margin-bottom:8px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:20px;">
+          📍 ${_wsAccountIdHelp(platformId)}
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button onclick="wsCloseIntModal()" style="flex:1;padding:12px;background:#F4F3EE;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
+          <button onclick="wsSaveIntegration('${platformId}')" style="flex:2;padding:12px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Save</button>
+        </div>
+      </div>`;
+    backdrop.addEventListener('click', wsCloseIntModal);
+    document.body.appendChild(backdrop);
+    setTimeout(() => document.getElementById('wsIntAccountId')?.focus(), 60);
+
+  // ── API KEY modal ───────────────────────────────────────────────────────
+  } else if (p.conn === 'api_key') {
+    backdrop.innerHTML = `
+      <div class="ws-integration-modal" onclick="event.stopPropagation()">
+        <div class="ws-integration-modal-title">${p.icon} Connect ${p.label}</div>
+        <div class="ws-integration-modal-sub">
+          Generate an API key inside ${p.label} and paste it below. Your key is encrypted at rest and
+          never exposed — only the agency's agents use it to pull data on your behalf.
+        </div>
+        <label class="ws-int-modal-label">API Key <span style="color:var(--red);">*</span></label>
+        <div style="position:relative;margin-bottom:8px;">
+          <input id="wsIntApiKey" class="login-input" type="password" placeholder="Paste your API key here…" style="padding-right:42px;">
+          <button onclick="wsToggleApiKeyVisibility()" title="Show/hide" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted);">👁</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:16px;">
+          📍 ${p.keyHint || 'Check your platform account settings for API access'}
+        </div>
+        <label class="ws-int-modal-label">${p.idLabel || 'Account ID'} <span style="font-weight:400;color:var(--muted);">(optional)</span></label>
+        <input id="wsIntAccountId" class="login-input" placeholder="${p.hint}" style="margin-bottom:20px;">
+        <div style="display:flex;gap:10px;">
+          <button onclick="wsCloseIntModal()" style="flex:1;padding:12px;background:#F4F3EE;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
+          <button onclick="wsSaveApiKeyIntegration('${platformId}')" style="flex:2;padding:12px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Save API Key</button>
+        </div>
+      </div>`;
+    backdrop.addEventListener('click', wsCloseIntModal);
+    document.body.appendChild(backdrop);
+    setTimeout(() => document.getElementById('wsIntApiKey')?.focus(), 60);
+
+  // ── OAUTH modal ─────────────────────────────────────────────────────────
+  } else if (p.conn === 'oauth') {
+    const pt = window._ptTheme || {};
+    const agencyLabel = pt.agencyName || 'ClickPoint';
+    backdrop.innerHTML = `
+      <div class="ws-integration-modal" onclick="event.stopPropagation()">
+        <div class="ws-integration-modal-title">${p.icon} Authorise ${p.label}</div>
+        <div class="ws-integration-modal-sub">
+          To connect ${p.label}, we need you to authorise access through ${p.label}'s secure login.
+          Your ${agencyLabel} team will send you a personalised authorisation link — click it,
+          log in with your ${p.label} account, and access is granted instantly. No passwords shared.
+        </div>
+        <div style="background:#F4F3EE;border-radius:12px;padding:14px 16px;margin-bottom:20px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">What happens next</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6;">
+            1. Click <strong>Request Link</strong> below<br>
+            2. Your agency team is notified<br>
+            3. You'll receive a secure OAuth link by email<br>
+            4. Click it, approve access on ${p.label} — done ✓
+          </div>
+        </div>
+        <label class="ws-int-modal-label">${p.idLabel || 'Account / Page name'} <span style="font-weight:400;color:var(--muted);">(so we send the right link)</span></label>
+        <input id="wsIntAccountId" class="login-input" placeholder="${p.hint}" style="margin-bottom:20px;">
+        <div style="display:flex;gap:10px;">
+          <button onclick="wsCloseIntModal()" style="flex:1;padding:12px;background:#F4F3EE;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
+          <button onclick="wsSaveOAuthRequest('${platformId}')" style="flex:2;padding:12px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Request Link →</button>
+        </div>
+      </div>`;
+    backdrop.addEventListener('click', wsCloseIntModal);
+    document.body.appendChild(backdrop);
+    setTimeout(() => document.getElementById('wsIntAccountId')?.focus(), 60);
+  }
+}
+
+function wsToggleApiKeyVisibility() {
+  const inp = document.getElementById('wsIntApiKey');
+  if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+/** Save API Key integration — key goes to integration_credentials, accountId to client_integrations */
+async function wsSaveApiKeyIntegration(platformId) {
+  const keyEl       = document.getElementById('wsIntApiKey');
+  const accountIdEl = document.getElementById('wsIntAccountId');
+  const apiKey    = (keyEl       ? keyEl.value       : '').trim();
+  const accountId = (accountIdEl ? accountIdEl.value : '').trim();
+
+  if (!apiKey) { keyEl && (keyEl.style.borderColor = 'var(--red)'); return; }
+
+  const btn = document.querySelector('#wsIntModalBackdrop button:last-child');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  try {
+    const resp = await fetch('/api/integrations/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client:    wsSession.workspaceId,
+        platform:  platformId,
+        accountId: accountId || platformId,
+        token:     apiKey,          // encrypted server-side in integration_credentials
+        connType:  'api_key',
+      }),
+    });
+    const data = await resp.json();
+    if (data.success || data.id) {
+      wsCloseIntModal();
+      wsLoadIntegrations();
+      window._wsIntegrations = null; // force refresh for Sarah's context
+      _wsFetchIntegrationStatus();
+      if (typeof obShowToast === 'function') obShowToast('API key saved securely ✓');
+    } else { throw new Error(data.error || 'Unknown error'); }
+  } catch(e) {
+    console.error('save api key:', e);
+    if (btn) { btn.disabled = false; btn.textContent = 'Save API Key'; }
+    alert('Could not save: ' + e.message);
+  }
+}
+
+/** Save OAuth request — stores status:pending; agency team is notified to send the auth link */
+async function wsSaveOAuthRequest(platformId) {
+  const accountIdEl = document.getElementById('wsIntAccountId');
+  const accountId = (accountIdEl ? accountIdEl.value : '').trim();
+  if (!accountId) { accountIdEl && (accountIdEl.style.borderColor = 'var(--red)'); return; }
+
+  const p = WS_PLATFORMS.find(x => x.id === platformId);
+  const btn = document.querySelector('#wsIntModalBackdrop button:last-child');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+
+  try {
+    const resp = await fetch('/api/integrations/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client:    wsSession.workspaceId,
+        platform:  platformId,
+        accountId: accountId,
+        token:     'oauth:pending',
+        connType:  'oauth',
+        status:    'pending',
+      }),
+    });
+    const data = await resp.json();
+    if (data.success || data.id) {
+      wsCloseIntModal();
+      wsLoadIntegrations();
+      wsLogActivity('oauth_requested', `OAuth link requested for ${p ? p.label : platformId} (${accountId})`);
+      if (typeof obShowToast === 'function') obShowToast(`${p ? p.label : platformId} — request sent! Your agency team will be in touch.`);
+    } else { throw new Error(data.error || 'Unknown error'); }
+  } catch(e) {
+    console.error('save oauth request:', e);
+    if (btn) { btn.disabled = false; btn.textContent = 'Request Link →'; }
+    alert('Could not save: ' + e.message);
+  }
 }
 
 function _wsAccountIdHelp(platformId) {
   const helps = {
-    // Paid & Analytics
-    google_ads:       'Google Ads → top-right account switcher → your 10-digit Customer ID (xxx-xxx-xxxx)',
-    meta_ads:         'Meta Ads Manager → Account Overview → Ad Account ID (starts with "act_")',
-    google_analytics: 'GA4 → Admin → Property Settings → Property ID  (or Measurement ID starting with G-)',
-    search_console:   'Google Search Console → Settings → Property details → Property name',
-    linkedin_ads:     'LinkedIn Campaign Manager → Account dropdown → Account ID shown in the URL',
-    // Email Marketing
+    google_ads:       'Google Ads → top-right account switcher → 10-digit Customer ID',
+    meta_ads:         'Meta Ads Manager → Account Overview → Ad Account ID',
+    google_analytics: 'GA4 → Admin → Property Settings → Property ID (or Measurement ID starting with G-)',
+    search_console:   'Google Search Console → Settings → Property details',
+    linkedin_ads:     'LinkedIn Campaign Manager → Account dropdown → Account ID in URL',
     mailchimp:        'Mailchimp → Audience → Manage Audience → Settings → Audience ID',
-    klaviyo:          'Klaviyo → Account → Settings → API Keys → your account subdomain (before .klaviyo.com)',
-    activecampaign:   'ActiveCampaign → Settings → Developer → your account URL subdomain (e.g. "yourname" in yourname.activehosted.com)',
-    // Organic Social
-    facebook_pages:   'Facebook → your Page → About → scroll to "Page Transparency" → Page ID',
-    instagram:        'Instagram → Profile → Edit Profile → scroll to bottom → see profile URL, or use your @handle',
-    linkedin_pages:   'LinkedIn → your Company Page → Admin view → look at the URL: linkedin.com/company/YOUR-SLUG',
-    tiktok:           'TikTok → Profile → your @username, or TikTok for Business → Account Settings → Account ID',
-    // Design & Creative
-    canva:            'Canva → your Team name (top-left) → Settings → Team details → Team ID, OR share your Brand Kit link',
-    figma:            'Figma → open your team workspace → Team ID is in the URL: figma.com/files/team/TEAM_ID/...',
-    adobe_express:    'Adobe Admin Console → Overview → Organization ID shown at the top of the page',
-    google_drive:     'Google Drive → right-click shared folder → Get link → copy the folder ID from the URL',
+    klaviyo:          'Klaviyo → Account → Settings → your subdomain (yourname.klaviyo.com → "yourname")',
+    activecampaign:   'ActiveCampaign → Settings → Developer → your account URL (yourname.activehosted.com)',
+    canva:            'Canva → top-left Team name → Settings → Team details → Team ID',
+    figma:            'Figma → team workspace URL → figma.com/files/team/TEAM_ID/...',
   };
   return helps[platformId] || 'Check your platform account settings';
 }
@@ -3205,14 +3360,16 @@ async function wsSaveIntegration(platformId) {
     const data = await resp.json();
     if (data.success || data.id) {
       wsCloseIntModal();
-      wsLoadIntegrations();   // refresh list
+      wsLoadIntegrations();
+      window._wsIntegrations = null; // force Sarah's context to refresh
+      _wsFetchIntegrationStatus();
       if (typeof obShowToast === 'function') obShowToast('Account connected ✓');
     } else {
       throw new Error(data.error || 'Unknown error');
     }
   } catch(e) {
     console.error('connect integration:', e);
-    if (btn) { btn.disabled = false; btn.textContent = 'Save Connection'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
     alert('Could not save: ' + e.message);
   }
 }
