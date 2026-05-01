@@ -1157,6 +1157,10 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_partner_clients()
         elif self.path.startswith('/api/partner/summary'):
             self._handle_partner_summary()
+        elif self.path.startswith('/api/campaigns'):
+            self._handle_campaigns_list()
+        elif self.path.startswith('/api/campaign/updates'):
+            self._handle_campaign_updates_get()
         else:
             # Serve static files from working directory
             import os as _os
@@ -1233,6 +1237,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_partner_forgot_password()
         elif self.path == '/api/workspace/resend-code':
             self._handle_workspace_resend_code()
+        elif self.path == '/api/campaign/request':
+            self._handle_campaign_request()
         else:
             self.send_response(404)
             self.end_headers()
@@ -2918,6 +2924,167 @@ class AgentHandler(BaseHTTPRequestHandler):
         except Exception as e:
             self._error(500, str(e))
 
+    # ── Campaign Pipeline ─────────────────────────────────────────────────────
+
+    def _handle_campaign_request(self):
+        """Client submits a campaign brief → Supabase → Sarah auto-reviews → update saved."""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+
+        import urllib.parse as _up_cmp
+        workspace_id = body.get('workspaceId', '').strip()
+        company_name = body.get('companyName', '').strip()
+        name         = body.get('name', '').strip()
+        ctype        = body.get('type', '').strip()
+        channel      = body.get('channel', '').strip()
+        budget       = body.get('budget', '').strip()
+        audience     = body.get('audience', '').strip()
+        brief        = body.get('brief', '').strip()
+
+        if not workspace_id or not name:
+            self._error(400, 'workspaceId and name required'); return
+
+        # ── Look up partner_id from workspace_access ──────────────────────────
+        partner_id = ''
+        if SUPABASE_URL and SUPABASE_SERVICE_KEY:
+            try:
+                req = urllib.request.Request(
+                    f"{SUPABASE_URL}/rest/v1/workspace_access?workspace_id=eq.{_up_cmp.quote(workspace_id)}&select=partner_id&limit=1",
+                    headers={'apikey': SUPABASE_SERVICE_KEY, 'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}'})
+                with urllib.request.urlopen(req, timeout=5) as r:
+                    rows = json.loads(r.read())
+                    if rows:
+                        partner_id = rows[0].get('partner_id', '') or ''
+            except Exception:
+                pass
+
+        # ── Save to campaign_requests ─────────────────────────────────────────
+        campaign_id = None
+        now = datetime.datetime.utcnow().isoformat()
+        if SUPABASE_URL and SUPABASE_SERVICE_KEY:
+            try:
+                row = {
+                    'workspace_id': workspace_id,
+                    'company_name': company_name or workspace_id,
+                    'name': name, 'type': ctype, 'channel': channel,
+                    'budget': budget, 'audience': audience, 'brief': brief,
+                    'status': 'pending', 'created_at': now,
+                }
+                if partner_id:
+                    row['partner_id'] = partner_id
+                result = _supabase_req('POST', 'campaign_requests', row, service_role=True)
+                if result and isinstance(result, list) and result[0].get('id'):
+                    campaign_id = result[0]['id']
+                    print(f'  📥 Campaign saved: id={campaign_id} ws={workspace_id}')
+            except Exception as e:
+                print(f'  ⚠️  campaign_requests insert error: {e}')
+
+        # ── Log to workspace_activity ─────────────────────────────────────────
+        detail = f'New campaign requested: "{name}" · {ctype} · {channel}' + (f' · ${budget}' if budget else '')
+        if SUPABASE_URL and SUPABASE_SERVICE_KEY:
+            try:
+                _supabase_req('POST', 'workspace_activity', {
+                    'workspace_id': workspace_id, 'company_name': company_name or workspace_id,
+                    'activity_type': 'campaign_request', 'detail': detail, 'created_at': now,
+                }, service_role=True)
+            except Exception:
+                pass
+
+        # ── Auto-trigger Sarah to review the brief ────────────────────────────
+        sarah_status = 'pending'
+        if campaign_id and API_KEY:
+            try:
+                budget_str = f'${budget}/mo' if budget else 'Not specified'
+                sarah_prompt = (
+                    f"A new campaign request has just come in from {company_name or workspace_id}. "
+                    f"Review this brief and provide your initial strategic assessment.\n\n"
+                    f"Campaign Name: {name}\nType: {ctype}\nChannel: {channel}\n"
+                    f"Budget: {budget_str}\nTarget Audience: {audience or 'Not specified'}\n"
+                    f"Brief: {brief or 'No brief provided'}\n\n"
+                    f"Respond as Sarah Lin, CMO. Give a warm but professional acknowledgement, "
+                    f"your immediate strategic read on this brief, which team member you're assigning "
+                    f"to lead execution, and 2–3 clear next steps. Keep it concise — this goes "
+                    f"directly into the client's campaign dashboard."
+                )
+                sarah_reply = call_anthropic(
+                    API_KEY, AGENT_PROMPTS.get('sarah', ''),
+                    [{'role': 'user', 'content': sarah_prompt}], max_tokens=500
+                )
+                # Save Sarah's response as first campaign update
+                if SUPABASE_URL and SUPABASE_SERVICE_KEY:
+                    _supabase_req('POST', 'campaign_updates', {
+                        'campaign_id': campaign_id,
+                        'workspace_id': workspace_id,
+                        'author': 'Sarah Lin · CMO',
+                        'text': sarah_reply,
+                        'created_at': datetime.datetime.utcnow().isoformat(),
+                    }, service_role=True)
+                    # Promote status to 'reviewing'
+                    try:
+                        upd = urllib.request.Request(
+                            f"{SUPABASE_URL}/rest/v1/campaign_requests?id=eq.{campaign_id}",
+                            data=json.dumps({'status': 'reviewing'}).encode(),
+                            headers={'apikey': SUPABASE_SERVICE_KEY,
+                                     'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                                     'Content-Type': 'application/json', 'Prefer': 'return=minimal'},
+                            method='PATCH')
+                        urllib.request.urlopen(upd, timeout=5)
+                    except Exception:
+                        pass
+                    sarah_status = 'reviewing'
+                    print(f'  🤖 Sarah reviewed "{name}" for {company_name}')
+            except Exception as e:
+                print(f'  ⚠️  Sarah auto-review error: {e}')
+
+        self._json(200, {
+            'ok': True,
+            'campaignId': campaign_id,
+            'partnerId': partner_id,
+            'status': sarah_status,
+        })
+
+    def _handle_campaigns_list(self):
+        """List all campaign requests for a workspace."""
+        import urllib.parse as _up_cl
+        parsed = _up_cl.urlparse(self.path)
+        params = _up_cl.parse_qs(parsed.query)
+        workspace_id = params.get('workspaceId', [''])[0].strip()
+
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+            self._json(200, {'campaigns': []}); return
+        try:
+            campaigns = _supabase_req(
+                'GET',
+                f'campaign_requests?workspace_id=eq.{_up_cl.quote(workspace_id)}&order=created_at.desc',
+            )
+            self._json(200, {'campaigns': campaigns or []})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_campaign_updates_get(self):
+        """Return all agency updates for a campaign, oldest-first."""
+        import urllib.parse as _up_cu
+        parsed = _up_cu.urlparse(self.path)
+        params = _up_cu.parse_qs(parsed.query)
+        campaign_id = params.get('campaignId', [''])[0].strip()
+
+        if not campaign_id:
+            self._error(400, 'campaignId required'); return
+        if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+            self._json(200, {'updates': []}); return
+        try:
+            updates = _supabase_req(
+                'GET',
+                f'campaign_updates?campaign_id=eq.{_up_cu.quote(campaign_id)}&order=created_at.asc',
+            )
+            self._json(200, {'updates': updates or []})
+        except Exception as e:
+            self._error(500, str(e))
+
     def _json(self, code, data):
         body = json.dumps(data).encode()
         self.send_response(code)
@@ -2938,6 +3105,29 @@ def _run_db_migrations():
         return
     migrations = [
         "ALTER TABLE workspace_access ADD COLUMN IF NOT EXISTS partner_id TEXT DEFAULT NULL;",
+        """CREATE TABLE IF NOT EXISTS campaign_requests (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  workspace_id TEXT NOT NULL,
+  company_name TEXT,
+  partner_id TEXT,
+  name TEXT NOT NULL,
+  type TEXT,
+  channel TEXT,
+  budget TEXT,
+  audience TEXT,
+  brief TEXT,
+  status TEXT DEFAULT 'pending',
+  assigned_agent TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);""",
+        """CREATE TABLE IF NOT EXISTS campaign_updates (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  campaign_id UUID,
+  workspace_id TEXT,
+  author TEXT,
+  text TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);""",
     ]
     for sql in migrations:
         try:

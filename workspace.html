@@ -1841,7 +1841,9 @@ function wsDemoAnalytics(platform) {
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
-function wsLoadDashboard() {
+async function wsLoadDashboard() {
+  // Pre-load campaigns from server so dashboard widget has real data
+  await wsLoadCampaignsFromServer();
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   document.getElementById('wsDashTitle').textContent = `${greeting}, ${wsSession.companyName}`;
@@ -1900,7 +1902,33 @@ async function wsLoadReportHealth() {
 }
 
 // ── Campaigns View ────────────────────────────────────────────────────────────
-let wsPendingCampaigns = JSON.parse(sessionStorage.getItem('ws_pending_campaigns') || '[]');
+let wsPendingCampaigns = [];   // loaded from server; sessionStorage as fallback
+
+async function wsLoadCampaignsFromServer() {
+  if (!wsSession || !wsSession.workspaceId) return;
+  try {
+    const resp = await fetch(`${WS_API}/api/campaigns?workspaceId=${encodeURIComponent(wsSession.workspaceId)}`);
+    if (!resp.ok) throw new Error('non-2xx');
+    const data = await resp.json();
+    if (Array.isArray(data.campaigns)) {
+      wsPendingCampaigns = data.campaigns.map(c => ({
+        id:          c.id,
+        name:        c.name,
+        type:        c.type,
+        channel:     c.channel,
+        budget:      c.budget,
+        audience:    c.audience,
+        brief:       c.brief,
+        status:      c.status || 'pending',
+        requestedAt: c.created_at,
+        workspaceId: c.workspace_id,
+        companyName: c.company_name,
+      }));
+      return;
+    }
+  } catch(e) { /* fall through to sessionStorage */ }
+  wsPendingCampaigns = JSON.parse(sessionStorage.getItem('ws_pending_campaigns') || '[]');
+}
 
 function wsNewCampaignOpen() {
   if (!wsPlanAllows('campaigns_create')) {
@@ -1940,38 +1968,62 @@ async function wsNewCampaignSubmit() {
     return;
   }
 
-  // Build the pending campaign record
-  const campaign = {
-    name, type, channel, budget, audience, brief,
-    status: 'pending',
-    requestedAt: new Date().toISOString(),
-    workspaceId: wsSession.workspaceId,
-    companyName: wsSession.companyName,
-  };
-
-  // Optimistically add to pending list
-  wsPendingCampaigns.push(campaign);
-  sessionStorage.setItem('ws_pending_campaigns', JSON.stringify(wsPendingCampaigns));
-
-  // Log to agency HQ activity feed
-  const detail = `New campaign requested: "${name}" · ${type} · ${channel}${budget ? ' · ' + budget : ''}`;
-  wsLogActivity('campaign_request', detail);
-
-  // Show confirmation
+  // Show loading state
   result.style.display = 'block';
-  result.style.background = '#F0F8F4';
-  result.style.borderColor = '#D4E8DA';
-  result.innerHTML = `
-    <div style="font-weight:700;color:#1C3A2E;margin-bottom:6px;">✅ Campaign request submitted!</div>
-    <div style="color:#555;margin-bottom:4px;"><strong>${name}</strong> · ${type} · ${channel}</div>
-    <div style="color:#777;font-size:12px;margin-top:8px;">Your CMO Sarah will review this and be in touch within 24 hours. You can track the status in your campaigns list below.</div>
-  `;
+  result.style.background = '#F4F3EE';
+  result.style.borderColor = '#E2E1DB';
+  result.innerHTML = `<div style="color:var(--muted);font-size:13px;">⏳ Submitting your campaign request…</div>`;
 
-  // Refresh campaign list to show pending item
-  setTimeout(() => {
-    wsLoadCampaigns();
-    wsNewCampaignClose();
-  }, 2200);
+  let serverOk = false;
+  try {
+    const resp = await fetch(`${WS_API}/api/campaign/request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        workspaceId: wsSession.workspaceId,
+        companyName: wsSession.companyName,
+        name, type, channel, budget, audience, brief,
+      }),
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      serverOk = true;
+      result.style.background = '#F0F8F4';
+      result.style.borderColor = '#D4E8DA';
+      result.innerHTML = `
+        <div style="font-weight:700;color:#1C3A2E;margin-bottom:6px;">✅ Campaign request submitted!</div>
+        <div style="color:#555;margin-bottom:4px;"><strong>${name}</strong> · ${type} · ${channel}</div>
+        <div style="color:#777;font-size:12px;margin-top:8px;">Sarah is reviewing your brief now — open the campaign in a moment to see her response.</div>
+      `;
+      // Reload from server after a short delay so Sarah's reply is ready
+      setTimeout(async () => {
+        await wsLoadCampaignsFromServer();
+        wsLoadCampaigns();
+        wsNewCampaignClose();
+      }, 3000);
+    }
+  } catch(e) { /* fall through */ }
+
+  if (!serverOk) {
+    // Offline / server error — save locally as fallback
+    wsPendingCampaigns.push({
+      name, type, channel, budget, audience, brief,
+      status: 'pending',
+      requestedAt: new Date().toISOString(),
+      workspaceId: wsSession.workspaceId,
+      companyName: wsSession.companyName,
+    });
+    sessionStorage.setItem('ws_pending_campaigns', JSON.stringify(wsPendingCampaigns));
+    result.style.background = '#F0F8F4';
+    result.style.borderColor = '#D4E8DA';
+    result.innerHTML = `
+      <div style="font-weight:700;color:#1C3A2E;margin-bottom:6px;">✅ Campaign request submitted!</div>
+      <div style="color:#555;margin-bottom:4px;"><strong>${name}</strong> · ${type} · ${channel}</div>
+      <div style="color:#777;font-size:12px;margin-top:8px;">Your CMO Sarah will review this and be in touch within 24 hours.</div>
+    `;
+    wsLogActivity('campaign_request', `New campaign requested: "${name}" · ${type} · ${channel}${budget ? ' · $' + budget : ''}`);
+    setTimeout(() => { wsLoadCampaigns(); wsNewCampaignClose(); }, 2200);
+  }
 }
 
 function wsLoadCampaigns() {
@@ -1981,6 +2033,17 @@ function wsLoadCampaigns() {
     'SEO / Organic':'🌱','Email':'📧',
   };
 
+  const statusBadge = s => {
+    const map = {
+      pending:   { bg:'rgba(212,98,42,0.1)',  color:'#D4622A', label:'Pending Review' },
+      reviewing: { bg:'rgba(255,159,10,0.15)', color:'#C47A00', label:'Under Review' },
+      active:    { bg:'rgba(48,209,88,0.1)',   color:'#1C8C44', label:'Active' },
+      paused:    { bg:'#F4F3EE',              color:'#888',     label:'Paused' },
+      complete:  { bg:'rgba(10,132,255,0.1)', color:'#0A84FF',  label:'Completed' },
+    };
+    const d = map[s] || map.pending;
+    return `<div style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${d.bg};color:${d.color};">${d.label}</div>`;
+  };
   const pendingRows = wsPendingCampaigns.map((c, idx) => `
     <div class="ws-campaign" onclick="wsOpenCampaign(${idx})">
       <div class="ws-campaign-icon" style="background:rgba(212,98,42,0.08);width:42px;height:42px;">${channelIcons[c.channel] || '🚀'}</div>
@@ -1989,7 +2052,7 @@ function wsLoadCampaigns() {
         <div class="ws-campaign-meta">${c.channel} · ${c.type}</div>
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
-        <div style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(212,98,42,0.1);color:#D4622A;">Pending Review</div>
+        ${statusBadge(c.status)}
         <div style="font-size:11px;color:#aaa;">→</div>
       </div>
     </div>
@@ -2130,7 +2193,7 @@ function wsSetView(view) {
   document.querySelectorAll('.ws-nav-item').forEach(n => {
     n.classList.toggle('active', n.dataset.view === view);
   });
-  if (view === 'campaigns') wsLoadCampaigns();
+  if (view === 'campaigns') { wsLoadCampaignsFromServer().then(wsLoadCampaigns); }
   if (view === 'analytics') {
     if (!wsPlanAllows('analytics')) { wsRenderGate('view-analytics','analytics','growth'); return; }
     wsRenderAnalytics('search');
@@ -2819,15 +2882,16 @@ function wsMaybeTour() {
 }
 
 // ── Campaign Detail Drawer ────────────────────────────────────────────────────
-function wsOpenCampaign(idx) {
+async function wsOpenCampaign(idx) {
   const c = wsPendingCampaigns[idx];
   if (!c) return;
 
   const statusColors = {
-    pending:  { bg:'rgba(212,98,42,0.1)',  color:'#D4622A',  label:'Pending Review' },
-    active:   { bg:'rgba(48,209,88,0.1)',  color:'#1C8C44',  label:'Active' },
-    paused:   { bg:'#F4F3EE',             color:'#888',      label:'Paused' },
-    complete: { bg:'rgba(10,132,255,0.1)', color:'#0A84FF',  label:'Completed' },
+    pending:   { bg:'rgba(212,98,42,0.1)',   color:'#D4622A', label:'Pending Review' },
+    reviewing: { bg:'rgba(255,159,10,0.15)', color:'#C47A00', label:'Under Review — Sarah is on it' },
+    active:    { bg:'rgba(48,209,88,0.1)',   color:'#1C8C44', label:'Active' },
+    paused:    { bg:'#F4F3EE',              color:'#888',     label:'Paused' },
+    complete:  { bg:'rgba(10,132,255,0.1)', color:'#0A84FF',  label:'Completed' },
   };
   const st = statusColors[c.status] || statusColors.pending;
   const submittedDate = c.requestedAt ? new Date(c.requestedAt).toLocaleDateString('en-AU', { day:'numeric', month:'short', year:'numeric' }) : '—';
@@ -2852,7 +2916,7 @@ function wsOpenCampaign(idx) {
     </div>
     <div class="ws-cmp-drawer-meta-item">
       <div class="ws-cmp-drawer-label">Status</div>
-      <div class="ws-cmp-drawer-meta-val" style="color:${st.color};">${st.label}</div>
+      <div class="ws-cmp-drawer-meta-val" style="color:${st.color};">${statusColors[c.status]?.label || 'Pending Review'}</div>
     </div>
   `;
 
@@ -2866,10 +2930,39 @@ function wsOpenCampaign(idx) {
 
   document.getElementById('wsCmpDrawerBrief').textContent = c.brief || 'No brief provided.';
 
-  // Updates — stored per campaign in localStorage
+  // ── Open drawer immediately, then load updates ──────────────────────────────
+  document.getElementById('wsCmpDrawerOverlay').classList.add('open');
+  document.getElementById('wsCmpDrawer').classList.add('open');
+
+  const updatesEl = document.getElementById('wsCmpDrawerUpdates');
+  updatesEl.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px;">⏳ Loading updates…</div>`;
+
+  // Fetch from server if we have a real campaign ID
+  if (c.id) {
+    try {
+      const resp = await fetch(`${WS_API}/api/campaign/updates?campaignId=${encodeURIComponent(c.id)}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        const updates = data.updates || [];
+        if (updates.length) {
+          updatesEl.innerHTML = updates.map(u => `
+            <div class="ws-cmp-update">
+              <div class="ws-cmp-update-author">${u.author || 'Agency Team'}</div>
+              <div class="ws-cmp-update-text">${u.text}</div>
+              <div class="ws-cmp-update-time">${new Date(u.created_at).toLocaleDateString('en-AU', { day:'numeric', month:'short' })}</div>
+            </div>
+          `).join('');
+        } else {
+          updatesEl.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px;">Sarah is reviewing your brief — check back shortly.</div>`;
+        }
+        return;
+      }
+    } catch(e) { /* fall through */ }
+  }
+
+  // Fallback: localStorage (offline / no server ID)
   const updatesKey = 'cp_cmp_updates_' + wsSession.workspaceId + '_' + idx;
   const updates = JSON.parse(localStorage.getItem(updatesKey) || '[]');
-  const updatesEl = document.getElementById('wsCmpDrawerUpdates');
   if (updates.length) {
     updatesEl.innerHTML = updates.map(u => `
       <div class="ws-cmp-update">
@@ -2881,9 +2974,6 @@ function wsOpenCampaign(idx) {
   } else {
     updatesEl.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px;">No updates yet — your agency team will post progress here.</div>`;
   }
-
-  document.getElementById('wsCmpDrawerOverlay').classList.add('open');
-  document.getElementById('wsCmpDrawer').classList.add('open');
 }
 
 function wsCloseCampaignDrawer() {
