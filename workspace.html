@@ -1411,28 +1411,26 @@ function wsDemoAnalytics(platform) {
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 function wsLoadDashboard() {
-  const m = wsDemoMetrics();
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   document.getElementById('wsDashTitle').textContent = `${greeting}, ${wsSession.companyName}`;
   document.getElementById('wsDashSub').textContent = "Here's what's happening with your marketing this week.";
 
-  // KPIs
-  document.getElementById('wsKpiCampaigns').textContent = m.campaigns;
-  document.getElementById('wsKpiCampaignsDelta').textContent = '↑ All running';
-  document.getElementById('wsKpiSpend').textContent = m.spend;
-  document.getElementById('wsKpiSpendDelta').className = 'ws-kpi-delta';
-  document.getElementById('wsKpiSpendDelta').textContent = 'On budget';
-  document.getElementById('wsKpiLeads').textContent = m.leads;
-  document.getElementById('wsKpiLeadsDelta').textContent = `↑ +14% vs last month`;
-  document.getElementById('wsKpiRoas').textContent = m.roas;
-  document.getElementById('wsKpiRoasDelta').textContent = '↑ Above target';
+  // KPIs — blank until real data is synced by the agency
+  document.getElementById('wsKpiCampaigns').textContent = '—';
+  document.getElementById('wsKpiCampaignsDelta').textContent = '';
+  document.getElementById('wsKpiSpend').textContent = '—';
+  document.getElementById('wsKpiSpendDelta').textContent = '';
+  document.getElementById('wsKpiLeads').textContent = '—';
+  document.getElementById('wsKpiLeadsDelta').textContent = '';
+  document.getElementById('wsKpiRoas').textContent = '—';
+  document.getElementById('wsKpiRoasDelta').textContent = '';
 
-  // Health
-  document.getElementById('wsHealthScore').textContent = m.health;
-  document.getElementById('wsHealthLabel').textContent = m.healthLabel;
-  document.getElementById('wsHealthDesc').textContent = m.healthDesc;
-  setTimeout(() => { document.getElementById('wsHealthBar').style.width = (m.health * 10) + '%'; }, 100);
+  // Health — blank until synced
+  document.getElementById('wsHealthScore').textContent = '—';
+  document.getElementById('wsHealthLabel').textContent = 'Awaiting data';
+  document.getElementById('wsHealthDesc').textContent = 'Your account health score will appear here once your agency syncs your campaign data.';
+  document.getElementById('wsHealthBar').style.width = '0%';
 
   // Campaigns — show pending only, or empty state
   const dashCamps = wsPendingCampaigns;
@@ -1458,17 +1456,9 @@ function wsLoadDashboard() {
     badge.style.display = 'none';
   }
 
-  // Activity
-  const acts = wsDemoActivity();
-  document.getElementById('wsDashActivity').innerHTML = acts.map(a => `
-    <div class="ws-activity-item">
-      <div class="ws-activity-avatar">${a.initials}</div>
-      <div>
-        <div class="ws-activity-text">${a.text}</div>
-        <div class="ws-activity-time">${a.who} · ${a.time}</div>
-      </div>
-    </div>
-  `).join('');
+  // Activity — empty until agency posts real updates
+  document.getElementById('wsDashActivity').innerHTML =
+    `<div style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Activity from your agency team will appear here.</div>`;
 
   // Try loading real report health from Supabase
   wsLoadReportHealth();
