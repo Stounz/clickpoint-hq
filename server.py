@@ -651,10 +651,15 @@ def _send_slack(text: str, webhook: str = '') -> bool:
 def _send_email(to: str, subject: str, html: str) -> bool:
     """Send an email via Resend API (https://resend.com — free tier)."""
     # Read live so Railway env changes take effect without restart
-    api_key  = os.getenv('RESEND_API_KEY', '') or RESEND_API_KEY
+    api_key   = os.getenv('RESEND_API_KEY', '') or RESEND_API_KEY
     from_addr = os.getenv('RESEND_FROM', '') or RESEND_FROM
-    if not api_key or not to:
+    if not api_key:
+        print(f'  ⚠️  _send_email: no RESEND_API_KEY configured — email to {to} skipped')
         return False
+    if not to:
+        print(f'  ⚠️  _send_email: no recipient — skipped')
+        return False
+    print(f'  📧 Sending email → {to} | from={from_addr} | subject={subject[:60]}')
     try:
         payload = json.dumps({
             'from':    from_addr,
@@ -671,9 +676,19 @@ def _send_email(to: str, subject: str, html: str) -> bool:
             },
         )
         with urllib.request.urlopen(req, timeout=15) as r:
+            resp_body = r.read().decode()
+            print(f'  ✅ Email sent → {to} (status={r.status}) {resp_body[:120]}')
             return r.status in (200, 201)
+    except urllib.error.HTTPError as e:
+        err_body = ''
+        try:
+            err_body = e.read().decode()
+        except Exception:
+            pass
+        print(f'  ❌ _send_email HTTP {e.code} → {to}: {err_body[:300]}')
+        return False
     except Exception as e:
-        print(f'  Email notify error: {e}')
+        print(f'  ❌ _send_email error → {to}: {e}')
         return False
 
 def _push_to_hubspot(contact_props: dict, company_props: dict = None, note: str = '') -> bool:
