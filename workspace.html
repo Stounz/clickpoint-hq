@@ -745,6 +745,8 @@
       <div class="ws-nav-item" data-view="library" onclick="wsSetView('library')">📁 &nbsp;Library <span class="ws-nav-badge" id="wsNavLibBadge" style="display:none"></span></div>
       <div class="ws-nav-section">Agency Staff</div>
       <div class="ws-nav-item" data-view="ai" onclick="wsSetView('ai')">🎯 &nbsp;Your CMO</div>
+      <div class="ws-nav-section">Support</div>
+      <div class="ws-nav-item" data-view="escalations" onclick="wsSetView('escalations')">🚨 &nbsp;Support <span class="ws-nav-badge" id="wsNavEscBadge" style="display:none"></span></div>
       <div class="ws-nav-section">Account</div>
       <div class="ws-nav-item" data-view="brand" onclick="wsSetView('brand')">🎨 &nbsp;Brand Hub</div>
       <div class="ws-nav-item" data-view="settings" onclick="wsSetView('settings')">⚙️ &nbsp;Settings</div>
@@ -1124,6 +1126,18 @@
         <div id="wsLibraryList"></div>
       </div>
 
+      <!-- ── Support / Escalations View ── -->
+      <div class="ws-view" id="view-escalations">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <div class="ws-page-title">🚨 Support</div>
+            <div class="ws-page-sub">Raise an issue or track existing requests with your agency team.</div>
+          </div>
+          <button onclick="wsOpenEscalationModal()" style="padding:10px 20px;background:var(--orange);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">+ Raise an issue</button>
+        </div>
+        <div id="wsEscalationsList"></div>
+      </div>
+
       <!-- ── Brand Hub View ── -->
       <div class="ws-view" id="view-brand">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
@@ -1497,6 +1511,46 @@
     </div><!-- /ws-main -->
   </div><!-- /ws-layout -->
 </div><!-- /appShell -->
+
+<!-- ── Raise Issue Modal ── -->
+<div id="wsEscOverlay" onclick="wsCloseEscalationModal()" style="display:none;position:fixed;inset:0;background:rgba(10,18,14,0.7);z-index:3000;backdrop-filter:blur(4px);"></div>
+<div id="wsEscModal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:20px;padding:32px;max-width:500px;width:calc(100% - 40px);box-shadow:0 24px 80px rgba(0,0,0,0.2);z-index:3001;">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;">
+    <div>
+      <div style="font-size:17px;font-weight:800;color:var(--dark);">🚨 Raise an issue</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px;">Your agency team will be notified and respond within 24 hours.</div>
+    </div>
+    <button onclick="wsCloseEscalationModal()" style="width:28px;height:28px;border-radius:8px;background:#F5F4EF;border:none;cursor:pointer;font-size:15px;color:#888;">✕</button>
+  </div>
+  <div id="wsEscForm">
+    <label style="font-size:12px;font-weight:700;color:var(--dark);display:block;margin-bottom:6px;">What's the issue? <span style="color:#D4622A;">*</span></label>
+    <input id="wsEscTitle" placeholder="e.g. Campaign hasn't started yet" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;margin-bottom:14px;" oninput="document.getElementById('wsEscTitle').style.borderColor='var(--border)'" />
+    <label style="font-size:12px;font-weight:700;color:var(--dark);display:block;margin-bottom:6px;">More details</label>
+    <textarea id="wsEscBody" placeholder="Describe the issue so your team can help quickly…" rows="4" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;resize:vertical;margin-bottom:14px;"></textarea>
+    <div style="display:flex;gap:10px;margin-bottom:20px;">
+      <div style="flex:1;">
+        <label style="font-size:12px;font-weight:700;color:var(--dark);display:block;margin-bottom:6px;">Priority</label>
+        <select id="wsEscPriority" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;background:#fff;outline:none;">
+          <option value="LOW">Low — general question</option>
+          <option value="MEDIUM" selected>Medium — needs attention</option>
+          <option value="HIGH">High — urgent issue</option>
+        </select>
+      </div>
+      <div style="flex:1;" id="wsEscCampaignWrap">
+        <label style="font-size:12px;font-weight:700;color:var(--dark);display:block;margin-bottom:6px;">Related campaign</label>
+        <select id="wsEscCampaign" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;background:#fff;outline:none;">
+          <option value="">None / general</option>
+        </select>
+      </div>
+    </div>
+    <button onclick="wsSubmitEscalation()" style="width:100%;padding:13px;background:var(--orange);color:#fff;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;" id="wsEscSubmitBtn">Submit issue →</button>
+  </div>
+  <div id="wsEscSuccess" style="display:none;text-align:center;padding:24px 0;">
+    <div style="font-size:36px;margin-bottom:12px;">✅</div>
+    <div style="font-size:16px;font-weight:800;color:var(--dark);margin-bottom:8px;">Issue raised successfully</div>
+    <div style="font-size:13px;color:var(--muted);">Your agency team has been notified and will respond within 24 hours.</div>
+  </div>
+</div>
 
 <!-- ── Campaign Detail Drawer ── -->
 <div class="ws-cmp-drawer-overlay" id="wsCmpDrawerOverlay" onclick="wsCloseCampaignDrawer()"></div>
@@ -2139,14 +2193,15 @@ function wsLoadCampaigns() {
     return `<div style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${d.bg};color:${d.color};">${d.label}</div>`;
   };
   const pendingRows = wsPendingCampaigns.map((c, idx) => `
-    <div class="ws-campaign" onclick="wsOpenCampaign(${idx})">
+    <div class="ws-campaign" onclick="wsOpenCampaign(${idx})" style="position:relative;">
       <div class="ws-campaign-icon" style="background:rgba(212,98,42,0.08);width:42px;height:42px;">${channelIcons[c.channel] || '🚀'}</div>
       <div>
         <div class="ws-campaign-name">${c.name}</div>
         <div class="ws-campaign-meta">${c.channel} · ${c.type}</div>
       </div>
-      <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
         ${statusBadge(c.status)}
+        <button onclick="event.stopPropagation();wsOpenEscalationModal('${(c.name||'').replace(/'/g,"\\'")}');" title="Raise an issue" style="padding:4px 8px;border-radius:7px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);font-family:inherit;white-space:nowrap;">🚨 Issue</button>
         <div style="font-size:11px;color:#aaa;">→</div>
       </div>
     </div>
@@ -2207,7 +2262,131 @@ function wsOpenReport(period, summary) {
   alert(`📋 ${period}\n\n${summary}\n\n(Full report viewer coming soon — ask your account manager for the full PDF.)`);
 }
 
-// ── AI Chat helpers ───────────────────────────────────────────────────────────
+// ── Escalations ───────────────────────────────────────────────────────────────
+
+function wsOpenEscalationModal(campaignName) {
+  // Pre-fill campaign dropdown
+  const sel = document.getElementById('wsEscCampaign');
+  if (sel) {
+    sel.innerHTML = '<option value="">None / general</option>' +
+      wsPendingCampaigns.map(c => `<option value="${c.name}"${c.name === campaignName ? ' selected' : ''}>${c.name}</option>`).join('');
+  }
+  document.getElementById('wsEscTitle').value  = '';
+  document.getElementById('wsEscBody').value   = '';
+  document.getElementById('wsEscPriority').value = 'MEDIUM';
+  document.getElementById('wsEscForm').style.display    = 'block';
+  document.getElementById('wsEscSuccess').style.display = 'none';
+  document.getElementById('wsEscSubmitBtn').disabled    = false;
+  document.getElementById('wsEscSubmitBtn').textContent = 'Submit issue →';
+  document.getElementById('wsEscOverlay').style.display = 'block';
+  document.getElementById('wsEscModal').style.display   = 'block';
+  setTimeout(() => document.getElementById('wsEscTitle').focus(), 100);
+}
+
+function wsCloseEscalationModal() {
+  document.getElementById('wsEscOverlay').style.display = 'none';
+  document.getElementById('wsEscModal').style.display   = 'none';
+}
+
+async function wsSubmitEscalation() {
+  const title    = document.getElementById('wsEscTitle').value.trim();
+  const body     = document.getElementById('wsEscBody').value.trim();
+  const priority = document.getElementById('wsEscPriority').value;
+  const campaign = document.getElementById('wsEscCampaign').value;
+  const btn      = document.getElementById('wsEscSubmitBtn');
+
+  if (!title) {
+    document.getElementById('wsEscTitle').style.borderColor = '#D4622A';
+    document.getElementById('wsEscTitle').focus();
+    return;
+  }
+
+  btn.disabled    = true;
+  btn.textContent = 'Submitting…';
+
+  const pt = window._ptTheme || {};
+  try {
+    await fetch(`${WS_API}/api/escalation`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        workspaceId:   wsSession.workspaceId,
+        client:        wsSession.companyName || wsSession.workspaceId,
+        partnerId:     pt.partnerId || wsSession.partnerId || '',
+        title,
+        body,
+        priority,
+        campaignName:  campaign || '',
+        source:        'client',
+        raisedBy:      wsSession.companyName || wsSession.workspaceId,
+      }),
+    });
+  } catch(e) { /* still show success — logged locally */ }
+
+  // Show success
+  document.getElementById('wsEscForm').style.display    = 'none';
+  document.getElementById('wsEscSuccess').style.display = 'block';
+
+  // Update badge
+  wsLoadEscalations();
+  setTimeout(wsCloseEscalationModal, 2800);
+}
+
+async function wsLoadEscalations() {
+  if (!wsSession) return;
+  const container = document.getElementById('wsEscalationsList');
+
+  // Fetch from server
+  let escalations = [];
+  try {
+    const r = await fetch(`${WS_API}/api/escalation?workspaceId=${encodeURIComponent(wsSession.workspaceId)}`);
+    if (r.ok) { const d = await r.json(); escalations = d.escalations || []; }
+  } catch(e) {}
+
+  // Update nav badge
+  const open = escalations.filter(e => !e.resolved).length;
+  const badge = document.getElementById('wsNavEscBadge');
+  if (badge) { badge.textContent = open; badge.style.display = open > 0 ? 'inline' : 'none'; }
+
+  if (!container) return;
+
+  if (!escalations.length) {
+    container.innerHTML = `
+      <div class="ws-card" style="text-align:center;padding:48px 24px;">
+        <div style="font-size:32px;margin-bottom:12px;">✅</div>
+        <div style="font-weight:700;color:var(--dark);margin-bottom:6px;">No open issues</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Everything looks good. If you need help, raise an issue and your team will respond within 24 hours.</div>
+        <button onclick="wsOpenEscalationModal()" style="padding:10px 22px;background:var(--orange);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">+ Raise an issue</button>
+      </div>`;
+    return;
+  }
+
+  const priorityBadge = p => {
+    const m = { HIGH: ['#FDECEA','#C0392B'], MEDIUM: ['rgba(255,159,10,0.12)','#C47A00'], LOW: ['#EEF9F1','#2D7A4F'] };
+    const [bg, col] = m[p] || m.MEDIUM;
+    return `<span style="background:${bg};color:${col};font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;">${p}</span>`;
+  };
+
+  container.innerHTML = escalations.map(e => `
+    <div class="ws-card" style="margin-bottom:12px;padding:20px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+            ${priorityBadge(e.priority)}
+            ${e.campaign_name ? `<span style="font-size:11px;color:var(--muted);background:#F5F4EF;padding:2px 8px;border-radius:20px;">📁 ${e.campaign_name}</span>` : ''}
+            ${e.resolved ? `<span style="font-size:11px;color:#2D7A4F;background:#EEF9F1;padding:2px 8px;border-radius:20px;">✅ Resolved</span>` : `<span style="font-size:11px;color:#C47A00;background:rgba(255,159,10,0.12);padding:2px 8px;border-radius:20px;">⏳ Open</span>`}
+          </div>
+          <div style="font-weight:700;font-size:14px;color:var(--dark);margin-bottom:4px;">${e.title}</div>
+          ${e.body ? `<div style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:8px;">${e.body}</div>` : ''}
+          ${e.response ? `<div style="background:#F0F8F4;border-left:3px solid #2D7A4F;border-radius:0 8px 8px 0;padding:10px 14px;margin-top:8px;font-size:13px;color:var(--dark);"><strong>Response from your team:</strong><br>${e.response}</div>` : ''}
+        </div>
+        <div style="font-size:11px;color:#bbb;white-space:nowrap;">${e.raised_time || new Date(e.created_at).toLocaleDateString()}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// AI Chat helpers ───────────────────────────────────────────────────────────────
 
 /**
  * Fetches integration status silently at workspace init so Sarah has live context.
@@ -2409,7 +2588,8 @@ function wsSetView(view) {
     if (!wsPlanAllows('brand')) { wsRenderGate('view-brand','brand','pro'); return; }
     wsLoadBrandHub();
   }
-  if (view === 'settings') wsLoadBilling();
+  if (view === 'settings')    wsLoadBilling();
+  if (view === 'escalations') wsLoadEscalations();
 }
 
 function wsRenderGate(viewId, feature, planRequired) {

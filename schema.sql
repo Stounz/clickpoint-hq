@@ -91,17 +91,32 @@ create table if not exists cmd_messages (
 );
 
 create table if not exists cmd_escalations (
-  id          bigint generated always as identity primary key,
-  priority    text check (priority in ('HIGH','MEDIUM','LOW')),
-  client      text,
-  title       text,
-  body        text,
-  raised_by   text,
-  raised_time text,
-  suggestion  text,
-  resolved    boolean default false,
-  created_at  timestamptz default now()
+  id             bigint generated always as identity primary key,
+  priority       text check (priority in ('HIGH','MEDIUM','LOW')),
+  client         text,
+  title          text,
+  body           text,
+  raised_by      text,
+  raised_time    text,
+  suggestion     text,
+  resolved       boolean default false,
+  created_at     timestamptz default now(),
+  -- Partner escalation fields (null = HQ-only)
+  partner_id     text,
+  workspace_id   text,
+  source         text default 'client',   -- 'client' | 'agent'
+  campaign_name  text,
+  response       text,
+  responded_at   timestamptz
 );
+
+-- Migration: add partner escalation columns if upgrading existing table
+alter table cmd_escalations add column if not exists partner_id    text;
+alter table cmd_escalations add column if not exists workspace_id  text;
+alter table cmd_escalations add column if not exists source        text default 'client';
+alter table cmd_escalations add column if not exists campaign_name text;
+alter table cmd_escalations add column if not exists response      text;
+alter table cmd_escalations add column if not exists responded_at  timestamptz;
 
 create table if not exists campaigns (
   id          bigint generated always as identity primary key,

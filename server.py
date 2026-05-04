@@ -1174,6 +1174,10 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_partner_clients()
         elif self.path.startswith('/api/partner/summary'):
             self._handle_partner_summary()
+        elif self.path.startswith('/api/partner/escalations'):
+            self._handle_partner_escalations_get()
+        elif self.path.startswith('/api/escalation'):
+            self._handle_workspace_escalations_get()
         elif self.path.startswith('/api/campaigns'):
             self._handle_campaigns_list()
         elif self.path.startswith('/api/campaign/updates'):
@@ -1256,6 +1260,10 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_workspace_resend_code()
         elif self.path == '/api/campaign/request':
             self._handle_campaign_request()
+        elif self.path == '/api/escalation':
+            self._handle_escalation_create()
+        elif self.path.startswith('/api/escalation/'):
+            self._handle_escalation_update()
         else:
             self.send_response(404)
             self.end_headers()
@@ -1989,6 +1997,147 @@ class AgentHandler(BaseHTTPRequestHandler):
                 _hubspot_update_subscription(email, company_name, plan or 'unknown', 'payment_failed')
 
         self._json(200, {'received': True})
+
+    # ── Escalations ──────────────────────────────────────────────────────────────
+
+    def _handle_workspace_escalations_get(self):
+        """GET /api/escalation?workspaceId=X — fetch escalations for a workspace."""
+        import urllib.parse as _up
+        qs = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(self.path).query))
+        workspace_id = qs.get('workspaceId', '').strip()
+        if not workspace_id:
+            self._json(200, {'escalations': []}); return
+        if not (SUPABASE_URL and SUPABASE_SERVICE_KEY):
+            self._json(200, {'escalations': []}); return
+        try:
+            rows = _supabase_req('GET',
+                f'cmd_escalations?workspace_id=eq.{_up.quote(workspace_id)}&order=created_at.desc&limit=50',
+                service_role=True) or []
+            self._json(200, {'escalations': rows})
+        except Exception as e:
+            print(f'  ⚠️  workspace escalations GET error: {e}')
+            self._json(200, {'escalations': []})
+
+    def _handle_partner_escalations_get(self):
+        """GET /api/partner/escalations?partnerId=X&status=open|all"""
+        import urllib.parse as _up
+        qs = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(self.path).query))
+        partner_id = qs.get('partnerId', '').strip()
+        status     = qs.get('status', 'open')   # 'open' | 'all'
+        if not partner_id:
+            self._error(400, 'partnerId required'); return
+        if not (SUPABASE_URL and SUPABASE_SERVICE_KEY):
+            self._json(200, {'escalations': []}); return
+        try:
+            q = f'cmd_escalations?partner_id=eq.{_up.quote(partner_id)}&order=created_at.desc&limit=100'
+            if status == 'open':
+                q += '&resolved=eq.false'
+            rows = _supabase_req('GET', q, service_role=True) or []
+            self._json(200, {'escalations': rows})
+        except Exception as e:
+            print(f'  ⚠️  escalations GET error: {e}')
+            self._json(200, {'escalations': []})
+
+    def _handle_escalation_create(self):
+        """POST /api/escalation — create escalation from workspace (client) or agent."""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+
+        partner_id    = body.get('partnerId', '').strip()
+        workspace_id  = body.get('workspaceId', '').strip()
+        client        = body.get('client', '').strip()
+        title         = body.get('title', '').strip()
+        desc          = body.get('body', '').strip()
+        priority      = body.get('priority', 'MEDIUM').strip().upper()
+        source        = body.get('source', 'client')   # 'client' | 'agent'
+        campaign_name = body.get('campaignName', '').strip()
+        raised_by     = body.get('raisedBy', 'client').strip()
+
+        if not title or not workspace_id:
+            self._error(400, 'title and workspaceId required'); return
+        if priority not in ('HIGH', 'MEDIUM', 'LOW'):
+            priority = 'MEDIUM'
+
+        row = {
+            'priority':      priority,
+            'client':        client or workspace_id,
+            'title':         title,
+            'body':          desc,
+            'raised_by':     raised_by,
+            'raised_time':   'Just now',
+            'source':        source,
+            'partner_id':    partner_id or None,
+            'workspace_id':  workspace_id,
+            'campaign_name': campaign_name or None,
+            'resolved':      False,
+        }
+
+        esc_id = None
+        if SUPABASE_URL and SUPABASE_SERVICE_KEY:
+            try:
+                result = _supabase_req('POST', 'cmd_escalations', row, service_role=True)
+                if result and isinstance(result, list):
+                    esc_id = result[0].get('id')
+            except Exception as e:
+                print(f'  ⚠️  escalation insert error: {e}')
+
+        # Notify partner via email if we have their details
+        if partner_id and SUPABASE_URL and SUPABASE_SERVICE_KEY:
+            try:
+                import urllib.parse as _up2
+                pa = _supabase_req('GET',
+                    f'partner_accounts?id=eq.{_up2.quote(str(partner_id))}&select=email,agency_name',
+                    service_role=True)
+                if pa and pa[0].get('email'):
+                    p_email = pa[0]['email']
+                    agency  = pa[0].get('agency_name', 'Your agency')
+                    _notify('escalation', client=client or workspace_id,
+                            detail=f'<strong>{title}</strong><br>{desc[:300]}',
+                            email=p_email)
+            except Exception as e:
+                print(f'  ⚠️  escalation notify error: {e}')
+
+        print(f'  🚨 Escalation created: [{priority}] "{title}" ws={workspace_id} src={source}')
+        self._json(201, {'ok': True, 'id': esc_id})
+
+    def _handle_escalation_update(self):
+        """PATCH /api/escalation/:id — resolve and/or respond."""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+
+        import re as _re2
+        m = _re2.search(r'/api/escalation/(\d+)', self.path)
+        if not m:
+            self._error(400, 'Invalid escalation id'); return
+        esc_id = m.group(1)
+
+        patch = {}
+        if 'resolved' in body:
+            patch['resolved'] = bool(body['resolved'])
+        if 'response' in body and body['response']:
+            patch['response']     = str(body['response']).strip()
+            patch['responded_at'] = datetime.datetime.utcnow().isoformat()
+
+        if not patch:
+            self._error(400, 'Nothing to update'); return
+
+        if SUPABASE_URL and SUPABASE_SERVICE_KEY:
+            try:
+                import urllib.parse as _up3
+                _supabase_req('PATCH',
+                    f'cmd_escalations?id=eq.{_up3.quote(esc_id)}',
+                    patch, service_role=True)
+            except Exception as e:
+                print(f'  ⚠️  escalation PATCH error: {e}')
+                self._error(500, 'Update failed'); return
+
+        action = 'resolved' if patch.get('resolved') else 'responded'
+        print(f'  ✅ Escalation #{esc_id} {action}')
+        self._json(200, {'ok': True})
 
     def _handle_partner_invite(self):
         """Send a branded onboarding email to a new client and a copy to the partner."""

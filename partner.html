@@ -440,7 +440,7 @@
     <div id="ptInviteResult" class="pt-invite-result">
       <div style="margin-bottom:16px;">
         <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:4px;">✅ Workspace ready for <span id="ptInvResultName"></span></div>
-        <div id="ptInvEmailStatus" style="font-size:12px;color:var(--muted);margin-top:4px;">Sending invite email…</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">Credentials generated — now send the invite to your client.</div>
       </div>
       <div class="pt-invite-cred-box">
         <div class="pt-invite-cred-row">
@@ -460,9 +460,17 @@
           <span class="pt-invite-cred-val" id="ptInvResultPlan"></span>
         </div>
       </div>
+      <!-- Primary send action — mailto or automated -->
+      <div id="ptInvSendMailto">
+        <a id="ptInvMailtoLink" href="#" style="display:block;text-align:center;padding:13px;background:var(--orange);color:#fff;border-radius:11px;font-size:14px;font-weight:700;text-decoration:none;margin-bottom:8px;" onclick="ptTrackInviteSent()">📧 Send invite from your email →</a>
+        <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px;">Opens your email client with a pre-filled message ready to send</div>
+      </div>
+      <div id="ptInvSendAuto" style="display:none;">
+        <div id="ptInvAutoStatus" style="font-size:12px;padding:10px 14px;background:#F5F4EF;border-radius:9px;margin-bottom:10px;color:var(--muted);">⏳ Sending invite email…</div>
+      </div>
       <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">White-label workspace link</div>
       <div class="pt-invite-link-box" id="ptInvResultLink"></div>
-      <button class="pt-modal-btn" onclick="ptCopyAllInvite()">📋 Copy all credentials</button>
+      <button class="pt-modal-btn-outline" onclick="ptCopyAllInvite()" style="margin-bottom:8px;">📋 Copy all credentials</button>
       <button class="pt-modal-btn-outline" onclick="ptInviteAnother()">Invite another client</button>
     </div>
   </div>
@@ -488,6 +496,8 @@
       <div class="pt-nav-item" data-view="revenue" onclick="ptSetView('revenue')">💰 &nbsp;Revenue</div>
       <div class="pt-nav-section">Reports</div>
       <div class="pt-nav-item" data-view="reports" onclick="ptSetView('reports')">📋 &nbsp;Monthly Reports</div>
+      <div class="pt-nav-section">Support</div>
+      <div class="pt-nav-item" data-view="escalations" onclick="ptSetView('escalations')">🚨 &nbsp;Escalations <span class="pt-nav-badge" id="ptEscBadge" style="display:none;background:#C0392B;">0</span></div>
       <div class="pt-nav-section">AI Assistant</div>
       <div class="pt-nav-item" data-view="ai" onclick="ptSetView('ai')">🤖 &nbsp;Your Strategist</div>
       <div class="pt-nav-section">Account</div>
@@ -526,8 +536,6 @@
 
       <!-- ── Dashboard View ── -->
       <div class="pt-view active" id="pt-view-dashboard">
-        <div class="pt-page-title" id="ptDashTitle">Good morning</div>
-        <div class="pt-page-sub">Here's your client portfolio at a glance.</div>
 
         <!-- KPIs -->
         <div class="pt-kpi-grid">
@@ -597,8 +605,6 @@
       <div class="pt-view" id="pt-view-clients">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
           <div>
-            <div class="pt-page-title" style="margin-bottom:2px;">Active Clients <span id="ptClientsHeadCount" style="font-size:18px;font-weight:600;color:var(--muted);"></span></div>
-            <div class="pt-page-sub" style="margin-bottom:0;">Click any client to open their workspace</div>
           </div>
           <button class="pt-topbar-invite" onclick="ptOpenInvite()">+ Invite Client</button>
         </div>
@@ -627,8 +633,6 @@
 
       <!-- ── Revenue View ── -->
       <div class="pt-view" id="pt-view-revenue">
-        <div class="pt-page-title">Revenue</div>
-        <div class="pt-page-sub">Your monthly commission breakdown across all managed clients.</div>
         <div class="pt-rev-grid">
           <div class="pt-rev-highlight">
             <div style="font-size:12px;opacity:0.6;margin-bottom:12px;font-weight:600;letter-spacing:0.05em;">YOUR MONTHLY COMMISSION</div>
@@ -656,15 +660,11 @@
 
       <!-- ── Reports View ── -->
       <div class="pt-view" id="pt-view-reports">
-        <div class="pt-page-title">Monthly Reports</div>
-        <div class="pt-page-sub">Performance reports for all your clients — generated on the 1st of each month.</div>
         <div class="pt-card" id="ptReportsList"><div style="color:var(--muted);font-size:13px;padding:8px 0;">Loading…</div></div>
       </div>
 
       <!-- ── AI Assistant View ── -->
       <div class="pt-view" id="pt-view-ai">
-        <div class="pt-page-title">Your Strategist</div>
-        <div class="pt-page-sub">Ask Sarah anything about growing your agency, managing clients, or marketing strategy.</div>
         <div class="pt-card" style="display:flex;flex-direction:column;height:calc(100vh - 220px);min-height:480px;">
           <!-- Agent header -->
           <div style="display:flex;align-items:center;gap:14px;padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:16px;">
@@ -693,10 +693,47 @@
         </div>
       </div>
 
+      <!-- ── Escalations View ── -->
+      <div class="pt-view" id="pt-view-escalations">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Client Support</div>
+            <div style="font-size:22px;font-weight:800;color:var(--dark);">Escalations</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <select id="ptEscFilterStatus" onchange="ptLoadEscalations()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:12px;font-family:inherit;background:#fff;outline:none;">
+              <option value="open">Open only</option>
+              <option value="all">All escalations</option>
+            </select>
+            <select id="ptEscFilterPriority" onchange="ptRenderEscalations()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:12px;font-family:inherit;background:#fff;outline:none;">
+              <option value="all">All priorities</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+            </select>
+          </div>
+        </div>
+        <div id="ptEscalationsList"></div>
+      </div>
+
+      <!-- ── Respond Modal ── -->
+      <div id="ptEscRespondOverlay" onclick="ptCloseEscRespond()" style="display:none;position:fixed;inset:0;background:rgba(10,18,14,0.7);z-index:3000;backdrop-filter:blur(4px);"></div>
+      <div id="ptEscRespondModal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:20px;padding:32px;max-width:520px;width:calc(100% - 40px);box-shadow:0 24px 80px rgba(0,0,0,0.2);z-index:3001;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
+          <div style="font-size:16px;font-weight:800;color:var(--dark);" id="ptEscRespondTitle">Respond to escalation</div>
+          <button onclick="ptCloseEscRespond()" style="width:28px;height:28px;border-radius:8px;background:#F5F4EF;border:none;cursor:pointer;font-size:15px;color:#888;">✕</button>
+        </div>
+        <div id="ptEscRespondDetails" style="background:#F9F8F4;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:var(--muted);line-height:1.5;"></div>
+        <label style="font-size:12px;font-weight:700;color:var(--dark);display:block;margin-bottom:6px;">Your response</label>
+        <textarea id="ptEscRespondText" rows="4" placeholder="Type your response to the client…" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;resize:vertical;margin-bottom:14px;"></textarea>
+        <div style="display:flex;gap:10px;">
+          <button onclick="ptSubmitEscResponse(false)" style="flex:1;padding:12px;background:var(--orange);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;" id="ptEscRespBtn">Send response</button>
+          <button onclick="ptSubmitEscResponse(true)" style="flex:1;padding:12px;background:#1C3A2E;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;" id="ptEscResolveBtn">Send &amp; resolve ✓</button>
+        </div>
+      </div>
+
       <!-- ── Settings / White-label View ── -->
       <div class="pt-view" id="pt-view-settings">
-        <div class="pt-page-title">Settings</div>
-        <div class="pt-page-sub">Configure how your clients experience the workspace portal under your brand.</div>
         <div style="max-width:680px;">
           <div class="pt-card">
             <div class="pt-settings-section">
@@ -931,7 +968,9 @@ function ptShowApp() {
   document.getElementById('ptSetPartnerId').textContent = ptSession.partnerId || '—';
   ptLoadSavedConfig();
   const h = new Date().getHours();
-  document.getElementById('ptDashTitle').textContent = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  const greeting = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  const topTitle = document.getElementById('ptTopbarTitle');
+  if (topTitle && topTitle.textContent === 'Partner Dashboard') topTitle.textContent = greeting;
   ptCheckOnboarding();
   ptShowTrialBanner();
   ptFetchData();
@@ -1090,6 +1129,7 @@ function ptObNext() {
   document.getElementById('ptObIcon').textContent = '🎨';
 }
 
+
 function ptObComplete() {
   const config = {
     agencyName:  document.getElementById('ptObAgency').value || 'My Agency',
@@ -1168,12 +1208,133 @@ function ptSetView(view) {
   document.querySelectorAll('.pt-view').forEach(v => v.classList.remove('active'));
   document.getElementById('pt-view-' + view).classList.add('active');
   document.querySelectorAll('.pt-nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
-  const titles = { dashboard:'Partner Dashboard', clients:'All Clients', revenue:'Revenue', reports:'Monthly Reports', ai:'Your Strategist', settings:'Settings' };
+  const titles = { dashboard:'Partner Dashboard', clients:'All Clients', revenue:'Revenue', reports:'Monthly Reports', ai:'Your Strategist', settings:'Settings', escalations:'Escalations' };
   document.getElementById('ptTopbarTitle').textContent = titles[view] || 'Partner Portal';
-  if (view === 'clients') ptRenderClients();
-  if (view === 'revenue') ptRenderRevenue();
-  if (view === 'reports') ptRenderReports();
-  if (view === 'settings') ptLoadSavedConfig();
+  if (view === 'clients')     ptRenderClients();
+  if (view === 'revenue')     ptRenderRevenue();
+  if (view === 'reports')     ptRenderReports();
+  if (view === 'settings')    ptLoadSavedConfig();
+  if (view === 'escalations') ptLoadEscalations();
+}
+
+// ── Escalations ───────────────────────────────────────────────────────────────
+let _ptEscalations = [];
+
+async function ptLoadEscalations() {
+  if (!ptSession) return;
+  const status = document.getElementById('ptEscFilterStatus')?.value || 'open';
+  try {
+    const r = await fetch(`${PT_API}/api/partner/escalations?partnerId=${encodeURIComponent(ptSession.partnerId)}&status=${status}`);
+    const d = await r.json();
+    _ptEscalations = d.escalations || [];
+  } catch(e) { _ptEscalations = []; }
+
+  // Update badge
+  const open = _ptEscalations.filter(e => !e.resolved).length;
+  const badge = document.getElementById('ptEscBadge');
+  if (badge) { badge.textContent = open; badge.style.display = open > 0 ? 'inline' : 'none'; }
+
+  ptRenderEscalations();
+}
+
+function ptRenderEscalations() {
+  const container = document.getElementById('ptEscalationsList');
+  if (!container) return;
+
+  const pFilter = document.getElementById('ptEscFilterPriority')?.value || 'all';
+  const list = pFilter === 'all' ? _ptEscalations : _ptEscalations.filter(e => e.priority === pFilter);
+
+  if (!list.length) {
+    container.innerHTML = `
+      <div class="pt-card" style="text-align:center;padding:48px 24px;">
+        <div style="font-size:32px;margin-bottom:12px;">✅</div>
+        <div style="font-weight:700;color:var(--dark);margin-bottom:6px;">No escalations</div>
+        <div style="font-size:13px;color:var(--muted);">Your clients haven't raised any issues${pFilter !== 'all' ? ' with this priority filter' : ''}.</div>
+      </div>`;
+    return;
+  }
+
+  const priorityBadge = p => {
+    const m = { HIGH:['#FDECEA','#C0392B'], MEDIUM:['rgba(255,159,10,0.12)','#C47A00'], LOW:['#EEF9F1','#2D7A4F'] };
+    const [bg,col] = m[p]||m.MEDIUM;
+    return `<span style="background:${bg};color:${col};font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;">${p}</span>`;
+  };
+  const sourceBadge = s => s === 'agent'
+    ? `<span style="background:#EEF4FF;color:#3B60E4;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;">🤖 Agent</span>`
+    : `<span style="background:#F9F8F4;color:#888;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;">👤 Client</span>`;
+
+  container.innerHTML = list.map(e => `
+    <div class="pt-card" style="margin-bottom:12px;padding:20px;${!e.resolved && e.priority==='HIGH' ? 'border-left:3px solid #C0392B;' : ''}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+            ${priorityBadge(e.priority)}
+            ${sourceBadge(e.source||'client')}
+            <span style="font-size:11px;font-weight:700;color:var(--dark);background:#F0F8F4;padding:2px 8px;border-radius:20px;">👤 ${e.client||'Unknown client'}</span>
+            ${e.campaign_name ? `<span style="font-size:11px;color:var(--muted);background:#F5F4EF;padding:2px 8px;border-radius:20px;">📁 ${e.campaign_name}</span>` : ''}
+            ${e.resolved ? `<span style="font-size:11px;color:#2D7A4F;background:#EEF9F1;padding:2px 8px;border-radius:20px;">✅ Resolved</span>` : ''}
+          </div>
+          <div style="font-weight:700;font-size:14px;color:var(--dark);margin-bottom:4px;">${e.title}</div>
+          ${e.body ? `<div style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:8px;">${e.body}</div>` : ''}
+          ${e.suggestion ? `<div style="background:#FEF6F1;border-left:3px solid var(--orange);border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:#8B4513;margin-bottom:10px;"><strong>💡 Suggestion:</strong> ${e.suggestion}</div>` : ''}
+          ${e.response ? `<div style="background:#F0F8F4;border-left:3px solid #2D7A4F;border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:var(--dark);"><strong>Your response:</strong> ${e.response}</div>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;">
+          <div style="font-size:11px;color:#bbb;">${e.raised_time || new Date(e.created_at).toLocaleDateString()}</div>
+          ${!e.resolved ? `
+            <button onclick="ptOpenEscRespond(${e.id},'${(e.title||'').replace(/'/g,"\\'")}','${(e.body||'').replace(/'/g,"\\'")}','${e.client||''}')" style="padding:7px 14px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">Reply →</button>
+            <button onclick="ptResolveEscalation(${e.id})" style="padding:7px 14px;background:#1C3A2E;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">✓ Resolve</button>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+let _ptEscRespondId = null;
+function ptOpenEscRespond(id, title, body, client) {
+  _ptEscRespondId = id;
+  document.getElementById('ptEscRespondTitle').textContent = `Reply to: ${title}`;
+  document.getElementById('ptEscRespondDetails').innerHTML = `<strong>${client}</strong>${body ? ': ' + body : ''}`;
+  document.getElementById('ptEscRespondText').value = '';
+  document.getElementById('ptEscRespBtn').disabled   = false;
+  document.getElementById('ptEscResolveBtn').disabled = false;
+  document.getElementById('ptEscRespondOverlay').style.display = 'block';
+  document.getElementById('ptEscRespondModal').style.display   = 'block';
+  setTimeout(() => document.getElementById('ptEscRespondText').focus(), 100);
+}
+
+function ptCloseEscRespond() {
+  document.getElementById('ptEscRespondOverlay').style.display = 'none';
+  document.getElementById('ptEscRespondModal').style.display   = 'none';
+  _ptEscRespondId = null;
+}
+
+async function ptSubmitEscResponse(andResolve) {
+  const text = document.getElementById('ptEscRespondText').value.trim();
+  if (!text) { document.getElementById('ptEscRespondText').style.borderColor = '#D4622A'; return; }
+  document.getElementById('ptEscRespBtn').disabled    = true;
+  document.getElementById('ptEscResolveBtn').disabled = true;
+  try {
+    await fetch(`${PT_API}/api/escalation/${_ptEscRespondId}`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ response: text, resolved: andResolve }),
+    });
+  } catch(e) {}
+  ptCloseEscRespond();
+  ptToast(andResolve ? '✓ Response sent and issue resolved' : '✓ Response sent');
+  ptLoadEscalations();
+}
+
+async function ptResolveEscalation(id) {
+  try {
+    await fetch(`${PT_API}/api/escalation/${id}`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ resolved: true }),
+    });
+  } catch(e) {}
+  ptToast('✓ Escalation resolved');
+  ptLoadEscalations();
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
@@ -1425,35 +1586,13 @@ async function ptGenerateInvite() {
   });
   const link = `${base}?${params}`;
 
-  // Try to create workspace record via API
+  // Try to create workspace record via API (saves credentials to DB so client can log in)
   try {
     await fetch(`${PT_API}/api/workspace/create`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ workspaceId:wsId, email, name, plan, partnerId:ptSession.partnerId, accessCode:code }),
     });
   } catch(e) { /* continue */ }
-
-  // Send branded invite email via API
-  let emailSent = false;
-  try {
-    const invRes = await fetch(`${PT_API}/api/partner/invite`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        clientName:    name,
-        email,
-        workspaceId:   wsId,
-        accessCode:    code,
-        plan,
-        workspaceLink: link,
-        agencyName:    config.wlName || config.agencyName || 'ClickPoint',
-        agencyColor:   config.color || '#1C3A2E',
-        agencyLogo:    config.logoUrl || '',
-        partnerEmail:  ptSession.email || '',
-      }),
-    });
-    const invData = await invRes.json();
-    emailSent = invData.clientEmailSent;
-  } catch(e) { /* no email key configured */ }
 
   // Save locally so it appears in clients list immediately
   const newClient = { name, id:wsId, health:null, mrr:null, lastActive:'Just now', campaigns:0, status:'active', plan, email };
@@ -1468,6 +1607,29 @@ async function ptGenerateInvite() {
     localStorage.setItem('cp_pt_access', JSON.stringify(acc));
   } catch(e) {}
 
+  // Build the pre-filled email body for mailto
+  const agency   = config.wlName || config.agencyName || 'ClickPoint';
+  const planLabel = { starter:'Starter (Free)', growth:'Growth', pro:'Pro', agency:'Agency' }[plan] || plan;
+  const mailSubject = encodeURIComponent(`Your ${agency} marketing workspace is ready`);
+  const mailBody = encodeURIComponent(
+`Hi ${name},
+
+Your dedicated marketing workspace has been set up. Here are your access details:
+
+Workspace ID: ${wsId}
+Access Code:  ${code}
+Plan:         ${planLabel}
+
+Sign in here:
+${link}
+
+If you have any questions, just reply to this email.
+
+${config.contactName || 'Your team'}
+${agency}`
+  );
+  const mailtoHref = `mailto:${email}?subject=${mailSubject}&body=${mailBody}`;
+
   // Show result
   document.getElementById('ptInviteForm').style.display = 'none';
   document.getElementById('ptInviteResult').style.display = 'block';
@@ -1475,17 +1637,18 @@ async function ptGenerateInvite() {
   document.getElementById('ptInvResultId').textContent    = wsId;
   document.getElementById('ptInvResultEmail').textContent = email;
   document.getElementById('ptInvResultCode').textContent  = code;
-  document.getElementById('ptInvResultPlan').textContent  = plan.charAt(0).toUpperCase() + plan.slice(1);
+  document.getElementById('ptInvResultPlan').textContent  = planLabel;
   document.getElementById('ptInvResultLink').textContent  = link;
 
-  // Show email status
-  const emailStatus = document.getElementById('ptInvEmailStatus');
-  if (emailStatus) {
-    emailStatus.textContent = emailSent
-      ? `✅ Invite email sent to ${email}`
-      : `📋 Copy credentials below — email delivery requires Resend API key`;
-    emailStatus.style.color = emailSent ? 'var(--green)' : 'var(--muted)';
-  }
+  // Always use mailto — send from partner's own email
+  document.getElementById('ptInvSendMailto').style.display = 'block';
+  document.getElementById('ptInvSendAuto').style.display   = 'none';
+  document.getElementById('ptInvMailtoLink').href = mailtoHref;
+}
+
+function ptTrackInviteSent() {
+  // Small UX feedback when partner clicks send
+  ptToast('✓ Email client opened — send when ready!');
 }
 
 function ptCopyAllInvite() {
