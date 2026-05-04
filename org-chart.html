@@ -1413,6 +1413,37 @@
   .cmd-col-title { font-size:12px; font-weight:700; color:#1A1A1A; text-transform:uppercase; letter-spacing:0.06em; }
   .cmd-col-badge { background:#FF453A; color:#fff; border-radius:100px; font-size:10px; font-weight:700; padding:1px 7px; }
   .cmd-col-body { flex:1; overflow-y:auto; padding:12px; }
+  /* ── Partner Escalation Tabs ── */
+  .cmd-esc-tabs { display:flex; border-top:1px solid #E2E1DB; flex-shrink:0; }
+  .cmd-esc-tab { flex:1; padding:7px 8px; background:transparent; border:none; border-bottom:2px solid transparent; font-size:10px; font-weight:700; color:#999990; cursor:pointer; font-family:inherit; transition:all 0.15s; letter-spacing:0.06em; text-transform:uppercase; display:flex; align-items:center; justify-content:center; gap:5px; }
+  .cmd-esc-tab.active { color:#1A1A1A; border-bottom-color:#D4622A; background:#fff; }
+  .cmd-esc-tab:hover:not(.active) { color:#555550; background:rgba(0,0,0,0.03); }
+  /* ── Partner Escalation Cards ── */
+  .cmd-pt-esc-card { background:#fff; border-radius:10px; border:1px solid #E2E1DB; border-left:3px solid #E2E1DB; padding:14px; margin-bottom:10px; }
+  .cmd-pt-esc-card.HIGH { border-left-color:#FF453A; }
+  .cmd-pt-esc-card.MEDIUM { border-left-color:#FF9F0A; }
+  .cmd-pt-esc-card.LOW { border-left-color:#34C759; }
+  .cmd-pt-priority-badge { font-size:9px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; padding:2px 7px; border-radius:50px; }
+  .cmd-pt-priority-badge.HIGH { background:#FFEBE8; color:#C0392B; }
+  .cmd-pt-priority-badge.MEDIUM { background:#FFF3D0; color:#B7710A; }
+  .cmd-pt-priority-badge.LOW { background:#E8FAEA; color:#1A7A34; }
+  .cmd-pt-source-badge { font-size:9px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:2px 7px; border-radius:50px; }
+  .cmd-pt-source-badge.client { background:#E8F3FF; color:#0064D9; }
+  .cmd-pt-source-badge.agent { background:#FFF3E0; color:#C25E00; }
+  .cmd-pt-partner-tag { font-size:10px; font-weight:600; color:#555550; background:#F0EFE9; padding:2px 8px; border-radius:50px; }
+  .cmd-pt-esc-subject { font-size:13px; font-weight:700; color:#1A1A1A; margin:6px 0 5px; line-height:1.3; }
+  .cmd-pt-esc-client { font-size:11px; color:#555550; margin-bottom:6px; }
+  .cmd-pt-esc-body { font-size:11px; color:#555550; line-height:1.5; }
+  .cmd-pt-esc-response { background:#F0F9F3; border:1px solid #C8E6C9; border-radius:7px; padding:9px 11px; font-size:11px; color:#2E7D32; margin-top:9px; line-height:1.5; }
+  .cmd-pt-esc-response strong { font-size:10px; text-transform:uppercase; letter-spacing:0.05em; display:block; margin-bottom:3px; color:#1A7A34; }
+  .cmd-pt-esc-resolved-bar { font-size:11px; color:#34C759; font-weight:700; margin-top:9px; display:flex; align-items:center; gap:5px; }
+  .cmd-pt-esc-actions { display:flex; gap:7px; margin-top:10px; flex-wrap:wrap; }
+  .cmd-pt-hq-btn { padding:5px 12px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; border:1.5px solid; }
+  .cmd-pt-hq-btn.resolve { background:#1C3A2E; color:#fff; border-color:#1C3A2E; }
+  .cmd-pt-hq-btn.resolve:hover { background:#2A5240; }
+  .cmd-pt-esc-meta { font-size:10px; color:#999990; margin-top:6px; }
+  .cmd-pt-empty { text-align:center; padding:40px 20px; color:#999990; font-size:12px; }
+  /* ── */
   .cmd-feed-item { display:flex; gap:10px; padding:10px 12px; border-radius:10px; background:#fff; border:1px solid #E2E1DB; margin-bottom:8px; transition:all 0.15s; }
   .cmd-feed-item:hover { border-color:#D4622A; box-shadow:0 2px 8px rgba(212,98,42,0.08); }
   .cmd-feed-avatar { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; flex-shrink:0; margin-top:1px; }
@@ -6126,6 +6157,9 @@ let cmdThreads = [
   },
 ];
 
+let cmdPartnerEscalations = [];
+let cmdEscTab = 'hq'; // 'hq' | 'partners'
+
 let cmdEscalations = [
   {
     id:1, from:'cleo', client:'Crestwave Foods', priority:'high',
@@ -6238,12 +6272,19 @@ function cmdBuildShell() {
           </div>
           <div class="cmd-col-body" id="cmdCommsBody">${cmdBuildComms()}</div>
         </div>
-        <div class="cmd-col">
-          <div class="cmd-col-hd">
-            <span class="cmd-col-title">🔴 Needs You</span>
-            ${unresolvedEsc > 0 ? `<span class="cmd-col-badge">${unresolvedEsc}</span>` : ''}
+        <div class="cmd-col" style="overflow:hidden;">
+          <div class="cmd-col-hd" style="flex-direction:column;align-items:stretch;padding:0;gap:0;">
+            <div style="display:flex;align-items:center;gap:8px;padding:14px 18px 10px;">
+              <span class="cmd-col-title">🔴 Escalations</span>
+              ${unresolvedEsc > 0 ? `<span class="cmd-col-badge" id="cmdHqEscBadge">${unresolvedEsc}</span>` : '<span id="cmdHqEscBadge" style="display:none"></span>'}
+              ${cmdPartnerEscalations.filter(e=>!e.resolved).length > 0 ? `<span class="cmd-col-badge" id="cmdPtEscBadge" style="background:#0064D9;">${cmdPartnerEscalations.filter(e=>!e.resolved).length}</span>` : '<span id="cmdPtEscBadge" style="display:none"></span>'}
+            </div>
+            <div class="cmd-esc-tabs">
+              <button class="cmd-esc-tab ${cmdEscTab==='hq'?'active':''}" data-tab="hq" onclick="cmdSwitchEscTab('hq')">HQ Internal</button>
+              <button class="cmd-esc-tab ${cmdEscTab==='partners'?'active':''}" data-tab="partners" onclick="cmdSwitchEscTab('partners')">Partners ${cmdPartnerEscalations.length > 0 ? `<span style="background:#0064D9;color:#fff;border-radius:50px;font-size:9px;font-weight:700;padding:1px 6px;">${cmdPartnerEscalations.filter(e=>!e.resolved).length||''}</span>` : ''}</button>
+            </div>
           </div>
-          <div class="cmd-col-body" id="cmdEscBody">${cmdBuildEscalations()}</div>
+          <div class="cmd-col-body" id="cmdEscBody">${cmdEscTab==='hq' ? cmdBuildEscalations() : cmdBuildPartnerEscalations()}</div>
         </div>
       </div>
       <div class="agc-panel" id="agcPanel">
@@ -6408,10 +6449,75 @@ function cmdResolveEsc(id, optIdx) {
   if (!esc) return;
   esc.resolved = true;
   esc.resolvedWith = esc.options[optIdx];
+  if (esc._dbId) dbResolveEscalation(esc._dbId);
   document.getElementById('cmdEscBody').innerHTML = cmdBuildEscalations();
   const remaining = cmdEscalations.filter(e => !e.resolved).length;
-  const badge = document.querySelector('.cmd-col-badge');
-  if (badge) { if (remaining > 0) badge.textContent = remaining; else badge.remove(); }
+  const badge = document.getElementById('cmdHqEscBadge');
+  if (badge) { if (remaining > 0) { badge.textContent = remaining; badge.style.display = ''; } else badge.style.display = 'none'; }
+}
+
+// ── Escalation Tab Switching ──────────────────────────────────────────────────
+function cmdSwitchEscTab(tab) {
+  cmdEscTab = tab;
+  const body = document.getElementById('cmdEscBody');
+  if (body) body.innerHTML = cmdEscTab === 'hq' ? cmdBuildEscalations() : cmdBuildPartnerEscalations();
+  document.querySelectorAll('.cmd-esc-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+}
+
+// ── Partner Escalations Renderer ─────────────────────────────────────────────
+function cmdBuildPartnerEscalations() {
+  if (!cmdPartnerEscalations.length) {
+    return `<div class="cmd-pt-empty">
+      <div style="font-size:28px;margin-bottom:8px;">🤝</div>
+      <div style="font-weight:700;color:#555550;margin-bottom:4px;">No partner escalations</div>
+      <div>When partner workspaces raise issues, they'll appear here</div>
+    </div>`;
+  }
+  const pending  = cmdPartnerEscalations.filter(e => !e.resolved);
+  const resolved = cmdPartnerEscalations.filter(e =>  e.resolved);
+  let html = '';
+  if (pending.length) {
+    html += pending.map(e => cmdBuildPartnerEscCard(e)).join('');
+  }
+  if (resolved.length) {
+    html += `<div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#999990;padding:10px 0 6px;border-top:1px solid #E2E1DB;margin-top:4px;">Resolved</div>`;
+    html += resolved.map(e => cmdBuildPartnerEscCard(e)).join('');
+  }
+  if (!pending.length && !resolved.length) {
+    html = `<div class="cmd-pt-empty"><div style="font-size:28px;margin-bottom:8px;">✅</div><div style="font-weight:700;color:#555550;">All clear</div></div>`;
+  }
+  return html;
+}
+
+function cmdBuildPartnerEscCard(e) {
+  const priority = (e.priority || 'LOW').toUpperCase();
+  const source   = e.source || 'client';
+  const sourceLabel = source === 'agent' ? 'Partner Raised' : 'Client Raised';
+  const partnerShort = e.partner_id ? e.partner_id.replace('pt-','').substring(0,8) : '—';
+  const campaignInfo = e.campaign_name ? `<div class="cmd-pt-esc-client">📣 ${e.campaign_name}</div>` : '';
+  const timeAgo = e.raised_time || (e.created_at ? new Date(e.created_at).toLocaleDateString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '');
+  const responseBlock = e.response
+    ? `<div class="cmd-pt-esc-response"><strong>Partner Response</strong>${e.response}</div>`
+    : '';
+  const resolvedBlock = e.resolved
+    ? `<div class="cmd-pt-esc-resolved-bar">✓ Resolved${e.responded_at ? ' · ' + new Date(e.responded_at).toLocaleDateString('en-AU',{day:'numeric',month:'short'}) : ''}</div>`
+    : `<div class="cmd-pt-esc-actions">
+        <button class="cmd-pt-hq-btn resolve" onclick="dbHqResolvePartnerEsc(${e.id})">✓ Mark Resolved</button>
+      </div>`;
+  return `<div class="cmd-pt-esc-card ${priority}">
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px;">
+      <span class="cmd-pt-priority-badge ${priority}">${priority}</span>
+      <span class="cmd-pt-source-badge ${source}">${sourceLabel}</span>
+      <span class="cmd-pt-partner-tag" title="Partner ID: ${e.partner_id||'—'}">🤝 ${partnerShort}</span>
+      <span style="margin-left:auto;font-size:10px;color:#999990;">${timeAgo}</span>
+    </div>
+    <div class="cmd-pt-esc-subject">${e.title || e.subject || ''}</div>
+    <div class="cmd-pt-esc-client">📋 ${e.client || '—'}</div>
+    ${campaignInfo}
+    <div class="cmd-pt-esc-body">${e.body || ''}</div>
+    ${responseBlock}
+    ${resolvedBlock}
+  </div>`;
 }
 
 // ── Agent Live Chat ──
@@ -7152,21 +7258,11 @@ function cmdFireEvent(ev, isLast) {
     };
     cmdEscalations.unshift(newEsc);
     const escBody = document.getElementById('cmdEscBody');
-    if (escBody) escBody.innerHTML = cmdBuildEscalations();
-    // Add/update badge on Needs You column
+    if (escBody && cmdEscTab === 'hq') escBody.innerHTML = cmdBuildEscalations();
+    // Update HQ badge
     const unresCnt = cmdEscalations.filter(e => !e.resolved).length;
-    let badge = document.querySelector('.cmd-col:last-child .cmd-col-badge');
-    if (badge) {
-      badge.textContent = unresCnt;
-    } else {
-      const hd = document.querySelector('.cmd-col:last-child .cmd-col-hd');
-      if (hd) {
-        const b = document.createElement('span');
-        b.className = 'cmd-col-badge';
-        b.textContent = unresCnt;
-        hd.appendChild(b);
-      }
-    }
+    const badge = document.getElementById('cmdHqEscBadge');
+    if (badge) { badge.textContent = unresCnt; badge.style.display = ''; }
   }
 
   if (isLast) {
@@ -7366,7 +7462,9 @@ async function dbDeleteDeliverable(dbId) {
 
 // ── Escalations ───────────────────────────────────────────────────────────
 async function dbLoadEscalations() {
-  const { data, error } = await db.from('cmd_escalations').select('*').eq('resolved', false).order('created_at');
+  // HQ-internal only: no partner_id
+  const { data, error } = await db.from('cmd_escalations').select('*')
+    .is('partner_id', null).order('created_at');
   if (error) { console.warn('Supabase escalations:', error.message); return; }
   cmdEscalations.length = 0;
   data.forEach(r => cmdEscalations.push({
@@ -7382,12 +7480,49 @@ async function dbLoadEscalations() {
     resolved: r.resolved
   }));
   dbShowSync('✓ Escalations synced');
+  // Refresh the esc column if it's open and on hq tab
+  const body = document.getElementById('cmdEscBody');
+  if (body && cmdEscTab === 'hq') body.innerHTML = cmdBuildEscalations();
+  const badge = document.getElementById('cmdHqEscBadge');
+  if (badge) {
+    const cnt = cmdEscalations.filter(e=>!e.resolved).length;
+    if (cnt > 0) { badge.textContent = cnt; badge.style.display = ''; } else badge.style.display = 'none';
+  }
+}
+
+async function dbLoadPartnerEscalations() {
+  // Partner-linked escalations: partner_id IS NOT NULL
+  const { data, error } = await db.from('cmd_escalations').select('*')
+    .not('partner_id', 'is', null).order('created_at', { ascending: false }).limit(100);
+  if (error) { console.warn('Supabase partner escalations:', error.message); return; }
+  cmdPartnerEscalations.length = 0;
+  data.forEach(r => cmdPartnerEscalations.push(r));
+  dbShowSync('✓ Partner escalations synced');
+  // Refresh if esc column is open on partners tab
+  const body = document.getElementById('cmdEscBody');
+  if (body && cmdEscTab === 'partners') body.innerHTML = cmdBuildPartnerEscalations();
+  const badge = document.getElementById('cmdPtEscBadge');
+  if (badge) {
+    const cnt = cmdPartnerEscalations.filter(e=>!e.resolved).length;
+    if (cnt > 0) { badge.textContent = cnt; badge.style.display = ''; } else badge.style.display = 'none';
+  }
 }
 
 async function dbResolveEscalation(dbId) {
   const { error } = await db.from('cmd_escalations').update({ resolved: true }).eq('id', dbId);
   if (error) dbShowSync('Update failed', false);
   else dbShowSync('✓ Escalation resolved');
+}
+
+async function dbHqResolvePartnerEsc(id) {
+  const { error } = await db.from('cmd_escalations').update({ resolved: true }).eq('id', id);
+  if (error) { dbShowSync('Update failed', false); return; }
+  const esc = cmdPartnerEscalations.find(e => e.id === id);
+  if (esc) esc.resolved = true;
+  dbShowSync('✓ Partner escalation resolved');
+  const body = document.getElementById('cmdEscBody');
+  if (body && cmdEscTab === 'partners') body.innerHTML = cmdBuildPartnerEscalations();
+  await dbLoadPartnerEscalations();
 }
 
 // ── Comms threads ─────────────────────────────────────────────────────────
@@ -7443,6 +7578,7 @@ window.addEventListener('load', async () => {
     dbLoadClients(),
     dbLoadDeliverables(),
     dbLoadEscalations(),
+    dbLoadPartnerEscalations(),
     dbLoadThreads(),
     dbLoadFeed(),
     intgLoad(),
@@ -7457,7 +7593,7 @@ window.addEventListener('load', async () => {
 db.channel('clickpoint-live')
   .on('postgres_changes', { event: '*', schema: 'public', table: 'clients' }, () => dbLoadClients())
   .on('postgres_changes', { event: '*', schema: 'public', table: 'deliverables' }, () => dbLoadDeliverables())
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'cmd_escalations' }, () => dbLoadEscalations())
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'cmd_escalations' }, () => { dbLoadEscalations(); dbLoadPartnerEscalations(); })
   .on('postgres_changes', { event: '*', schema: 'public', table: 'cmd_threads' }, () => dbLoadThreads())
   .on('postgres_changes', { event: '*', schema: 'public', table: 'cmd_feed' }, () => dbLoadFeed())
   .on('postgres_changes', { event: '*', schema: 'public', table: 'client_integrations' }, () => intgLoad())
