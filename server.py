@@ -1268,6 +1268,13 @@ class AgentHandler(BaseHTTPRequestHandler):
             self.send_response(404)
             self.end_headers()
 
+    def do_PATCH(self):
+        if self.path.startswith('/api/escalation/'):
+            self._handle_escalation_update()
+        else:
+            self.send_response(404)
+            self.end_headers()
+
     def _handle_single_agent(self):
         """Single agent call — with memory injection."""
         try:
