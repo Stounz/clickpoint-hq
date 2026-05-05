@@ -3983,13 +3983,8 @@ class AgentHandler(BaseHTTPRequestHandler):
     def _canva_result_page(self, result: str, detail: str = '') -> str:
         """Return an HTML page that notifies the opener window and closes itself."""
         if result == 'success':
-            script = f"""
-                if (window.opener) {{
-                    window.opener.postMessage({{type:'canva_connected', workspaceId:'{detail}'}}, '*');
-                    window.close();
-                }} else {{
-                    setTimeout(() => window.location.href = '{PLATFORM_URL}/workspace.html?canva=connected', 1500);
-                }}"""
+            redirect = f'{PLATFORM_URL}/workspace.html?canva=connected&ws={detail}'
+            script = f"setTimeout(() => window.location.href = '{redirect}', 1200);"
             body = (
                 '<div style="text-align:center;">'
                 '<div style="font-size:56px;margin-bottom:12px;">✅</div>'

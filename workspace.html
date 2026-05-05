@@ -1882,8 +1882,20 @@ function wsInitApp() {
   const _wsObKey = 'cp_onboarded_' + (wsSession && wsSession.workspaceId);
   if (localStorage.getItem(_wsObKey)) wsMaybeTour();
 
-  // Check if returning from Stripe — URL param ?plan_success=1
+  // Check if returning from Canva OAuth — URL param ?canva=connected
   const urlParams = new URLSearchParams(location.search);
+  if (urlParams.get('canva') === 'connected') {
+    // Clean the URL without reloading
+    history.replaceState({}, '', location.pathname);
+    // Show success toast + reload integrations
+    setTimeout(() => {
+      _wsToast('✅ Canva connected! Design assets are now active.');
+      wsSetView('settings');
+      setTimeout(() => wsLoadIntegrations(), 400);
+    }, 300);
+  }
+
+  // Check if returning from Stripe — URL param ?plan_success=1
   if (urlParams.get('plan_success')) {
     const pending = sessionStorage.getItem('ws_pending_session');
     if (pending) {
@@ -3572,44 +3584,20 @@ function wsConnectIntegration(platformId) {
 
   // ── CANVA OAUTH — one-click popup flow ──────────────────────────────────
   } else if (p.conn === 'canva_oauth') {
-    // Open the popup IMMEDIATELY on click (before any async work) to avoid popup blocker
-    const _cw = 520, _ch = 680;
-    const _cl = Math.round(window.screenX + (window.outerWidth  - _cw) / 2);
-    const _ct = Math.round(window.screenY + (window.outerHeight - _ch) / 2);
-    const popup = window.open('about:blank', 'canva_auth',
-      `width=${_cw},height=${_ch},left=${_cl},top=${_ct},toolbar=no,menubar=no,scrollbars=yes`);
-    if (!popup) {
-      _wsToast('⚠️ Allow pop-ups for this site in your browser, then try again.', 'warn');
-      return;
-    }
     (async () => {
       const wid = wsSession && wsSession.workspaceId ? wsSession.workspaceId : '';
       try {
         const resp     = await fetch(`${WS_API}/api/canva/auth?workspace_id=${encodeURIComponent(wid)}`);
         const authData = await resp.json();
         const authUrl  = authData.auth_url;
-        if (!authUrl) throw new Error('No auth URL returned');
-        // Navigate the blank popup to Canva auth
-        popup.location.replace(authUrl);
-        // Listen for success message when popup completes OAuth
-        const handler = (e) => {
-          if (e.data && e.data.type === 'canva_connected') {
-            window.removeEventListener('message', handler);
-            _wsToast('✅ Canva connected! Design assets are now active.');
-            wsLoadIntegrations();
-          } else if (e.data && e.data.type === 'canva_error') {
-            window.removeEventListener('message', handler);
-            _wsToast('❌ Canva connection failed. Please try again.', 'error');
-          }
-        };
-        window.addEventListener('message', handler);
+        if (!authUrl) throw new Error('No auth URL');
+        // Simple redirect — Canva OAuth callback will redirect back to the workspace
+        window.location.href = authUrl;
       } catch(err) {
-        popup.close();
         _wsToast('❌ Could not start Canva connection. Please try again.', 'error');
-        console.error('canva_oauth error:', err);
       }
     })();
-    return;  // no modal needed
+    return;
 
   // ── OAUTH modal ─────────────────────────────────────────────────────────
   } else if (p.conn === 'oauth') {
