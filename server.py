@@ -3478,6 +3478,7 @@ class AgentHandler(BaseHTTPRequestHandler):
                 'agentName':  'Zara Osei · Creative',
                 'type':       'Design',
                 'content':    design_deliverable_text,
+                'design_urls': [],   # populated by Canva export when available
                 'created_at': datetime.datetime.utcnow().isoformat(),
             } if design_deliverable_text else None
 

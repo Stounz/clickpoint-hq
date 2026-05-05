@@ -2074,6 +2074,14 @@ function wsNewCampaignOpen() {
   ['wsCmpName','wsCmpType','wsCmpChannel','wsCmpBudget','wsCmpAudience','wsCmpBrief'].forEach(id => {
     document.getElementById(id).value = '';
   });
+  // Reset submit button back to original state
+  const submitBtn = document.getElementById('wsCmpSubmitBtn');
+  if (submitBtn) {
+    submitBtn.textContent = '🚀 Submit Campaign Request';
+    submitBtn.style.background = '#1C3A2E';
+    submitBtn.style.opacity = '1';
+    submitBtn.disabled = false;
+  }
   form.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
@@ -2843,6 +2851,7 @@ function wsMergeDeliverablesToLibrary(campaigns) {
         type:        d.type || 'Strategy',
         author:      (d.agentName || d.agent || 'Agency Team') + ' — ' + c.name,
         content:     d.content,
+        design_urls: d.design_urls || [],
         savedAt:     d.created_at || c.created_at || new Date().toISOString(),
         status:      'pending',
         campaignId:  c.id,
@@ -2913,6 +2922,15 @@ function wsLoadLibrary(filter = 'all') {
       <button class="ws-lib-changes" onclick="wsLibRequestChanges('${item.id}')">Request Changes</button>
     ` : '';
     const campaignTag = item.campaignName ? `<span style="font-size:10px;color:var(--muted);background:#F4F3EE;padding:2px 7px;border-radius:10px;">${item.campaignName}</span>` : '';
+    // Design asset download buttons (shown when real image URLs are attached)
+    const designUrls = item.design_urls || [];
+    const downloadBtns = designUrls.length ? `
+      <div style="margin:12px 0 4px;padding:12px 14px;background:#F4F3EE;border-radius:10px;border:1.5px solid var(--border);">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px;">🖼️ Design Assets — Click to Download</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          ${designUrls.map((url, i) => `<a href="${url}" download="design-asset-${i+1}.png" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--teal);color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='#254d3a'" onmouseout="this.style.background='var(--teal)'">⬇ Asset ${i+1}</a>`).join('')}
+        </div>
+      </div>` : '';
     return `<div class="ws-lib-item" id="libitem_${item.id.replace(/[^a-zA-Z0-9_-]/g,'_')}">
       <div class="ws-lib-item-header">
         <span class="ws-lib-type-badge">${item.type}</span>
@@ -2920,6 +2938,7 @@ function wsLoadLibrary(filter = 'all') {
         <span class="ws-lib-item-title" style="flex:1;">${item.author}</span>
         <span class="ws-lib-item-date">${date}</span>
       </div>
+      ${downloadBtns}
       <div class="ws-lib-item-preview${isExpanded ? ' expanded' : ''}">${wsMd(item.content)}</div>
       <div class="ws-lib-actions">
         ${actionBtns}
