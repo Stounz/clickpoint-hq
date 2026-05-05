@@ -1128,10 +1128,19 @@ import threading as _canva_threading
 
 _canva_token_lock = _canva_threading.Lock()
 _canva_token_cache = {}   # {'access_token':..., 'refresh_token':..., 'expires_at': float}
+_canva_pkce_store  = {}   # {'code_verifier': str} — lives only for the duration of the auth flow
 
 def _canva_basic_auth():
     creds = f'{CANVA_CLIENT_ID}:{CANVA_CLIENT_SECRET}'
     return _canva_b64.b64encode(creds.encode()).decode()
+
+def _canva_pkce_pair():
+    """Generate a PKCE code_verifier + code_challenge (S256)."""
+    import hashlib, secrets
+    verifier = secrets.token_urlsafe(64)[:128]   # 43–128 chars, URL-safe alphabet
+    digest = hashlib.sha256(verifier.encode()).digest()
+    challenge = _canva_b64.urlsafe_b64encode(digest).rstrip(b'=').decode()
+    return verifier, challenge
 
 def _canva_token_request(params: dict) -> dict:
     body = _canva_up.urlencode(params).encode()
@@ -1149,10 +1158,12 @@ def _canva_token_request(params: dict) -> dict:
 
 def canva_exchange_code(code: str) -> dict:
     """Exchange authorization code for access + refresh tokens. Called once by /api/canva/callback."""
+    verifier = _canva_pkce_store.get('code_verifier', '')
     data = _canva_token_request({
-        'grant_type':   'authorization_code',
-        'code':         code,
-        'redirect_uri': CANVA_REDIRECT_URI,
+        'grant_type':    'authorization_code',
+        'code':          code,
+        'redirect_uri':  CANVA_REDIRECT_URI,
+        'code_verifier': verifier,
     })
     import time
     with _canva_token_lock:
@@ -1161,6 +1172,7 @@ def canva_exchange_code(code: str) -> dict:
             'refresh_token': data.get('refresh_token', ''),
             'expires_at':    time.time() + data.get('expires_in', 3600) - 60,
         })
+    _canva_pkce_store.clear()
     # Persist refresh token to Supabase so it survives server restarts
     _canva_persist_tokens(data['access_token'], data.get('refresh_token', ''), data.get('expires_in', 3600))
     return data
@@ -1358,15 +1370,19 @@ def canva_generate_and_export(brief_text: str, brand_name: str) -> list:
         return []
 
 def canva_auth_url() -> str:
-    """Return the Canva OAuth authorization URL for the one-time setup."""
+    """Return the Canva OAuth authorization URL (with PKCE) for the one-time setup."""
     if not CANVA_CLIENT_ID:
         return ''
+    verifier, challenge = _canva_pkce_pair()
+    _canva_pkce_store['code_verifier'] = verifier   # store for use in callback
     scopes = 'design:content:read design:content:write design:meta:read asset:read asset:write'
     params = _canva_up.urlencode({
-        'client_id':     CANVA_CLIENT_ID,
-        'redirect_uri':  CANVA_REDIRECT_URI,
-        'response_type': 'code',
-        'scope':         scopes,
+        'client_id':            CANVA_CLIENT_ID,
+        'redirect_uri':         CANVA_REDIRECT_URI,
+        'response_type':        'code',
+        'scope':                scopes,
+        'code_challenge':       challenge,
+        'code_challenge_method':'S256',
     })
     return f'https://www.canva.com/api/oauth/authorize?{params}'
 
