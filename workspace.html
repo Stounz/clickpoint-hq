@@ -689,8 +689,8 @@
           <li><span class="ck">✓</span> Full analytics & attribution</li>
           <li><span class="ck">✓</span> Deliverables library</li>
           <li><span class="ck">✓</span> Set your own ad budgets per channel</li>
-          <li class="off"><span class="cx">✕</span> AI marketing assistant (Your CMO)</li>
-          <li class="off"><span class="cx">✕</span> Brand Hub</li>
+          <li><span class="ck">✓</span> AI marketing assistant (Your CMO)</li>
+          <li><span class="ck">✓</span> Brand Hub</li>
         </ul>
         <button class="ws-plan-cta teal" id="wsPlanBtnGrowth" onclick="wsChoosePlan('growth')">Start free trial →</button>
         <div style="text-align:center;font-size:10px;color:var(--muted);margin-top:8px;">No charge for 14 days. Cancel anytime.</div>
@@ -2583,10 +2583,10 @@ function wsSetView(view) {
     wsLoadLibrary();
   }
   if (view === 'ai') {
-    if (!wsPlanAllows('ai')) { wsRenderGate('view-ai','ai','pro'); return; }
+    if (!wsPlanAllows('ai')) { wsRenderGate('view-ai','ai','growth'); return; }
   }
   if (view === 'brand') {
-    if (!wsPlanAllows('brand')) { wsRenderGate('view-brand','brand','pro'); return; }
+    if (!wsPlanAllows('brand')) { wsRenderGate('view-brand','brand','growth'); return; }
     wsLoadBrandHub();
   }
   if (view === 'settings')    wsLoadBilling();
@@ -3014,8 +3014,8 @@ function wsPlanAllows(feature) {
     campaigns_create: ['growth','pro','agency'],
     analytics:        ['growth','pro','agency'],
     library:          ['growth','pro','agency'],
-    ai:               ['pro','agency'],
-    brand:            ['pro','agency'],
+    ai:               ['growth','pro','agency'],
+    brand:            ['growth','pro','agency'],
     budget_set:       ['growth','pro','agency'],
   };
   return (gates[feature] || []).includes(plan);
@@ -3075,7 +3075,7 @@ function wsLoadBilling() {
       <button onclick="wsShowUpgrade()" style="padding:12px;background:#1C3A2E;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">↑ Upgrade to Growth<br><span style="font-size:11px;font-weight:500;opacity:0.7;">$299/mo — Campaigns + Analytics</span></button>
       <button onclick="wsShowUpgrade()" style="padding:12px;background:#D4622A;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">↑ Upgrade to Pro<br><span style="font-size:11px;font-weight:500;opacity:0.7;">$599/mo — Full platform + AI CMO</span></button>
     ` : `
-      <button onclick="wsShowUpgrade()" style="padding:12px;background:#D4622A;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;grid-column:span 2;">↑ Upgrade to Pro — $599/mo<br><span style="font-size:11px;font-weight:500;opacity:0.7;">Add AI CMO + Brand Hub + Priority Support</span></button>
+      <button onclick="wsShowUpgrade()" style="padding:12px;background:#D4622A;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;grid-column:span 2;">↑ Upgrade to Pro — $599/mo<br><span style="font-size:11px;font-weight:500;opacity:0.7;">Priority support + advanced features</span></button>
     `;
   }
 
