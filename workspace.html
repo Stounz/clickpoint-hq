@@ -2762,7 +2762,9 @@ function wsSaveToLibrary(type, author, content, msgId, btn) {
   badge.style.display = 'inline';
 }
 
+let wsLibActiveFilter = 'all';
 function wsLibFilter(type, btn) {
+  wsLibActiveFilter = type;
   document.querySelectorAll('.ws-lib-filter-btn').forEach(b => {
     b.style.background = '#fff'; b.style.color = 'var(--dark)'; b.style.borderColor = 'var(--border)';
   });
@@ -2846,7 +2848,7 @@ function wsLibCopy(id) {
 function wsLibToggleExpand(id) {
   const items = wsGetLibrary();
   const item = items.find(i => i.id === id);
-  if (item) { item._expanded = !item._expanded; wsLoadLibrary(); }
+  if (item) { item._expanded = !item._expanded; wsSaveLib(items); wsLoadLibrary(wsLibActiveFilter || 'all'); }
 }
 
 // ── Brand Hub ─────────────────────────────────────────────────────────────────
