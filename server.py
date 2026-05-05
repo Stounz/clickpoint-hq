@@ -1161,9 +1161,18 @@ def _canva_token_request(params: dict) -> dict:
 def canva_exchange_code(code: str, state: str) -> tuple:
     """Exchange auth code for tokens. Returns (token_data, workspace_id)."""
     import time as _t
-    entry    = _canva_pkce_store.pop(state, {})
-    verifier = entry.get('code_verifier', '')
-    wid      = entry.get('workspace_id', '')
+    # Decode stateless payload (verifier + workspace_id encoded in state)
+    try:
+        padding = 4 - len(state) % 4
+        decoded = _canva_b64.urlsafe_b64decode(state + '=' * (padding % 4))
+        payload = json.loads(decoded)
+        verifier = payload.get('v', '')
+        wid      = payload.get('w', '')
+    except Exception:
+        # Fallback to legacy in-memory store
+        entry    = _canva_pkce_store.pop(state, {})
+        verifier = entry.get('code_verifier', '')
+        wid      = entry.get('workspace_id', '')
     data = _canva_token_request({
         'grant_type':    'authorization_code',
         'code':          code,
@@ -1364,13 +1373,19 @@ def canva_generate_and_export(brief_text: str, brand_name: str, workspace_id: st
         return []
 
 def canva_auth_url(workspace_id: str = '') -> str:
-    """Return the Canva OAuth authorization URL (PKCE + state) for a workspace."""
+    """Return the Canva OAuth authorization URL (PKCE + state) for a workspace.
+
+    The state encodes the verifier + workspace_id as base64 JSON so it survives
+    server restarts — no in-memory store needed.
+    """
     if not CANVA_CLIENT_ID:
         return ''
     import secrets as _sec
     verifier, challenge = _canva_pkce_pair()
-    state = _sec.token_urlsafe(24)
-    _canva_pkce_store[state] = {'code_verifier': verifier, 'workspace_id': workspace_id}
+    nonce = _sec.token_urlsafe(16)
+    # Encode verifier + workspace into state so callback is stateless
+    state_payload = json.dumps({'v': verifier, 'w': workspace_id or '', 'n': nonce})
+    state = _canva_b64.urlsafe_b64encode(state_payload.encode()).rstrip(b'=').decode()
     scopes = 'design:content:read design:content:write design:meta:read asset:read asset:write'
     params = _canva_up.urlencode({
         'client_id':             CANVA_CLIENT_ID,
