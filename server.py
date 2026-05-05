@@ -1386,7 +1386,7 @@ def canva_auth_url(workspace_id: str = '') -> str:
     # Encode verifier + workspace into state so callback is stateless
     state_payload = json.dumps({'v': verifier, 'w': workspace_id or '', 'n': nonce})
     state = _canva_b64.urlsafe_b64encode(state_payload.encode()).rstrip(b'=').decode()
-    scopes = 'design:content:read'
+    scopes = 'design:content:read design:content:write design:meta:read asset:read asset:write brandtemplate:meta:read brandtemplate:content:read profile:read'
     params = _canva_up.urlencode({
         'client_id':             CANVA_CLIENT_ID,
         'redirect_uri':          CANVA_REDIRECT_URI,
