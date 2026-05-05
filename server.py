@@ -74,7 +74,7 @@ def _load_env() -> dict:
         'SUPABASE_URL':       _d('aHR0cHM6Ly9iYW5lbHZ6anR0ZHFrd21idnlibS5zdXBhYmFzZS5jbw=='),
         'SUPABASE_SERVICE_KEY': _d('c2Jfc2VjcmV0X0NKekNfaW9FUTJERUJNZDRhV3g5eFFfcGZrUmp0V3U='),
         'CANVA_CLIENT_ID':     _d('T0MtQVozMllmMlZycHRr'),
-        'CANVA_CLIENT_SECRET': _d('Y252Y2FZYzZtWndGNjRCWjh4cE5mYzhXN1hodlRGVTh2a0kwaTFIY0pjd09ORTE0NTdlM2E='),
+        'CANVA_CLIENT_SECRET': _d('Y252Y2FHT3JHbVFUdTA3QzhLV3RNdkNIcFdtWURTZnBDQ3M2cFpnVkFnLUNBTHhVMjExNjU0Njk='),
         # STRIPE_PRICE_GROWTH, STRIPE_PRICE_PRO, STRIPE_WEBHOOK_SECRET — set once Stripe products are created
     }
     for k, v in _baked.items():
