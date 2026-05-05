@@ -1489,7 +1489,7 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_campaigns_list()
         elif self.path.startswith('/api/campaign/updates'):
             self._handle_campaign_updates_get()
-        elif self.path == '/api/canva/auth':
+        elif self.path.startswith('/api/canva/auth'):
             self._handle_canva_auth()
         elif self.path.startswith('/api/canva/callback'):
             self._handle_canva_callback()
