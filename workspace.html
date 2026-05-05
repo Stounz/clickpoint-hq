@@ -3582,8 +3582,6 @@ function wsConnectIntegration(platformId) {
       _wsToast('⚠️ Allow pop-ups for this site in your browser, then try again.', 'warn');
       return;
     }
-    // Show a loading screen in the popup while we fetch the auth URL
-    popup.document.write('<html><body style="margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#1C3A2E;font-family:sans-serif;color:#fff;"><p style="font-size:16px;font-weight:600;">🎨 Connecting to Canva…</p></body></html>');
     (async () => {
       const wid = wsSession && wsSession.workspaceId ? wsSession.workspaceId : '';
       try {
@@ -3591,8 +3589,8 @@ function wsConnectIntegration(platformId) {
         const authData = await resp.json();
         const authUrl  = authData.auth_url;
         if (!authUrl) throw new Error('No auth URL returned');
-        // Navigate the already-open popup to the real Canva auth page
-        popup.location.href = authUrl;
+        // Navigate the blank popup to Canva auth
+        popup.location.replace(authUrl);
         // Listen for success message when popup completes OAuth
         const handler = (e) => {
           if (e.data && e.data.type === 'canva_connected') {
