@@ -1145,6 +1145,7 @@ def _canva_pkce_pair():
     return verifier, challenge
 
 def _canva_token_request(params: dict) -> dict:
+    import urllib.error as _ue
     body = _canva_up.urlencode(params).encode()
     req = urllib.request.Request(
         'https://api.canva.com/rest/v1/oauth/token',
@@ -1155,8 +1156,13 @@ def _canva_token_request(params: dict) -> dict:
         },
         method='POST'
     )
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        return json.loads(resp.read())
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            return json.loads(resp.read())
+    except _ue.HTTPError as e:
+        error_body = e.read().decode('utf-8', errors='replace')
+        print(f'  ❌ Canva token error {e.code}: {error_body}')
+        raise
 
 def canva_exchange_code(code: str, state: str) -> tuple:
     """Exchange auth code for tokens. Returns (token_data, workspace_id)."""
