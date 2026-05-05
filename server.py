@@ -1126,9 +1126,11 @@ import base64 as _canva_b64
 import urllib.parse as _canva_up
 import threading as _canva_threading
 
-_canva_token_lock = _canva_threading.Lock()
-_canva_token_cache = {}   # {'access_token':..., 'refresh_token':..., 'expires_at': float}
-_canva_pkce_store  = {}   # {'code_verifier': str} — lives only for the duration of the auth flow
+_canva_token_lock  = _canva_threading.Lock()
+# Per-workspace token cache: {workspace_id: {'access_token':..., 'refresh_token':..., 'expires_at': float}}
+_canva_token_cache = {}
+# PKCE + state store: {state: {'code_verifier': str, 'workspace_id': str}}
+_canva_pkce_store  = {}
 
 def _canva_basic_auth():
     creds = f'{CANVA_CLIENT_ID}:{CANVA_CLIENT_SECRET}'
@@ -1137,8 +1139,8 @@ def _canva_basic_auth():
 def _canva_pkce_pair():
     """Generate a PKCE code_verifier + code_challenge (S256)."""
     import hashlib, secrets
-    verifier = secrets.token_urlsafe(64)[:128]   # 43–128 chars, URL-safe alphabet
-    digest = hashlib.sha256(verifier.encode()).digest()
+    verifier = secrets.token_urlsafe(64)[:128]
+    digest   = hashlib.sha256(verifier.encode()).digest()
     challenge = _canva_b64.urlsafe_b64encode(digest).rstrip(b'=').decode()
     return verifier, challenge
 
@@ -1156,124 +1158,116 @@ def _canva_token_request(params: dict) -> dict:
     with urllib.request.urlopen(req, timeout=15) as resp:
         return json.loads(resp.read())
 
-def canva_exchange_code(code: str) -> dict:
-    """Exchange authorization code for access + refresh tokens. Called once by /api/canva/callback."""
-    verifier = _canva_pkce_store.get('code_verifier', '')
+def canva_exchange_code(code: str, state: str) -> tuple:
+    """Exchange auth code for tokens. Returns (token_data, workspace_id)."""
+    import time as _t
+    entry    = _canva_pkce_store.pop(state, {})
+    verifier = entry.get('code_verifier', '')
+    wid      = entry.get('workspace_id', '')
     data = _canva_token_request({
         'grant_type':    'authorization_code',
         'code':          code,
         'redirect_uri':  CANVA_REDIRECT_URI,
         'code_verifier': verifier,
     })
-    import time
+    tokens = {
+        'access_token':  data['access_token'],
+        'refresh_token': data.get('refresh_token', ''),
+        'expires_at':    _t.time() + data.get('expires_in', 3600) - 60,
+    }
     with _canva_token_lock:
-        _canva_token_cache.update({
-            'access_token':  data['access_token'],
-            'refresh_token': data.get('refresh_token', ''),
-            'expires_at':    time.time() + data.get('expires_in', 3600) - 60,
-        })
-    _canva_pkce_store.clear()
-    # Persist refresh token to Supabase so it survives server restarts
-    _canva_persist_tokens(data['access_token'], data.get('refresh_token', ''), data.get('expires_in', 3600))
-    return data
+        _canva_token_cache[wid] = tokens
+    _canva_persist_tokens(wid, tokens)
+    return data, wid
 
-def _canva_persist_tokens(access_token, refresh_token, expires_in):
-    """Store Canva tokens in Supabase platform_settings table."""
-    import time
+def _canva_persist_tokens(workspace_id: str, tokens: dict):
+    """Store per-workspace Canva tokens in Supabase platform_settings."""
     if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
         return
-    payload = {
-        'key':   'canva_tokens',
-        'value': json.dumps({
-            'access_token':  access_token,
-            'refresh_token': refresh_token,
-            'expires_at':    time.time() + expires_in - 60,
-        }),
-    }
+    setting_key = f'canva_tokens_{workspace_id}' if workspace_id else 'canva_tokens_agency'
+    payload_val = json.dumps(tokens)
     try:
-        # Upsert into platform_settings
-        key = SUPABASE_SERVICE_KEY
-        url = f'{SUPABASE_URL}/rest/v1/platform_settings?key=eq.canva_tokens'
-        existing = []
-        req = urllib.request.Request(url, headers={
-            'apikey': key, 'Authorization': f'Bearer {key}', 'Content-Type': 'application/json'
-        })
-        with urllib.request.urlopen(req, timeout=10) as r:
-            existing = json.loads(r.read())
-        if existing:
-            req2 = urllib.request.Request(url, data=json.dumps({'value': payload['value']}).encode(),
-                headers={'apikey': key, 'Authorization': f'Bearer {key}',
-                         'Content-Type': 'application/json', 'Prefer': 'return=representation'},
-                method='PATCH')
-        else:
-            req2 = urllib.request.Request(f'{SUPABASE_URL}/rest/v1/platform_settings',
-                data=json.dumps(payload).encode(),
-                headers={'apikey': key, 'Authorization': f'Bearer {key}',
-                         'Content-Type': 'application/json', 'Prefer': 'return=representation'},
-                method='POST')
-        with urllib.request.urlopen(req2, timeout=10):
+        key  = SUPABASE_SERVICE_KEY
+        hdrs = {'apikey': key, 'Authorization': f'Bearer {key}', 'Content-Type': 'application/json',
+                'Prefer': 'resolution=merge-duplicates,return=representation'}
+        req = urllib.request.Request(
+            f'{SUPABASE_URL}/rest/v1/platform_settings',
+            data=json.dumps({'key': setting_key, 'value': payload_val}).encode(),
+            headers=hdrs, method='POST'
+        )
+        with urllib.request.urlopen(req, timeout=10):
             pass
+        print(f'  ✅ Canva tokens persisted for workspace: {workspace_id or "agency"}')
     except Exception as e:
         print(f'  ⚠️  canva token persist error: {e}')
 
-def _canva_load_tokens_from_supabase():
-    """Load persisted Canva tokens from Supabase on first use."""
+def _canva_load_tokens(workspace_id: str) -> dict:
+    """Load Canva tokens for a workspace from Supabase."""
     if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
-        return
+        return {}
+    setting_key = f'canva_tokens_{workspace_id}' if workspace_id else 'canva_tokens_agency'
     try:
         key = SUPABASE_SERVICE_KEY
         req = urllib.request.Request(
-            f'{SUPABASE_URL}/rest/v1/platform_settings?key=eq.canva_tokens',
+            f'{SUPABASE_URL}/rest/v1/platform_settings?key=eq.{_canva_up.quote(setting_key)}',
             headers={'apikey': key, 'Authorization': f'Bearer {key}'}
         )
         with urllib.request.urlopen(req, timeout=10) as r:
             rows = json.loads(r.read())
         if rows:
-            tokens = json.loads(rows[0]['value'])
-            with _canva_token_lock:
-                _canva_token_cache.update(tokens)
+            return json.loads(rows[0]['value'])
     except Exception as e:
         print(f'  ⚠️  canva token load error: {e}')
+    return {}
 
-def canva_get_access_token() -> str:
-    """Return a valid Canva access token, refreshing if needed. Returns '' if not authenticated."""
-    import time
+def canva_get_access_token(workspace_id: str = '') -> str:
+    """Return a valid Canva access token for a workspace, refreshing if needed."""
+    import time as _t
+    wid = workspace_id or ''
+
+    # Check in-memory cache first
     with _canva_token_lock:
-        if not _canva_token_cache:
-            pass  # load below outside lock
-    if not _canva_token_cache:
-        _canva_load_tokens_from_supabase()
-    with _canva_token_lock:
-        at   = _canva_token_cache.get('access_token', '')
-        rt   = _canva_token_cache.get('refresh_token', '')
-        exp  = _canva_token_cache.get('expires_at', 0)
+        cached = _canva_token_cache.get(wid, {})
+
+    if not cached:
+        cached = _canva_load_tokens(wid)
+        if cached:
+            with _canva_token_lock:
+                _canva_token_cache[wid] = cached
+
+    at  = cached.get('access_token', '')
+    rt  = cached.get('refresh_token', '')
+    exp = cached.get('expires_at', 0)
+
     if not at and not rt:
         return ''
-    if at and time.time() < exp:
+    if at and _t.time() < exp:
         return at
     if not rt:
         return ''
-    # Refresh
+
+    # Refresh the token
     try:
-        data = _canva_token_request({'grant_type': 'refresh_token', 'refresh_token': rt})
-        import time as _t
-        new_at = data['access_token']
-        new_rt = data.get('refresh_token', rt)
-        new_exp = _t.time() + data.get('expires_in', 3600) - 60
+        data   = _canva_token_request({'grant_type': 'refresh_token', 'refresh_token': rt})
+        tokens = {
+            'access_token':  data['access_token'],
+            'refresh_token': data.get('refresh_token', rt),
+            'expires_at':    _t.time() + data.get('expires_in', 3600) - 60,
+        }
         with _canva_token_lock:
-            _canva_token_cache.update({'access_token': new_at, 'refresh_token': new_rt, 'expires_at': new_exp})
-        _canva_persist_tokens(new_at, new_rt, data.get('expires_in', 3600))
-        return new_at
+            _canva_token_cache[wid] = tokens
+        _canva_persist_tokens(wid, tokens)
+        return tokens['access_token']
     except Exception as e:
-        print(f'  ⚠️  canva token refresh error: {e}')
+        print(f'  ⚠️  canva token refresh error ({wid}): {e}')
         return ''
 
-def canva_generate_and_export(brief_text: str, brand_name: str) -> list:
+def canva_generate_and_export(brief_text: str, brand_name: str, workspace_id: str = '') -> list:
     """
     Generate 2 Instagram post designs via Canva AI and return exported PNG URLs.
     Returns list of download URLs, or [] on failure.
     """
-    token = canva_get_access_token()
+    token = canva_get_access_token(workspace_id)
     if not token:
         print('  ⚠️  Canva: no access token — skipping design generation')
         return []
@@ -1369,20 +1363,23 @@ def canva_generate_and_export(brief_text: str, brand_name: str) -> list:
         print(f'  ⚠️  Canva generate_and_export error: {e}')
         return []
 
-def canva_auth_url() -> str:
-    """Return the Canva OAuth authorization URL (with PKCE) for the one-time setup."""
+def canva_auth_url(workspace_id: str = '') -> str:
+    """Return the Canva OAuth authorization URL (PKCE + state) for a workspace."""
     if not CANVA_CLIENT_ID:
         return ''
+    import secrets as _sec
     verifier, challenge = _canva_pkce_pair()
-    _canva_pkce_store['code_verifier'] = verifier   # store for use in callback
+    state = _sec.token_urlsafe(24)
+    _canva_pkce_store[state] = {'code_verifier': verifier, 'workspace_id': workspace_id}
     scopes = 'design:content:read design:content:write design:meta:read asset:read asset:write'
     params = _canva_up.urlencode({
-        'client_id':            CANVA_CLIENT_ID,
-        'redirect_uri':         CANVA_REDIRECT_URI,
-        'response_type':        'code',
-        'scope':                scopes,
-        'code_challenge':       challenge,
-        'code_challenge_method':'S256',
+        'client_id':             CANVA_CLIENT_ID,
+        'redirect_uri':          CANVA_REDIRECT_URI,
+        'response_type':         'code',
+        'scope':                 scopes,
+        'state':                 state,
+        'code_challenge':        challenge,
+        'code_challenge_method': 'S256',
     })
     return f'https://www.canva.com/api/oauth/authorize?{params}'
 
@@ -3752,7 +3749,7 @@ class AgentHandler(BaseHTTPRequestHandler):
             if design_deliverable_text and CANVA_CLIENT_ID and CANVA_CLIENT_SECRET:
                 try:
                     brand = _co or _name or 'Brand'
-                    canva_urls = canva_generate_and_export(design_deliverable_text, brand)
+                    canva_urls = canva_generate_and_export(design_deliverable_text, brand, _ws)
                     if canva_urls:
                         print(f'  🖼️  Canva: {len(canva_urls)} PNG(s) generated for "{_name}"')
                 except Exception as e:
@@ -3952,40 +3949,67 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._error(500, str(e))
 
     def _handle_canva_auth(self):
-        """Return the Canva OAuth authorization URL."""
-        url = canva_auth_url()
+        """Return the Canva OAuth authorization URL for a workspace."""
+        import urllib.parse as _up_ca
+        parsed = _up_ca.urlparse(self.path)
+        params = _up_ca.parse_qs(parsed.query)
+        workspace_id = params.get('workspace_id', [''])[0].strip()
+        url = canva_auth_url(workspace_id)
         if not url:
             self._error(503, 'Canva client ID not configured'); return
         self._json(200, {'auth_url': url})
 
     def _handle_canva_callback(self):
-        """Handle Canva OAuth callback — exchange code for tokens and store them."""
+        """Handle Canva OAuth callback — exchange code, store tokens, close popup."""
         import urllib.parse as _up_cb
         parsed = _up_cb.urlparse(self.path)
         params = _up_cb.parse_qs(parsed.query)
-        code  = params.get('code', [''])[0]
+        code  = params.get('code',  [''])[0]
+        state = params.get('state', [''])[0]
         error = params.get('error', [''])[0]
+
         if error:
-            html = f'<h2>❌ Canva auth failed: {error}</h2><p>Close this tab and try again.</p>'
-            self._html(400, html); return
+            self._html(400, self._canva_result_page('error', error)); return
         if not code:
-            self._html(400, '<h2>❌ No code received from Canva.</h2>'); return
+            self._html(400, self._canva_result_page('error', 'No code received from Canva.')); return
         try:
-            data = canva_exchange_code(code)
-            html = (
-                '<html><head><style>body{font-family:sans-serif;display:flex;align-items:center;'
-                'justify-content:center;min-height:100vh;background:#1C3A2E;color:#fff;margin:0;}</style></head>'
-                '<body><div style="text-align:center;">'
-                '<h1 style="font-size:48px;margin-bottom:8px;">✅</h1>'
-                '<h2 style="font-size:24px;font-weight:700;margin-bottom:8px;">Canva connected!</h2>'
-                '<p style="color:rgba(255,255,255,0.7);">Design assets will now be automatically generated for campaigns. '
-                'You can close this tab.</p>'
-                '</div></body></html>'
-            )
-            print(f'  ✅ Canva OAuth complete — tokens stored')
-            self._html(200, html)
+            _, workspace_id = canva_exchange_code(code, state)
+            print(f'  ✅ Canva OAuth complete for workspace: {workspace_id or "unknown"}')
+            self._html(200, self._canva_result_page('success', workspace_id))
         except Exception as e:
-            self._html(500, f'<h2>❌ Token exchange failed: {e}</h2>')
+            print(f'  ⚠️  Canva callback error: {e}')
+            self._html(500, self._canva_result_page('error', str(e)))
+
+    def _canva_result_page(self, result: str, detail: str = '') -> str:
+        """Return an HTML page that notifies the opener window and closes itself."""
+        if result == 'success':
+            script = f"""
+                if (window.opener) {{
+                    window.opener.postMessage({{type:'canva_connected', workspaceId:'{detail}'}}, '*');
+                    window.close();
+                }} else {{
+                    setTimeout(() => window.location.href = '{PLATFORM_URL}/workspace.html?canva=connected', 1500);
+                }}"""
+            body = (
+                '<div style="text-align:center;">'
+                '<div style="font-size:56px;margin-bottom:12px;">✅</div>'
+                '<h2 style="font-size:22px;font-weight:700;margin-bottom:8px;">Canva connected!</h2>'
+                '<p style="color:rgba(255,255,255,0.65);font-size:14px;">Your design tool is now active.<br>This window will close automatically.</p>'
+                '</div>'
+            )
+        else:
+            script = "if (window.opener) { window.opener.postMessage({type:'canva_error'}, '*'); window.close(); }"
+            body   = f'<div style="text-align:center;"><div style="font-size:56px;margin-bottom:12px;">❌</div><h2>Connection failed</h2><p style="color:rgba(255,255,255,0.6);">{detail}</p></div>'
+
+        return (
+            '<html><head><meta charset="utf-8">'
+            '<style>*{box-sizing:border-box;margin:0;padding:0;}'
+            'body{font-family:-apple-system,BlinkMacSystemFont,"DM Sans",sans-serif;'
+            'display:flex;align-items:center;justify-content:center;'
+            'min-height:100vh;background:#1C3A2E;color:#fff;}</style>'
+            f'<script>{script}</script></head>'
+            f'<body>{body}</body></html>'
+        )
 
     def _html(self, code, html: str):
         body = html.encode()
