@@ -1526,6 +1526,11 @@ class AgentHandler(BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-Type', mime)
                 self.send_header('Content-Length', str(len(data)))
+                # Prevent CDN/browser caching of HTML files so deploys take effect immediately
+                if ext == '.html':
+                    self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+                    self.send_header('Pragma', 'no-cache')
+                    self.send_header('Expires', '0')
                 self.send_cors_headers()
                 self.end_headers()
                 self.wfile.write(data)
