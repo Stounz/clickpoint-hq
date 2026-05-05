@@ -2845,13 +2845,22 @@ function wsMergeDeliverablesToLibrary(campaigns) {
     (c.deliverables || []).forEach(d => {
       if (!d || !d.content) return;
       const libId = 'srv_' + c.id + '_' + (d.agent || 'agent');
-      if (existingIds.has(libId)) return;
+      const newUrls = d.design_urls || [];
+      if (existingIds.has(libId)) {
+        // Update design_urls if server now has them and we don't
+        const existing = items.find(i => i.id === libId);
+        if (existing && newUrls.length && (!existing.design_urls || !existing.design_urls.length)) {
+          existing.design_urls = newUrls;
+          added++;
+        }
+        return;
+      }
       items.unshift({
         id:          libId,
         type:        d.type || 'Strategy',
         author:      (d.agentName || d.agent || 'Agency Team') + ' — ' + c.name,
         content:     d.content,
-        design_urls: d.design_urls || [],
+        design_urls: newUrls,
         savedAt:     d.created_at || c.created_at || new Date().toISOString(),
         status:      'pending',
         campaignId:  c.id,
