@@ -3346,7 +3346,7 @@ const WS_PLATFORMS = [
     hint: 'e.g. @yourbrand',                     idLabel: 'TikTok handle' },
   // ── Design & Creative ──
   { id: 'canva',            label: 'Canva',             icon: '🎨', category: 'design', conn: 'canva_oauth',
-    hint: '',  idLabel: '' },
+    hint: 'Create your integration at canva.com/developers',  idLabel: '' },
   { id: 'figma',            label: 'Figma',             icon: '🖊️', category: 'design', conn: 'api_key',
     hint: 'e.g. Team ID from URL',               idLabel: 'Team ID (optional)',         keyHint: 'Figma → Account Settings → Personal access tokens → Generate new token' },
   { id: 'adobe_express',    label: 'Adobe Express',     icon: '🅰️', category: 'design', conn: 'oauth',
@@ -3418,6 +3418,7 @@ async function wsLoadIntegrations() {
           <div class="ws-integration-info">
             <div class="ws-integration-name">${p.label}</div>
             <div class="ws-integration-meta">${accountDisplay}</div>
+            ${!isConnected && p.hint ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">📍 ${p.hint.replace(/canva\.com\/developers/, '<a href="https://www.canva.com/developers" target="_blank" style="color:var(--teal);text-decoration:none;">canva.com/developers</a>')}</div>` : ''}
           </div>
           ${statusHtml}
           ${btnHtml}
