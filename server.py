@@ -3501,7 +3501,7 @@ class AgentHandler(BaseHTTPRequestHandler):
                     'workspace_id':   c.get('client', ''),
                     'company_name':   blob.get('company_name', ''),
                     'sarah_reply':    blob.get('sarah_reply', ''),
-                    'client_reply':   c.get('client_reply') or blob.get('client_reply', ''),
+                    'client_reply':   blob.get('client_reply') or c.get('client_reply', ''),
                     'assigned_agent': blob.get('assigned_agent', ''),
                     'deliverables':   blob.get('deliverables', []),
                 })
@@ -3588,16 +3588,26 @@ class AgentHandler(BaseHTTPRequestHandler):
             blob['client_reply']      = reply_text
             blob['client_replied_at'] = now_iso
 
-            # 2. PATCH the campaigns row — update both the JSON blob and dedicated columns
+            # 2a. Always update the brief JSON blob (primary storage — column guaranteed to exist)
             _supabase_req(
                 'PATCH',
                 f'campaigns?id=eq.{urllib.parse.quote(str(campaign_id))}',
-                payload={
-                    'brief':             json.dumps(blob),
-                    'client_reply':      reply_text,
-                    'client_replied_at': now_iso,
-                },
+                payload={'brief': json.dumps(blob)},
             )
+
+            # 2b. Try to also write to dedicated columns (schema migration may not have run yet)
+            try:
+                _supabase_req(
+                    'PATCH',
+                    f'campaigns?id=eq.{urllib.parse.quote(str(campaign_id))}',
+                    payload={
+                        'client_reply':      reply_text,
+                        'client_replied_at': now_iso,
+                    },
+                )
+            except Exception:
+                pass  # Columns don't exist yet — brief blob is the source of truth
+
             self._json(200, {'ok': True, 'replied_at': now_iso})
         except Exception as e:
             print(f'[campaign/reply] error: {e}')
