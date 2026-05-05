@@ -914,7 +914,7 @@
           <div id="wsCmpResult" style="display:none;background:#F0F8F4;border:1px solid #D4E8DA;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;"></div>
 
           <div style="display:flex;gap:10px;">
-            <button onclick="wsNewCampaignSubmit()" style="flex:1;padding:13px;background:#1C3A2E;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">🚀 Submit Campaign Request</button>
+            <button id="wsCmpSubmitBtn" onclick="wsNewCampaignSubmit()" style="flex:1;padding:13px;background:#1C3A2E;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">🚀 Submit Campaign Request</button>
             <button onclick="wsNewCampaignClose()" style="padding:13px 20px;background:#F4F3EE;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;color:#555;">Cancel</button>
           </div>
         </div>
@@ -2061,6 +2061,8 @@ async function wsNewCampaignSubmit() {
   const brief    = document.getElementById('wsCmpBrief').value.trim();
   const result   = document.getElementById('wsCmpResult');
 
+  const submitBtn = document.getElementById('wsCmpSubmitBtn');
+
   if (!name || !type || !channel) {
     result.style.display = 'block';
     result.style.background = '#FFF3F3';
@@ -2068,6 +2070,9 @@ async function wsNewCampaignSubmit() {
     result.innerHTML = '⚠️ Please fill in Campaign Name, Type, and Channel.';
     return;
   }
+
+  // Disable button immediately to prevent double-submit
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '⏳ Submitting…'; submitBtn.style.opacity = '0.6'; submitBtn.style.cursor = 'not-allowed'; }
 
   // Show loading state
   result.style.display = 'block';
@@ -2109,6 +2114,8 @@ async function wsNewCampaignSubmit() {
           ⏳ Sarah is reviewing your brief and assigning your specialist…
         </div>
       `;
+      // Update button to confirmed state
+      if (submitBtn) { submitBtn.textContent = '✅ Submitted to your CMO'; submitBtn.style.background = '#2A5240'; submitBtn.style.opacity = '1'; }
 
       // Poll the campaigns list until the deliverable appears (up to ~90 seconds)
       let pollCount = 0;
@@ -2171,6 +2178,7 @@ async function wsNewCampaignSubmit() {
       <div style="color:#555;margin-bottom:4px;"><strong>${name}</strong> · ${type} · ${channel}</div>
       <div style="color:#777;font-size:12px;margin-top:8px;">Your CMO Sarah will review this and be in touch within 24 hours.</div>
     `;
+    if (submitBtn) { submitBtn.textContent = '✅ Submitted to your CMO'; submitBtn.style.background = '#2A5240'; submitBtn.style.opacity = '1'; }
     wsLogActivity('campaign_request', `New campaign requested: "${name}" · ${type} · ${channel}${budget ? ' · $' + budget : ''}`);
     setTimeout(() => { wsLoadCampaigns(); wsNewCampaignClose(); }, 2200);
   }
