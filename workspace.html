@@ -153,6 +153,15 @@
   .ws-cmp-drawer-cta { padding:16px 24px; border-top:1px solid #F0EFE9; flex-shrink:0; }
   .ws-cmp-drawer-cta-btn { width:100%; padding:12px; background:var(--teal); color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
   .ws-cmp-drawer-cta-btn:hover { background:#254d3a; }
+  .ws-cmp-reply-box { margin-top:12px; background:#F5F4EF; border-radius:12px; padding:12px 14px; }
+  .ws-cmp-reply-box textarea { width:100%; border:1.5px solid var(--border); border-radius:8px; padding:10px 12px; font-size:13px; font-family:inherit; color:var(--text); resize:vertical; min-height:80px; outline:none; background:#fff; transition:border-color 0.2s; }
+  .ws-cmp-reply-box textarea:focus { border-color:var(--teal); }
+  .ws-cmp-reply-send-btn { margin-top:8px; padding:9px 20px; background:var(--teal); color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+  .ws-cmp-reply-send-btn:hover { background:#254d3a; }
+  .ws-cmp-reply-send-btn:disabled { opacity:0.6; cursor:default; }
+  .ws-cmp-client-reply { margin-top:12px; padding:10px 14px; background:rgba(10,132,255,0.07); border-left:3px solid #0A84FF; border-radius:0 8px 8px 0; }
+  .ws-cmp-client-reply-author { font-size:11px; font-weight:700; color:#0055CC; margin-bottom:3px; }
+  .ws-cmp-client-reply-text { font-size:13px; color:#333; line-height:1.55; }
   .ws-campaign-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
   .ws-campaign-name { font-size:13px; font-weight:600; color:var(--text); }
   .ws-campaign-meta { font-size:11px; color:var(--muted); }
@@ -2021,6 +2030,7 @@ async function wsLoadCampaignsFromServer() {
         workspaceId:  c.workspace_id,
         companyName:  c.company_name,
         sarah_reply:  c.sarah_reply,
+        client_reply: c.client_reply || '',
         deliverables: c.deliverables || [],
       }));
       // Auto-merge any agent deliverables into the Library
@@ -2191,7 +2201,7 @@ function wsLoadCampaigns() {
     'SEO / Organic':'🌱','Email':'📧',
   };
 
-  const statusBadge = s => {
+  const statusBadge = (s, sarahReply) => {
     const map = {
       pending:   { bg:'rgba(212,98,42,0.1)',  color:'#D4622A', label:'Pending Review' },
       reviewing: { bg:'rgba(255,159,10,0.15)', color:'#C47A00', label:'Under Review' },
@@ -2199,6 +2209,10 @@ function wsLoadCampaigns() {
       paused:    { bg:'#F4F3EE',              color:'#888',     label:'Paused' },
       complete:  { bg:'rgba(10,132,255,0.1)', color:'#0A84FF',  label:'Completed' },
     };
+    // If Sarah has replied but status is still "reviewing", surface that to the client
+    if (s === 'reviewing' && sarahReply) {
+      return `<div style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(10,132,255,0.12);color:#0055CC;">💬 Sarah Replied — Action Needed</div>`;
+    }
     const d = map[s] || map.pending;
     return `<div style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${d.bg};color:${d.color};">${d.label}</div>`;
   };
@@ -2210,7 +2224,7 @@ function wsLoadCampaigns() {
         <div class="ws-campaign-meta">${c.channel} · ${c.type}</div>
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
-        ${statusBadge(c.status)}
+        ${statusBadge(c.status, c.sarah_reply)}
         <button onclick="event.stopPropagation();wsOpenEscalationModal('${(c.name||'').replace(/'/g,"\\'")}');" title="Raise an issue" style="padding:4px 8px;border-radius:7px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);font-family:inherit;white-space:nowrap;">🚨 Issue</button>
         <div style="font-size:11px;color:#aaa;">→</div>
       </div>
@@ -3896,7 +3910,12 @@ async function wsOpenCampaign(idx) {
     paused:    { bg:'#F4F3EE',              color:'#888',     label:'Paused' },
     complete:  { bg:'rgba(10,132,255,0.1)', color:'#0A84FF',  label:'Completed' },
   };
-  const st = statusColors[c.status] || statusColors.pending;
+  // Override status display when Sarah has replied but client hasn't acknowledged
+  const hasSarahReply = !!(c.sarah_reply);
+  const isAwaitingReply = c.status === 'reviewing' && hasSarahReply && !c.client_reply;
+  let st = statusColors[c.status] || statusColors.pending;
+  if (isAwaitingReply) st = { bg:'rgba(10,132,255,0.12)', color:'#0055CC', label:'💬 Sarah Replied — Action Needed' };
+
   const submittedDate = c.requestedAt ? new Date(c.requestedAt).toLocaleDateString('en-AU', { day:'numeric', month:'short', year:'numeric' }) : '—';
 
   document.getElementById('wsCmpDrawerStatus').innerHTML =
@@ -3919,7 +3938,7 @@ async function wsOpenCampaign(idx) {
     </div>
     <div class="ws-cmp-drawer-meta-item">
       <div class="ws-cmp-drawer-label">Status</div>
-      <div class="ws-cmp-drawer-meta-val" style="color:${st.color};">${statusColors[c.status]?.label || 'Pending Review'}</div>
+      <div class="ws-cmp-drawer-meta-val" style="color:${st.color};">${st.label}</div>
     </div>
   `;
 
@@ -3943,12 +3962,24 @@ async function wsOpenCampaign(idx) {
   // Prefer sarah_reply from the loaded campaign object (already fetched from DB)
   if (c.sarah_reply) {
     const dateStr = c.requestedAt ? new Date(c.requestedAt).toLocaleDateString('en-AU', { day:'numeric', month:'short' }) : 'today';
+    // If client already replied, show it; otherwise show the reply box
+    const clientReplyHtml = c.client_reply
+      ? `<div class="ws-cmp-client-reply">
+           <div class="ws-cmp-client-reply-author">You replied</div>
+           <div class="ws-cmp-client-reply-text">${c.client_reply.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+         </div>`
+      : `<div class="ws-cmp-reply-box">
+           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px;">Your Reply to Sarah</div>
+           <textarea id="wsCmpReplyText" placeholder="Answer Sarah's questions or add extra info…"></textarea>
+           <button class="ws-cmp-reply-send-btn" id="wsCmpReplySendBtn" onclick="wsSendCampaignReply('${c.id}', ${idx})">Send Reply →</button>
+         </div>`;
     updatesEl.innerHTML = `
       <div class="ws-cmp-update">
         <div class="ws-cmp-update-author">Sarah Lin · CMO</div>
         <div class="ws-cmp-update-text" style="line-height:1.6;">${wsMd(c.sarah_reply)}</div>
         <div class="ws-cmp-update-time">${dateStr}</div>
       </div>
+      ${clientReplyHtml}
     `;
     return;
   }
@@ -4001,6 +4032,42 @@ async function wsOpenCampaign(idx) {
     `).join('');
   } else {
     updatesEl.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px;">No updates yet — your agency team will post progress here.</div>`;
+  }
+}
+
+async function wsSendCampaignReply(campaignId, idx) {
+  const textarea = document.getElementById('wsCmpReplyText');
+  const btn      = document.getElementById('wsCmpReplySendBtn');
+  const replyText = (textarea?.value || '').trim();
+  if (!replyText) { textarea?.focus(); return; }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Sending…';
+
+  try {
+    const resp = await fetch(`${WS_API}/api/campaign/reply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ campaignId, reply: replyText }),
+    });
+    if (!resp.ok) throw new Error('Server error');
+  } catch(e) {
+    // Offline fallback — store locally
+    console.warn('[wsSendCampaignReply] offline mode:', e);
+  }
+
+  // Update local campaign object so re-open shows the reply immediately
+  if (wsPendingCampaigns[idx]) {
+    wsPendingCampaigns[idx].client_reply = replyText;
+  }
+
+  // Replace the reply box with the submitted reply
+  const replyBox = document.querySelector('.ws-cmp-reply-box');
+  if (replyBox) {
+    replyBox.outerHTML = `<div class="ws-cmp-client-reply">
+      <div class="ws-cmp-client-reply-author">You replied</div>
+      <div class="ws-cmp-client-reply-text">${replyText.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    </div>`;
   }
 }
 

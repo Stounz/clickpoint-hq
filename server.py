@@ -1300,6 +1300,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_workspace_resend_code()
         elif self.path == '/api/campaign/request':
             self._handle_campaign_request()
+        elif self.path == '/api/campaign/reply':
+            self._handle_campaign_reply()
         elif self.path == '/api/escalation':
             self._handle_escalation_create()
         elif self.path.startswith('/api/escalation/'):
@@ -3499,6 +3501,7 @@ class AgentHandler(BaseHTTPRequestHandler):
                     'workspace_id':   c.get('client', ''),
                     'company_name':   blob.get('company_name', ''),
                     'sarah_reply':    blob.get('sarah_reply', ''),
+                    'client_reply':   c.get('client_reply') or blob.get('client_reply', ''),
                     'assigned_agent': blob.get('assigned_agent', ''),
                     'deliverables':   blob.get('deliverables', []),
                 })
@@ -3547,6 +3550,57 @@ class AgentHandler(BaseHTTPRequestHandler):
                 updates.append(u)
             self._json(200, {'updates': updates})
         except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_campaign_reply(self):
+        """Store client's reply to Sarah's CMO assessment on a campaign."""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Bad request'); return
+
+        campaign_id = body.get('campaignId', '').strip()
+        reply_text  = body.get('reply', '').strip()
+
+        if not campaign_id:
+            self._error(400, 'campaignId required'); return
+        if not reply_text:
+            self._error(400, 'reply required'); return
+        if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+            self._json(200, {'ok': True, 'offline': True}); return
+
+        try:
+            import datetime as _dt
+            now_iso = _dt.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+
+            # 1. Fetch the existing campaign row to update the brief JSON blob too
+            rows = _supabase_req(
+                'GET',
+                f'campaigns?id=eq.{urllib.parse.quote(str(campaign_id))}&select=brief&limit=1',
+            )
+            blob = {}
+            if rows:
+                try:
+                    blob = json.loads(rows[0].get('brief', '{}'))
+                except Exception:
+                    pass
+
+            blob['client_reply']      = reply_text
+            blob['client_replied_at'] = now_iso
+
+            # 2. PATCH the campaigns row — update both the JSON blob and dedicated columns
+            _supabase_req(
+                'PATCH',
+                f'campaigns?id=eq.{urllib.parse.quote(str(campaign_id))}',
+                payload={
+                    'brief':             json.dumps(blob),
+                    'client_reply':      reply_text,
+                    'client_replied_at': now_iso,
+                },
+            )
+            self._json(200, {'ok': True, 'replied_at': now_iso})
+        except Exception as e:
+            print(f'[campaign/reply] error: {e}')
             self._error(500, str(e))
 
     def _json(self, code, data):
