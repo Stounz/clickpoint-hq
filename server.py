@@ -3162,34 +3162,38 @@ class AgentHandler(BaseHTTPRequestHandler):
             name = (lead_match.group(1) or lead_match.group(2) or '').strip()
             if name: return name
         # Fall back to first-name-mentioned order — Emma before Jess (Jess is often mentioned as support)
+        ch_lower = (channel or '').lower()
+        _is_organic = any(x in ch_lower for x in ['organic social', 'organic'])
         if 'emma'  in t: return 'emma'
         if 'derek' in t: return 'derek'
-        if 'cleo'  in t: return 'cleo'
+        if 'cleo'  in t: return 'cleo' if _is_organic else 'cleo_paid'
         if 'raj'   in t: return 'raj'
         if 'zara'  in t: return 'zara'
         if 'jess'  in t: return 'jess'
         ch = (channel or '').lower()
         if any(x in ch for x in ['email','newsletter','drip','nurture','klaviyo','mailchimp','activecampaign']): return 'emma'
         if any(x in ch for x in ['google ads','microsoft','bing','ppc','search ads']): return 'derek'
-        if any(x in ch for x in ['meta','facebook','instagram','tiktok','linkedin']): return 'cleo'
-        if any(x in ch for x in ['seo','organic','content','blog']): return 'jess'
+        if any(x in ch for x in ['organic social','organic']): return 'cleo'
+        if any(x in ch for x in ['meta','facebook','instagram','tiktok','linkedin','paid social']): return 'cleo_paid'
+        if any(x in ch for x in ['seo','content','blog']): return 'jess'
         if any(x in ch for x in ['display','youtube','creative','brand']): return 'zara'
         return 'derek'
 
     @staticmethod
     def _agent_display_name(a):
         return {
-            'derek': 'Derek Wu · Paid Search',
-            'jess':  'Jess Park · Content & SEO',
-            'zara':  'Zara Osei · Creative',
-            'cleo':  'Cleo Chan · Social Media',
-            'raj':   'Raj Nair · SEO & Analytics',
-            'emma':  'Emma Ross · Email Marketing',
+            'derek':     'Derek Wu · Paid Search',
+            'jess':      'Jess Park · Content & SEO',
+            'zara':      'Zara Osei · Creative',
+            'cleo':      'Cleo Chan · Social Media',
+            'cleo_paid': 'Cleo Chan · Paid Social',
+            'raj':       'Raj Nair · SEO & Analytics',
+            'emma':      'Emma Ross · Email Marketing',
         }.get(a, a)
 
     @staticmethod
     def _agent_deliverable_type(a):
-        return {'derek':'Ads','jess':'Content','zara':'Creative','cleo':'Ads','raj':'SEO','emma':'Email'}.get(a,'Strategy')
+        return {'derek':'Ads','jess':'Content','zara':'Design','cleo':'Content','cleo_paid':'Ads','raj':'SEO','emma':'Email'}.get(a,'Strategy')
 
     SPECIALIST_PROMPTS = {
         'derek': (
@@ -3225,7 +3229,7 @@ class AgentHandler(BaseHTTPRequestHandler):
             "4. VIDEO BRIEF (if applicable) — hook (first 3 seconds), narrative arc, closing CTA\n\n"
             "Be precise — a freelance designer should be able to build from this brief alone."
         ),
-        'cleo': (
+        'cleo_paid': (
             "You've just been assigned paid social on this campaign.\n"
             "Produce the actual deliverable — real campaign setup, ready to build.\n\n"
             "Deliver:\n"
@@ -3237,6 +3241,18 @@ class AgentHandler(BaseHTTPRequestHandler):
             "3. AD COPY — 3 primary text variants + 3 headline variants (Meta format)\n"
             "4. CREATIVE RECOMMENDATION — format (video/image/carousel), hook style, first-3-second hook script\n\n"
             "Real targeting parameters, real copy. Ready to build in Ads Manager."
+        ),
+        'cleo': (
+            "You've just been assigned organic social media on this campaign.\n"
+            "Produce the actual deliverable — a complete, ready-to-execute organic content plan.\n\n"
+            "Deliver:\n"
+            "1. CONTENT STRATEGY — primary content pillars (3–4), tone of voice, posting cadence\n"
+            "2. 14-DAY CONTENT CALENDAR — for each day: post type (Reel/carousel/story/static), caption (full, ready to post), "
+            "hashtag set (5–8), best time to post, engagement hook or CTA\n"
+            "3. COMMUNITY MANAGEMENT GUIDE — how to respond to comments, DM templates for common enquiries, "
+            "rules for handling negative feedback\n"
+            "4. GROWTH TACTICS — 3 specific organic growth plays for this brand (e.g. collabs, UGC seeding, story polls)\n\n"
+            "All captions must be full and ready to post. No placeholder text. Emoji-friendly where appropriate."
         ),
         'emma': (
             "You've just been assigned email marketing on this campaign.\n"
@@ -3422,6 +3438,32 @@ class AgentHandler(BaseHTTPRequestHandler):
                 except Exception as e:
                     print(f'  ⚠️  {assigned_agent} async deliverable error: {e}')
 
+            # — Design deliverable: auto-generate when brief mentions design assets —
+            design_deliverable_text = ''
+            design_keywords = ['design asset', 'design assets', 'creative asset', 'creative assets',
+                               'graphic', 'banner', 'visual', 'instagram post', 'reel', 'story slide',
+                               'feed post', 'canva', 'figma', 'mockup', '1080x', '1920x', '1200x']
+            brief_lower = (_br or '').lower()
+            needs_design = any(kw in brief_lower for kw in design_keywords) or assigned_agent == 'zara'
+            if needs_design and sarah_reply and API_KEY and assigned_agent != 'zara':
+                try:
+                    zara_context = (
+                        f"Campaign: {_name}\nClient: {_co}\n"
+                        f"Type: {_ctype}\nChannel: {_ch}\n"
+                        f"Target Audience: {_aud or 'Not specified'}\n"
+                        f"Brief: {_br or 'No brief provided'}\n\n"
+                        f"CMO Assessment (Sarah Lin):\n{sarah_reply[:600]}"
+                    )
+                    design_text = call_anthropic(
+                        API_KEY, AGENT_PROMPTS.get('zara', ''),
+                        [{'role': 'user', 'content': AgentHandler.SPECIALIST_PROMPTS.get('zara', '') + '\n\n--- CONTEXT ---\n' + zara_context}],
+                        max_tokens=1200
+                    )
+                    design_deliverable_text = design_text
+                    print(f'  🎨 Zara design brief ready for "{_name}"')
+                except Exception as e:
+                    print(f'  ⚠️  Zara design async error: {e}')
+
             # — Build updated brief blob —
             deliverable_entry = {
                 'agent':      assigned_agent,
@@ -3431,6 +3473,16 @@ class AgentHandler(BaseHTTPRequestHandler):
                 'created_at': datetime.datetime.utcnow().isoformat(),
             } if deliverable_text else None
 
+            design_entry = {
+                'agent':      'zara',
+                'agentName':  'Zara Osei · Creative',
+                'type':       'Design',
+                'content':    design_deliverable_text,
+                'created_at': datetime.datetime.utcnow().isoformat(),
+            } if design_deliverable_text else None
+
+            all_deliverables = [d for d in [deliverable_entry, design_entry] if d]
+
             new_brief_blob = json.dumps({
                 'brief':          _br,
                 'channel':        _ch,
@@ -3439,7 +3491,7 @@ class AgentHandler(BaseHTTPRequestHandler):
                 'company_name':   _co,
                 'sarah_reply':    sarah_reply,
                 'assigned_agent': assigned_agent,
-                'deliverables':   [deliverable_entry] if deliverable_entry else [],
+                'deliverables':   all_deliverables,
             })
 
             # — PATCH Supabase with results —

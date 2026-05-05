@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tender Intelligence &amp; Government Bid Monitoring Automation | ClickPoint Consulting</title>
+<meta name="description" content="ClickPoint Consulting builds AI tender intelligence systems that monitor 20+ government portals, score tender fit against your capabilities, and alert your BD team to the right opportunities — hours before competitors see them.">
+<link rel="canonical" href="https://clickpointconsulting.com.au/service-tender-intelligence">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://clickpointconsulting.com.au/service-tender-intelligence">
+<meta property="og:title" content="Tender Intelligence &amp; Government Bid Monitoring Automation | ClickPoint Consulting">
+<meta property="og:description" content="Never miss a government tender again. Our AI systems monitor 20+ portals, score fit against your capabilities, and alert your BD team to the right opportunities automatically.">
+<meta property="og:image" content="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/clickpoint-og-image.jpg">
+<meta property="og:site_name" content="ClickPoint Consulting">
+<meta property="og:locale" content="en_AU">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Tender Intelligence &amp; Government Bid Monitoring Automation | ClickPoint Consulting">
+<meta name="twitter:description" content="Never miss a government tender again. Our AI systems monitor 20+ portals, score fit against your capabilities, and alert your BD team to the right opportunities automatically.">
+<meta name="twitter:image" content="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/clickpoint-og-image.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'DM Sans', sans-serif; background: #fff; color: #1C3A2E; -webkit-font-smoothing: antialiased; }
+a { text-decoration: none; color: inherit; }
+:root {
+  --green: #1C3A2E; --green-mid: #244836; --green-dark: #0f2219;
+  --orange: #D4622A; --orange-light: rgba(212,98,42,0.1);
+  --gray: #6B7280; --gray-light: #F7F8FA; --border: #E4E7EC;
+}
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 60px; height: 72px; background: rgba(255,255,255,0.92); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(28,58,46,0.07); }
+.nav-logo { height: 32px; }
+.nav-links { display: flex; align-items: center; gap: 36px; }
+.nav-link { font-size: 14px; font-weight: 600; color: var(--gray); transition: color .2s; }
+.nav-link:hover { color: var(--green); }
+.nav-ctas { display: flex; align-items: center; gap: 12px; }
+.btn-ghost { padding: 10px 22px; border: 1.5px solid var(--border); border-radius: 100px; font-size: 14px; font-weight: 600; color: var(--green); }
+.btn-primary { padding: 11px 24px; background: var(--green); color: #fff; border-radius: 100px; font-size: 14px; font-weight: 700; }
+.btn-primary:hover { background: var(--green-mid); }
+
+.page-hero { padding: 148px 60px 100px; background: var(--green-dark); background-image: radial-gradient(ellipse 70% 60% at 100% 50%, rgba(212,98,42,0.1) 0%, transparent 60%), repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(255,255,255,0.025) 79px, rgba(255,255,255,0.025) 80px), repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(255,255,255,0.025) 79px, rgba(255,255,255,0.025) 80px); }
+.page-hero-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 20px; }
+.breadcrumb a { color: rgba(255,255,255,0.3); }
+.eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--orange); margin-bottom: 24px; }
+.eyebrow::before { content: ''; width: 28px; height: 2px; background: var(--orange); }
+h1 { font-size: clamp(40px, 4vw, 60px); font-weight: 900; color: #fff; line-height: 1.05; letter-spacing: -2px; margin-bottom: 20px; }
+h1 em { font-style: normal; background: linear-gradient(135deg, #D4622A 0%, #E8874F 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-p { font-size: 18px; line-height: 1.7; color: rgba(255,255,255,0.5); margin-bottom: 36px; max-width: 500px; }
+.hero-p strong { color: rgba(255,255,255,0.8); font-weight: 600; }
+.hero-btns { display: flex; gap: 14px; }
+.hero-btn-p { padding: 15px 32px; background: var(--orange); color: #fff; border-radius: 12px; font-size: 15px; font-weight: 800; box-shadow: 0 4px 20px rgba(212,98,42,0.35); transition: all .25s; }
+.hero-btn-p:hover { transform: translateY(-2px); }
+.hero-btn-s { padding: 15px 28px; border: 1.5px solid rgba(255,255,255,0.18); border-radius: 12px; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.7); transition: all .25s; }
+.hero-btn-s:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
+
+/* Tender feed visual */
+.tender-feed { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.4); }
+.tf-header { background: rgba(0,0,0,0.2); padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: space-between; }
+.tf-title { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 0.06em; text-transform: uppercase; }
+.tf-live { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 700; color: #30D158; }
+.tf-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #30D158; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.tf-body { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.tender-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 16px; }
+.tender-card.priority { border-color: rgba(212,98,42,0.4); background: rgba(212,98,42,0.06); }
+.tender-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.tender-title { font-size: 12px; font-weight: 700; color: #fff; line-height: 1.4; flex: 1; }
+.tender-score { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; flex-shrink: 0; }
+.score-high { background: rgba(212,98,42,0.2); color: var(--orange); }
+.score-med { background: rgba(48,209,88,0.12); color: #30D158; }
+.tender-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+.tender-tag { padding: 2px 8px; border-radius: 20px; font-size: 9px; font-weight: 700; background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.4); }
+.tender-tag.urgent { background: rgba(212,98,42,0.18); color: var(--orange); }
+.tf-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 4px 4px; }
+.tf-stat { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 10px 12px; }
+.tf-stat-val { font-size: 18px; font-weight: 900; color: #fff; }
+.tf-stat-lbl { font-size: 9px; color: rgba(255,255,255,0.3); margin-top: 2px; }
+
+section { padding: 96px 60px; }
+.inner { max-width: 1200px; margin: 0 auto; }
+.s-eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--orange); margin-bottom: 20px; }
+.s-eyebrow::before { content: ''; width: 24px; height: 2px; background: var(--orange); }
+.s-h2 { font-size: clamp(32px, 3.5vw, 48px); font-weight: 900; color: var(--green); letter-spacing: -1.8px; line-height: 1.08; margin-bottom: 14px; }
+.s-h2 em { font-style: normal; color: var(--orange); }
+.s-sub { font-size: 17px; color: var(--gray); line-height: 1.65; max-width: 560px; }
+
+.problem { background: #fff; }
+.prob-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 52px; }
+.prob-card { padding: 36px 32px; border: 1px solid var(--border); border-radius: 20px; transition: all .3s; position: relative; overflow: hidden; }
+.prob-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--orange); transform: scaleX(0); transition: transform .3s; transform-origin: left; }
+.prob-card:hover { transform: translateY(-4px); box-shadow: 0 20px 48px rgba(28,58,46,0.07); border-color: rgba(212,98,42,0.2); }
+.prob-card:hover::after { transform: scaleX(1); }
+.prob-icon { font-size: 32px; margin-bottom: 16px; }
+.prob-title { font-size: 18px; font-weight: 800; color: var(--green); letter-spacing: -0.3px; margin-bottom: 10px; }
+.prob-body { font-size: 14px; color: var(--gray); line-height: 1.7; }
+
+.capabilities { background: var(--gray-light); }
+.cap-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 52px; }
+.cap-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 36px; transition: all .3s; display: flex; gap: 24px; }
+.cap-card:hover { border-color: var(--orange); box-shadow: 0 12px 36px rgba(28,58,46,0.07); transform: translateY(-2px); }
+.cap-icon { width: 56px; height: 56px; border-radius: 14px; background: var(--orange-light); display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+.cap-title { font-size: 18px; font-weight: 800; color: var(--green); letter-spacing: -0.3px; margin-bottom: 8px; }
+.cap-body { font-size: 14px; color: var(--gray); line-height: 1.65; }
+
+.process { background: var(--green); position: relative; overflow: hidden; }
+.process::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(212,98,42,0.12) 0%, transparent 60%); }
+.proc-inner { max-width: 1200px; margin: 0 auto; position: relative; }
+.proc-h2 { font-size: clamp(32px, 3.5vw, 48px); font-weight: 900; color: #fff; letter-spacing: -1.8px; line-height: 1.08; margin-bottom: 14px; }
+.proc-sub { font-size: 17px; color: rgba(255,255,255,0.4); max-width: 560px; margin-bottom: 56px; line-height: 1.65; }
+.proc-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+.proc-step { position: relative; }
+.proc-step:not(:last-child)::after { content: '→'; position: absolute; top: 22px; right: -16px; font-size: 20px; color: rgba(255,255,255,0.15); }
+.proc-num { width: 48px; height: 48px; border-radius: 12px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #fff; margin-bottom: 18px; transition: all .3s; }
+.proc-step:hover .proc-num { background: var(--orange); border-color: var(--orange); }
+.proc-lbl { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--orange); margin-bottom: 6px; }
+.proc-title { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -0.3px; margin-bottom: 8px; }
+.proc-body { font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.65; }
+
+.deliverables { background: #fff; }
+.deliv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 52px; }
+.deliv-card { padding: 32px; border: 1px solid var(--border); border-radius: 20px; background: var(--gray-light); transition: all .3s; }
+.deliv-card:hover { background: #fff; box-shadow: 0 12px 36px rgba(28,58,46,0.07); transform: translateY(-3px); }
+.deliv-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--orange); margin-bottom: 12px; }
+.deliv-title { font-size: 20px; font-weight: 900; color: var(--green); letter-spacing: -0.5px; margin-bottom: 10px; }
+.deliv-body { font-size: 14px; color: var(--gray); line-height: 1.65; }
+.deliv-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.deliv-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #374151; }
+.deliv-check { width: 18px; height: 18px; border-radius: 50%; background: var(--orange-light); color: var(--orange); font-size: 9px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+
+.stats-band { background: var(--green); padding: 72px 60px; }
+.stats-band-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 48px; }
+.sb-val { font-size: 52px; font-weight: 900; color: #fff; letter-spacing: -2.5px; line-height: 1; margin-bottom: 8px; }
+.sb-val span { font-size: 28px; }
+.sb-label { font-size: 14px; color: rgba(255,255,255,0.4); line-height: 1.5; }
+
+/* FAQ */
+.faq-section { padding: 100px 60px; background: #fff; }
+.faq-inner { max-width: 1200px; margin: 0 auto; }
+.faq-header { max-width: 560px; margin-bottom: 48px; }
+.faq-eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--orange); margin-bottom: 16px; }
+.faq-eyebrow::before { content: ''; width: 24px; height: 2px; background: var(--orange); }
+.faq-h2 { font-size: clamp(26px, 3vw, 36px); font-weight: 800; line-height: 1.2; color: var(--green); }
+.faq-list { max-width: 800px; display: flex; flex-direction: column; gap: 4px; }
+.faq-item { background: var(--gray-light); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: box-shadow .25s; }
+.faq-item[open] { box-shadow: 0 4px 24px rgba(28,58,46,0.07); background: #fff; }
+.faq-q { list-style: none; padding: 22px 26px; font-size: 15px; font-weight: 600; color: var(--green); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.faq-q::after { content: '+'; font-size: 20px; font-weight: 400; color: var(--orange); flex-shrink: 0; transition: transform .25s; }
+.faq-item[open] .faq-q::after { transform: rotate(45deg); }
+.faq-q::-webkit-details-marker { display: none; }
+.faq-a { padding: 0 26px 22px; font-size: 14px; line-height: 1.75; color: var(--gray); }
+
+.cta-section { background: var(--gray-light); padding: 80px 60px; }
+.cta-inner { max-width: 1200px; margin: 0 auto; background: var(--green); background-image: radial-gradient(ellipse 80% 100% at 50% -20%, rgba(212,98,42,0.15) 0%, transparent 60%); border-radius: 28px; padding: 88px 80px; text-align: center; position: relative; overflow: hidden; }
+.cta-inner::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(-45deg, transparent, transparent 30px, rgba(255,255,255,0.015) 30px, rgba(255,255,255,0.015) 31px); }
+.cta-content { position: relative; }
+.cta-eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--orange); margin-bottom: 20px; }
+.cta-h2 { font-size: clamp(32px, 4vw, 52px); font-weight: 900; color: #fff; letter-spacing: -2px; line-height: 1.07; margin-bottom: 14px; }
+.cta-sub { font-size: 17px; color: rgba(255,255,255,0.45); max-width: 460px; margin: 0 auto 40px; line-height: 1.65; }
+.cta-btns { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.cta-btn-p { padding: 16px 36px; background: var(--orange); color: #fff; border-radius: 12px; font-size: 15px; font-weight: 800; box-shadow: 0 6px 24px rgba(212,98,42,0.4); transition: all .25s; }
+.cta-btn-p:hover { transform: translateY(-2px); }
+.cta-btn-s { padding: 16px 32px; border: 1.5px solid rgba(255,255,255,0.2); border-radius: 12px; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.7); transition: all .25s; }
+.cta-btn-s:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+.cta-note { margin-top: 18px; font-size: 12px; color: rgba(255,255,255,0.22); }
+
+footer { background: var(--green-dark); padding: 72px 60px 40px; }
+.footer-top { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr; gap: 64px; margin-bottom: 56px; }
+.footer-brand-logo { height: 28px; margin-bottom: 16px; filter: brightness(0) invert(1) opacity(0.8); }
+.footer-tagline { font-size: 13px; line-height: 1.65; color: rgba(255,255,255,0.35); max-width: 280px; }
+.footer-col-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+.footer-links { display: flex; flex-direction: column; gap: 10px; }
+.footer-link { font-size: 13px; color: rgba(255,255,255,0.35); font-weight: 500; transition: color .2s; }
+.footer-link:hover { color: #fff; }
+.footer-contact { font-size: 13px; color: rgba(255,255,255,0.35); line-height: 1.8; }
+.footer-contact a { color: rgba(255,255,255,0.35); }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 28px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: rgba(255,255,255,0.35); }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Service",
+      "name": "Tender Intelligence",
+      "provider": {"@id": "https://clickpointconsulting.com.au/#organization"},
+      "description": "AI-powered tender intelligence and government bid monitoring system that scans 20+ procurement portals, scores tender fit against your capabilities, and alerts your BD team to the right opportunities before the competition.",
+      "url": "https://clickpointconsulting.com.au/service-tender-intelligence",
+      "areaServed": {"@type": "Country", "name": "Australia"},
+      "serviceType": "AI Tender Intelligence & Government Procurement Monitoring"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What government tender portals does the system monitor?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Our tender intelligence system monitors AusTender (Commonwealth), NSW eTendering, VIC Tenders, QLD Government QTenders, SA Tenders, WA Tenders, and a range of local government and industry-specific procurement portals — 20+ sources in total. The exact portal mix is configured to match your target markets and service categories."}
+        },
+        {
+          "@type": "Question",
+          "name": "How does AI score tender fit for our business?",
+          "acceptedAnswer": {"@type": "Answer", "text": "We build a custom capability profile for your business that defines your relevant service categories, industry experience, contract value range, geographic footprint, and past performance. The AI scores each new tender against this profile on a 0–100 scale, flags the most relevant opportunities, and explains why each tender is or isn't a strong fit — saving your BD team hours of manual triage each week."}
+        },
+        {
+          "@type": "Question",
+          "name": "Can the system help us write tender submissions?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Yes. For shortlisted tenders, the system can generate a first-draft submission framework using your capability statements, past performance examples, and the specific requirements of the tender document. Your BD team reviews and finalises the submission — the AI handles the structure, compliance checklist, and initial drafting so you can focus on the strategic differentiation that wins bids."}
+        },
+        {
+          "@type": "Question",
+          "name": "How much time does the tender intelligence system save?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Clients typically save 8+ hours per week in manual tender monitoring and triage. Instead of your BD team scanning multiple portals daily and manually assessing each opportunity, the system does this automatically and delivers only the relevant, scored opportunities — so your team spends time on bid strategy, not portal-checking."}
+        },
+        {
+          "@type": "Question",
+          "name": "Is the system suitable for both state and federal government tenders?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Yes. Our tender intelligence system covers both federal (AusTender) and all state/territory procurement portals, as well as local government and selected private sector procurement platforms. You can configure alerts by jurisdiction, agency, category, or contract value to focus on exactly the opportunities that matter to your business."}
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<nav>
+  <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/clickpointconsultingnewlogo.png" class="nav-logo" alt="ClickPoint Consulting">
+  <div class="nav-links">
+    <a class="nav-link" href="#">About</a>
+    <a class="nav-link" href="#">What We Build</a>
+    <a class="nav-link" href="#">Blog</a>
+  </div>
+  <div class="nav-ctas">
+    <a class="btn-ghost" href="#">Become a Partner</a>
+    <a class="btn-primary" href="#">Free Consultation</a>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div>
+      <div class="breadcrumb"><a href="homepage-redesign.html">Home</a> <span>/</span> <span>Tender Intelligence</span></div>
+      <p class="eyebrow">Tender Intelligence</p>
+      <h1>Never miss a tender<br>your business <em>should win.</em></h1>
+      <p class="hero-p">We build <strong>automated tender scanning, scoring, and brief generation systems</strong> — so your BD team always bids on the right opportunities and never scrambles to respond in time.</p>
+      <div class="hero-btns">
+        <a class="hero-btn-p" href="#">Book a Free Audit →</a>
+        <a class="hero-btn-s" href="#">See a sample brief</a>
+      </div>
+    </div>
+    <div>
+      <div class="tender-feed">
+        <div class="tf-header">
+          <div class="tf-title">Today's Tender Alerts</div>
+          <div class="tf-live">Live</div>
+        </div>
+        <div class="tf-body">
+          <div class="tender-card priority">
+            <div class="tender-top">
+              <div class="tender-title">NSW Dept. of Transport — Digital Marketing Services Panel 2026–2029</div>
+              <div class="tender-score score-high">96</div>
+            </div>
+            <div class="tender-meta">
+              <div class="tender-tag urgent">Closes in 4 days</div>
+              <div class="tender-tag">Est. A$2.4M</div>
+              <div class="tender-tag">Brief generated ✓</div>
+            </div>
+          </div>
+          <div class="tender-card">
+            <div class="tender-top">
+              <div class="tender-title">City of Melbourne — Community Engagement & Communications</div>
+              <div class="tender-score score-med">81</div>
+            </div>
+            <div class="tender-meta">
+              <div class="tender-tag">Closes in 12 days</div>
+              <div class="tender-tag">Est. A$800K</div>
+              <div class="tender-tag">Brief ready</div>
+            </div>
+          </div>
+          <div class="tender-card">
+            <div class="tender-top">
+              <div class="tender-title">Infrastructure Australia — Stakeholder Communications Retainer</div>
+              <div class="tender-score score-med">74</div>
+            </div>
+            <div class="tender-meta">
+              <div class="tender-tag">Closes in 18 days</div>
+              <div class="tender-tag">Est. A$1.1M</div>
+              <div class="tender-tag">Reviewing</div>
+            </div>
+          </div>
+          <div class="tf-stats">
+            <div class="tf-stat"><div class="tf-stat-val">14</div><div class="tf-stat-lbl">Scanned today</div></div>
+            <div class="tf-stat"><div class="tf-stat-val">3</div><div class="tf-stat-lbl">High relevance</div></div>
+            <div class="tf-stat"><div class="tf-stat-val">2</div><div class="tf-stat-lbl">Briefs ready</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="problem">
+  <div class="inner">
+    <div class="s-eyebrow">The problem</div>
+    <h2 class="s-h2">Your BD team is missing<br>tenders they'd <em>win.</em></h2>
+    <div class="prob-grid">
+      <div class="prob-card">
+        <div class="prob-icon">🔍</div>
+        <div class="prob-title">Manual monitoring means you miss the best opportunities</div>
+        <div class="prob-body">Tender portals are fragmented across AusTender, state government, LGAs, and private procurement platforms. Manually checking them all is a full-time job — and most teams don't have that bandwidth.</div>
+      </div>
+      <div class="prob-card">
+        <div class="prob-icon">⏰</div>
+        <div class="prob-title">By the time you find a tender, there's no time to respond well</div>
+        <div class="prob-body">Late discovery means rushed responses. Rushed responses mean weak bids. Your team is fully capable of winning — but not when they're writing a submission in 48 hours with no prior context or prep.</div>
+      </div>
+      <div class="prob-card">
+        <div class="prob-icon">📝</div>
+        <div class="prob-title">Every response starts from scratch</div>
+        <div class="prob-body">Capabilities statements, case studies, pricing frameworks, and compliance checklists are rebuilt for every submission. Hours wasted recreating material that should be templated, reusable, and ready to deploy.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="capabilities">
+  <div class="inner">
+    <div class="s-eyebrow">What we build</div>
+    <h2 class="s-h2">A tender intelligence system<br>that <em>never sleeps.</em></h2>
+    <p class="s-sub">Automated scanning across every relevant platform, AI-powered relevance scoring, and pre-built response frameworks — so your team bids faster and wins more.</p>
+    <div class="cap-grid">
+      <div class="cap-card">
+        <div class="cap-icon">🌐</div>
+        <div>
+          <div class="cap-title">Multi-Platform Tender Scanning</div>
+          <div class="cap-body">We monitor AusTender, state procurement portals, LGA tender systems, and industry-specific platforms — 24/7 — and surface every opportunity that matches your capability profile before your competitors see it.</div>
+        </div>
+      </div>
+      <div class="cap-card">
+        <div class="cap-icon">🎯</div>
+        <div>
+          <div class="cap-title">AI Relevance Scoring</div>
+          <div class="cap-body">Every tender is scored 0–100 against your specific capabilities, past wins, and strategic priorities. Your BD team focuses only on high-score opportunities — not every tender that mentions your industry.</div>
+        </div>
+      </div>
+      <div class="cap-card">
+        <div class="cap-icon">📋</div>
+        <div>
+          <div class="cap-title">Automated Response Brief Generation</div>
+          <div class="cap-body">For every qualified tender, we automatically generate a structured response brief — key themes, evaluation criteria analysis, suggested case studies, and a pre-populated capability statement framework. Your team writes the strategy, not the scaffolding.</div>
+        </div>
+      </div>
+      <div class="cap-card">
+        <div class="cap-icon">🔔</div>
+        <div>
+          <div class="cap-title">Deadline Tracking & Team Alerts</div>
+          <div class="cap-body">Automated Slack or email alerts when a high-score tender is published — with deadline countdowns, task assignments, and submission checklists built in. No tender slips through because someone forgot to check a portal.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="process">
+  <div class="proc-inner">
+    <div class="s-eyebrow" style="color:var(--orange)">How it works</div>
+    <h2 class="proc-h2">From publication to<br>response-ready in hours.</h2>
+    <p class="proc-sub">The moment a relevant tender is published, your system goes to work — so your team starts with a brief, not a blank page.</p>
+    <div class="proc-steps">
+      <div class="proc-step">
+        <div class="proc-num">1</div>
+        <div class="proc-lbl">Scan</div>
+        <div class="proc-title">Continuous Monitoring</div>
+        <div class="proc-body">AI monitors 20+ tender platforms daily, categorising and flagging new opportunities as they're published across federal, state, LGA, and private sectors.</div>
+      </div>
+      <div class="proc-step">
+        <div class="proc-num">2</div>
+        <div class="proc-lbl">Score</div>
+        <div class="proc-title">Relevance Assessment</div>
+        <div class="proc-body">Each tender is scored against your capability profile, past win history, and strategic targets. Only high-relevance opportunities reach your team.</div>
+      </div>
+      <div class="proc-step">
+        <div class="proc-num">3</div>
+        <div class="proc-lbl">Brief</div>
+        <div class="proc-title">Response Brief Generation</div>
+        <div class="proc-body">A structured brief lands in your team's inbox within hours of publication — themes, criteria, suggested approach, and pre-populated capability content.</div>
+      </div>
+      <div class="proc-step">
+        <div class="proc-num">4</div>
+        <div class="proc-lbl">Track</div>
+        <div class="proc-title">Deadline Management</div>
+        <div class="proc-body">Automated tracking, countdowns, and team task assignments keep every submission on track — with reminders at 14, 7, and 3 days before close.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="deliverables">
+  <div class="inner">
+    <div class="s-eyebrow">What you receive</div>
+    <h2 class="s-h2">Ready to respond.<br>Every time a tender <em>drops.</em></h2>
+    <p class="s-sub">Your team receives finished briefs and structured frameworks — not raw tender documents they have to interpret under pressure.</p>
+    <div class="deliv-grid">
+      <div class="deliv-card">
+        <div class="deliv-label">Daily</div>
+        <div class="deliv-title">Tender Alert Digest</div>
+        <div class="deliv-body">A morning summary of all new tenders detected, scored, and ranked by relevance to your business.</div>
+        <div class="deliv-list">
+          <div class="deliv-item"><div class="deliv-check">✓</div>New tenders ranked by relevance score</div>
+          <div class="deliv-item"><div class="deliv-check">✓</div>Deadline countdown for each</div>
+          <div class="deliv-item"><div class="deliv-check">✓</div>Estimated contract value</div>
+          <div class="deliv-item"><div class="deliv-check">✓</div>Link to source document</div>
+        </div>
+      </div>
+      <div class="deliv-card">
+        <div class="deliv-label">Per Tender</div>
+        <div class="deliv-title">Response Brief</div>
+        <div class="deliv-body">A structured brief automatically generated for every tender scoring above your threshold.</div>
+        <div class="deliv-list">
+          <div class="deliv-item"><div class="deliv-check">✓</div>Evaluation criteria analysis</div>
+          <div class="deliv-item"><div class="deliv-check">✓</div>Suggested win themes</div>
+          <div class="deliv-item"><div class="deliv-check">✓</div>Pre-populated capability statement</div>
+          <div class="deliv-item"><div class="deliv-check">✓</div>Relevant case study suggestions</div>
+        </div>
+      </div>
+      <div class="deliv-card">
+        <div class="deliv-label">Monthly</div>
+        <div class="deliv-title">BD Performance Report</div>
+        <div class="deliv-body">A monthly summary of your tender pipeline, bid activity, and win rate trends.</div>
+        <div class="deliv-list">
+          <div class="deliv-item"><div class="deliv-check">✓</div>Tenders identified vs pursued</div>
+          <div class="deliv-item"><div class="deliv-check">✓</div>Win rate by tender type</div>
+          <div class="deliv-item"><div class="deliv-check">✓</div>Average days to respond</div>
+          <div class="deliv-item"><div class="deliv-check">✓</div>Pipeline value tracked</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="stats-band">
+  <div class="stats-band-inner">
+    <div><div class="sb-val">20<span>+</span></div><div class="sb-label">Tender platforms monitored daily across AU</div></div>
+    <div><div class="sb-val">50<span>%</span></div><div class="sb-label">Faster average response time after implementation</div></div>
+    <div><div class="sb-val">3×</div><div class="sb-label">More qualified tenders identified per month vs manual</div></div>
+    <div><div class="sb-val">8<span>hrs</span></div><div class="sb-label">Saved per tender on brief preparation and research</div></div>
+  </div>
+</div>
+
+
+<!-- FAQ -->
+<section class="faq-section">
+  <div class="faq-inner">
+    <div class="faq-header">
+      <p class="faq-eyebrow">Common questions</p>
+      <h2 class="faq-h2">Everything you need to know<br>about Tender Intelligence.</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary class="faq-q">What government tender portals does the system monitor?</summary>
+        <div class="faq-a">Our tender intelligence system monitors AusTender (Commonwealth), NSW eTendering, VIC Tenders, QLD Government QTenders, SA Tenders, WA Tenders, and a range of local government and industry-specific procurement portals — 20+ sources in total. The exact portal mix is configured to match your target markets and service categories.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">How does AI score tender fit for our business?</summary>
+        <div class="faq-a">We build a custom capability profile for your business that defines your relevant service categories, industry experience, contract value range, geographic footprint, and past performance. The AI scores each new tender against this profile on a 0–100 scale, flags the most relevant opportunities, and explains why each tender is or isn't a strong fit — saving your BD team hours of manual triage each week.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Can the system help us write tender submissions?</summary>
+        <div class="faq-a">Yes. For shortlisted tenders, the system can generate a first-draft submission framework using your capability statements, past performance examples, and the specific requirements of the tender document. Your BD team reviews and finalises the submission — the AI handles the structure, compliance checklist, and initial drafting so you can focus on the strategic differentiation that wins bids.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">How much time does the tender intelligence system save?</summary>
+        <div class="faq-a">Clients typically save 8+ hours per week in manual tender monitoring and triage. Instead of your BD team scanning multiple portals daily and manually assessing each opportunity, the system does this automatically and delivers only the relevant, scored opportunities — so your team spends time on bid strategy, not portal-checking.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Is the system suitable for both state and federal government tenders?</summary>
+        <div class="faq-a">Yes. Our tender intelligence system covers both federal (AusTender) and all state/territory procurement portals, as well as local government and selected private sector procurement platforms. You can configure alerts by jurisdiction, agency, category, or contract value to focus on exactly the opportunities that matter to your business.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="cta-inner">
+    <div class="cta-content">
+      <div class="cta-eyebrow">Get started</div>
+      <h2 class="cta-h2">Find out how many tenders<br>your business is missing right now.</h2>
+      <p class="cta-sub">Book a free audit and we'll run a scan of the last 90 days of relevant tenders — and show you exactly what your team missed.</p>
+      <div class="cta-btns">
+        <a class="cta-btn-p" href="#">Book your free audit →</a>
+        <a class="cta-btn-s" href="#">See a sample brief first</a>
+      </div>
+      <div class="cta-note">No commitment. We'll show you the missed opportunities before you decide anything.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-top">
+    <div>
+      <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" class="footer-brand-logo" alt="ClickPoint Consulting">
+      <div class="footer-tagline">Intelligent automation for marketing and operations teams. We build the system. You lead the growth.</div>
+    </div>
+    <div>
+      <div class="footer-col-title">Company</div>
+      <div class="footer-links">
+        <a class="footer-link" href="#">About Click Point</a>
+        <a class="footer-link" href="#">What We Build</a>
+        <a class="footer-link" href="#">Become a Partner</a>
+        <a class="footer-link" href="#">Blog</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Services</div>
+      <div class="footer-links">
+        <a class="footer-link" href="service-lead-intelligence.html">Lead Intelligence</a>
+        <a class="footer-link" href="service-campaign-performance.html">Campaign Performance</a>
+        <a class="footer-link" href="service-content-seo.html">Content & SEO</a>
+        <a class="footer-link" href="service-tender-intelligence.html">Tender Intelligence</a>
+        <a class="footer-link" href="service-conversion-optimisation.html">Conversion Optimisation</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Contact</div>
+      <div class="footer-contact">
+        <a href="mailto:hello@clickpointconsulting.com.au">hello@clickpointconsulting.com.au</a><br><br>
+        172 New South Head Rd<br>Edgecliff NSW 2027
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div>© 2026 ClickPoint Consulting. All Rights Reserved.</div>
+    <a class="footer-link" href="#">Privacy Policy</a>
+  </div>
+</footer>
+</body>
+</html>

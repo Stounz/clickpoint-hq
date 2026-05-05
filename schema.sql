@@ -119,16 +119,22 @@ alter table cmd_escalations add column if not exists response      text;
 alter table cmd_escalations add column if not exists responded_at  timestamptz;
 
 create table if not exists campaigns (
-  id          bigint generated always as identity primary key,
-  name        text not null,
-  client      text,
-  types       text,
-  audience    text,
-  brief       text,
-  assigned    text,
-  status      text default 'Active',
-  created_at  timestamptz default now()
+  id               bigint generated always as identity primary key,
+  name             text not null,
+  client           text,
+  types            text,
+  audience         text,
+  brief            text,
+  assigned         text,
+  status           text default 'Active',
+  client_reply     text,
+  client_replied_at timestamptz,
+  created_at       timestamptz default now()
 );
+
+-- Migration: add client reply columns if upgrading existing table
+alter table campaigns add column if not exists client_reply      text;
+alter table campaigns add column if not exists client_replied_at timestamptz;
 
 -- ── Enable Row Level Security (read-only for anon) ────────────────────────────
 

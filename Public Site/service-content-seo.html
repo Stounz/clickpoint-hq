@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Content Strategy &amp; SEO Automation | ClickPoint Consulting</title>
+<meta name="description" content="ClickPoint Consulting builds AI-powered content and SEO systems that research, brief, draft, and publish high-ranking content at scale. 12+ pieces per month, 94 average Lighthouse score, without growing your team.">
+<link rel="canonical" href="https://clickpointconsulting.com.au/service-content-seo">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://clickpointconsulting.com.au/service-content-seo">
+<meta property="og:title" content="AI Content Strategy &amp; SEO Automation | ClickPoint Consulting">
+<meta property="og:description" content="We build AI content pipelines that research keywords, brief writers, draft on-brand content, and publish — delivering 12+ optimised pieces per month without growing your team.">
+<meta property="og:image" content="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/clickpoint-og-image.jpg">
+<meta property="og:site_name" content="ClickPoint Consulting">
+<meta property="og:locale" content="en_AU">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI Content Strategy &amp; SEO Automation | ClickPoint Consulting">
+<meta name="twitter:description" content="We build AI content pipelines that research keywords, brief writers, draft on-brand content, and publish — delivering 12+ optimised pieces per month without growing your team.">
+<meta name="twitter:image" content="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/clickpoint-og-image.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'DM Sans', sans-serif; background: #fff; color: #1C3A2E; -webkit-font-smoothing: antialiased; }
+a { text-decoration: none; color: inherit; }
+:root {
+  --green: #1C3A2E; --green-mid: #244836; --green-dark: #0f2219;
+  --orange: #D4622A; --orange-light: rgba(212,98,42,0.1);
+  --gray: #6B7280; --gray-light: #F7F8FA; --border: #E4E7EC;
+}
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 60px; height: 72px; background: rgba(255,255,255,0.92); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(28,58,46,0.07); }
+.nav-logo { height: 32px; }
+.nav-links { display: flex; align-items: center; gap: 36px; }
+.nav-link { font-size: 14px; font-weight: 600; color: var(--gray); transition: color .2s; }
+.nav-link:hover { color: var(--green); }
+.nav-ctas { display: flex; align-items: center; gap: 12px; }
+.btn-ghost { padding: 10px 22px; border: 1.5px solid var(--border); border-radius: 100px; font-size: 14px; font-weight: 600; color: var(--green); }
+.btn-primary { padding: 11px 24px; background: var(--green); color: #fff; border-radius: 100px; font-size: 14px; font-weight: 700; }
+.btn-primary:hover { background: var(--green-mid); }
+
+.page-hero { padding: 148px 60px 100px; background: var(--green-dark); background-image: radial-gradient(ellipse 70% 60% at 100% 50%, rgba(212,98,42,0.1) 0%, transparent 60%), repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(255,255,255,0.025) 79px, rgba(255,255,255,0.025) 80px), repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(255,255,255,0.025) 79px, rgba(255,255,255,0.025) 80px); }
+.page-hero-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 20px; }
+.breadcrumb a { color: rgba(255,255,255,0.3); }
+.eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--orange); margin-bottom: 24px; }
+.eyebrow::before { content: ''; width: 28px; height: 2px; background: var(--orange); }
+h1 { font-size: clamp(40px, 4vw, 60px); font-weight: 900; color: #fff; line-height: 1.05; letter-spacing: -2px; margin-bottom: 20px; }
+h1 em { font-style: normal; background: linear-gradient(135deg, #D4622A 0%, #E8874F 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-p { font-size: 18px; line-height: 1.7; color: rgba(255,255,255,0.5); margin-bottom: 36px; max-width: 500px; }
+.hero-p strong { color: rgba(255,255,255,0.8); font-weight: 600; }
+.hero-btns { display: flex; gap: 14px; }
+.hero-btn-p { padding: 15px 32px; background: var(--orange); color: #fff; border-radius: 12px; font-size: 15px; font-weight: 800; box-shadow: 0 4px 20px rgba(212,98,42,0.35); transition: all .25s; }
+.hero-btn-p:hover { transform: translateY(-2px); }
+.hero-btn-s { padding: 15px 28px; border: 1.5px solid rgba(255,255,255,0.18); border-radius: 12px; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.7); transition: all .25s; }
+.hero-btn-s:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
+
+/* Content pipeline visual */
+.content-pipeline { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.4); }
+.cp-header { background: rgba(0,0,0,0.2); padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: space-between; }
+.cp-title { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 0.06em; text-transform: uppercase; }
+.cp-date { font-size: 10px; color: rgba(255,255,255,0.25); }
+.cp-body { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.cp-brief { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 16px; }
+.cp-brief-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.cp-brief-title { font-size: 12px; font-weight: 700; color: #fff; }
+.cp-brief-status { padding: 3px 10px; border-radius: 20px; font-size: 9px; font-weight: 700; }
+.status-ready { background: rgba(48,209,88,0.15); color: #30D158; }
+.status-draft { background: rgba(212,98,42,0.18); color: var(--orange); }
+.status-review { background: rgba(10,132,255,0.15); color: #0A84FF; }
+.cp-meta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.cp-meta { font-size: 10px; color: rgba(255,255,255,0.3); display: flex; align-items: center; gap: 4px; }
+.cp-meta strong { color: rgba(255,255,255,0.55); font-weight: 600; }
+.cp-kw-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.cp-kw { padding: 3px 9px; background: rgba(255,255,255,0.06); border-radius: 20px; font-size: 9px; color: rgba(255,255,255,0.4); font-weight: 600; }
+.cp-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.cp-stat { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 10px 12px; }
+.cp-stat-val { font-size: 18px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+.cp-stat-lbl { font-size: 9px; color: rgba(255,255,255,0.3); margin-top: 2px; }
+
+section { padding: 96px 60px; }
+.inner { max-width: 1200px; margin: 0 auto; }
+.s-eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--orange); margin-bottom: 20px; }
+.s-eyebrow::before { content: ''; width: 24px; height: 2px; background: var(--orange); }
+.s-h2 { font-size: clamp(32px, 3.5vw, 48px); font-weight: 900; color: var(--green); letter-spacing: -1.8px; line-height: 1.08; margin-bottom: 14px; }
+.s-h2 em { font-style: normal; color: var(--orange); }
+.s-sub { font-size: 17px; color: var(--gray); line-height: 1.65; max-width: 560px; }
+
+.problem { background: #fff; }
+.prob-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 52px; }
+.prob-card { padding: 36px 32px; border: 1px solid var(--border); border-radius: 20px; transition: all .3s; position: relative; overflow: hidden; }
+.prob-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--orange); transform: scaleX(0); transition: transform .3s; transform-origin: left; }
+.prob-card:hover { transform: translateY(-4px); box-shadow: 0 20px 48px rgba(28,58,46,0.07); border-color: rgba(212,98,42,0.2); }
+.prob-card:hover::after { transform: scaleX(1); }
+.prob-icon { font-size: 32px; margin-bottom: 16px; }
+.prob-title { font-size: 18px; font-weight: 800; color: var(--green); letter-spacing: -0.3px; margin-bottom: 10px; }
+.prob-body { font-size: 14px; color: var(--gray); line-height: 1.7; }
+
+.capabilities { background: var(--gray-light); }
+.cap-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 52px; }
+.cap-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 36px; transition: all .3s; display: flex; gap: 24px; }
+.cap-card:hover { border-color: var(--orange); box-shadow: 0 12px 36px rgba(28,58,46,0.07); transform: translateY(-2px); }
+.cap-icon { width: 56px; height: 56px; border-radius: 14px; background: var(--orange-light); display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+.cap-title { font-size: 18px; font-weight: 800; color: var(--green); letter-spacing: -0.3px; margin-bottom: 8px; }
+.cap-body { font-size: 14px; color: var(--gray); line-height: 1.65; }
+
+.process { background: var(--green); position: relative; overflow: hidden; }
+.process::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(212,98,42,0.12) 0%, transparent 60%); }
+.proc-inner { max-width: 1200px; margin: 0 auto; position: relative; }
+.proc-h2 { font-size: clamp(32px, 3.5vw, 48px); font-weight: 900; color: #fff; letter-spacing: -1.8px; line-height: 1.08; margin-bottom: 14px; }
+.proc-sub { font-size: 17px; color: rgba(255,255,255,0.4); max-width: 560px; margin-bottom: 56px; line-height: 1.65; }
+.proc-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+.proc-step { position: relative; }
+.proc-step:not(:last-child)::after { content: '→'; position: absolute; top: 22px; right: -16px; font-size: 20px; color: rgba(255,255,255,0.15); }
+.proc-num { width: 48px; height: 48px; border-radius: 12px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #fff; margin-bottom: 18px; transition: all .3s; }
+.proc-step:hover .proc-num { background: var(--orange); border-color: var(--orange); }
+.proc-lbl { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--orange); margin-bottom: 6px; }
+.proc-title { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -0.3px; margin-bottom: 8px; }
+.proc-body { font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.65; }
+
+.output { background: #fff; }
+.output-split { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; margin-top: 52px; }
+.output-list { display: flex; flex-direction: column; gap: 20px; }
+.output-item { display: flex; gap: 20px; padding: 24px; border: 1px solid var(--border); border-radius: 16px; transition: all .3s; }
+.output-item:hover { border-color: var(--orange); box-shadow: 0 8px 24px rgba(28,58,46,0.06); }
+.output-num { width: 36px; height: 36px; border-radius: 10px; background: var(--orange-light); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; color: var(--orange); flex-shrink: 0; }
+.output-title { font-size: 16px; font-weight: 800; color: var(--green); margin-bottom: 6px; }
+.output-body { font-size: 13px; color: var(--gray); line-height: 1.6; }
+.output-visual { background: var(--gray-light); border-radius: 20px; padding: 32px; border: 1px solid var(--border); }
+.output-vis-title { font-size: 13px; font-weight: 700; color: var(--green); margin-bottom: 20px; }
+.content-cal { display: flex; flex-direction: column; gap: 8px; }
+.cal-week { display: flex; align-items: center; gap: 12px; }
+.cal-week-label { font-size: 10px; font-weight: 700; color: var(--gray); width: 52px; flex-shrink: 0; }
+.cal-items { display: flex; gap: 6px; flex-wrap: wrap; }
+.cal-pill { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+.pill-blog { background: rgba(28,58,46,0.08); color: var(--green); }
+.pill-social { background: rgba(212,98,42,0.12); color: var(--orange); }
+.pill-email { background: rgba(10,132,255,0.1); color: #0A84FF; }
+.pill-seo { background: rgba(48,209,88,0.1); color: #30D158; }
+
+.stats-band { background: var(--green); padding: 72px 60px; }
+.stats-band-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 48px; }
+.sb-val { font-size: 52px; font-weight: 900; color: #fff; letter-spacing: -2.5px; line-height: 1; margin-bottom: 8px; }
+.sb-val span { font-size: 28px; }
+.sb-label { font-size: 14px; color: rgba(255,255,255,0.4); line-height: 1.5; }
+
+/* FAQ */
+.faq-section { padding: 100px 60px; background: #fff; }
+.faq-inner { max-width: 1200px; margin: 0 auto; }
+.faq-header { max-width: 560px; margin-bottom: 48px; }
+.faq-eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--orange); margin-bottom: 16px; }
+.faq-eyebrow::before { content: ''; width: 24px; height: 2px; background: var(--orange); }
+.faq-h2 { font-size: clamp(26px, 3vw, 36px); font-weight: 800; line-height: 1.2; color: var(--green); }
+.faq-list { max-width: 800px; display: flex; flex-direction: column; gap: 4px; }
+.faq-item { background: var(--gray-light); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: box-shadow .25s; }
+.faq-item[open] { box-shadow: 0 4px 24px rgba(28,58,46,0.07); background: #fff; }
+.faq-q { list-style: none; padding: 22px 26px; font-size: 15px; font-weight: 600; color: var(--green); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.faq-q::after { content: '+'; font-size: 20px; font-weight: 400; color: var(--orange); flex-shrink: 0; transition: transform .25s; }
+.faq-item[open] .faq-q::after { transform: rotate(45deg); }
+.faq-q::-webkit-details-marker { display: none; }
+.faq-a { padding: 0 26px 22px; font-size: 14px; line-height: 1.75; color: var(--gray); }
+
+.cta-section { background: var(--gray-light); padding: 80px 60px; }
+.cta-inner { max-width: 1200px; margin: 0 auto; background: var(--green); background-image: radial-gradient(ellipse 80% 100% at 50% -20%, rgba(212,98,42,0.15) 0%, transparent 60%); border-radius: 28px; padding: 88px 80px; text-align: center; position: relative; overflow: hidden; }
+.cta-inner::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(-45deg, transparent, transparent 30px, rgba(255,255,255,0.015) 30px, rgba(255,255,255,0.015) 31px); }
+.cta-content { position: relative; }
+.cta-eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--orange); margin-bottom: 20px; }
+.cta-h2 { font-size: clamp(32px, 4vw, 52px); font-weight: 900; color: #fff; letter-spacing: -2px; line-height: 1.07; margin-bottom: 14px; }
+.cta-sub { font-size: 17px; color: rgba(255,255,255,0.45); max-width: 460px; margin: 0 auto 40px; line-height: 1.65; }
+.cta-btns { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.cta-btn-p { padding: 16px 36px; background: var(--orange); color: #fff; border-radius: 12px; font-size: 15px; font-weight: 800; box-shadow: 0 6px 24px rgba(212,98,42,0.4); transition: all .25s; }
+.cta-btn-p:hover { transform: translateY(-2px); }
+.cta-btn-s { padding: 16px 32px; border: 1.5px solid rgba(255,255,255,0.2); border-radius: 12px; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.7); transition: all .25s; }
+.cta-btn-s:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+.cta-note { margin-top: 18px; font-size: 12px; color: rgba(255,255,255,0.22); }
+
+footer { background: var(--green-dark); padding: 72px 60px 40px; }
+.footer-top { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr; gap: 64px; margin-bottom: 56px; }
+.footer-brand-logo { height: 28px; margin-bottom: 16px; filter: brightness(0) invert(1) opacity(0.8); }
+.footer-tagline { font-size: 13px; line-height: 1.65; color: rgba(255,255,255,0.35); max-width: 280px; }
+.footer-col-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+.footer-links { display: flex; flex-direction: column; gap: 10px; }
+.footer-link { font-size: 13px; color: rgba(255,255,255,0.35); font-weight: 500; transition: color .2s; }
+.footer-link:hover { color: #fff; }
+.footer-contact { font-size: 13px; color: rgba(255,255,255,0.35); line-height: 1.8; }
+.footer-contact a { color: rgba(255,255,255,0.35); }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 28px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: rgba(255,255,255,0.35); }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Service",
+      "name": "Content & SEO Automation",
+      "provider": {"@id": "https://clickpointconsulting.com.au/#organization"},
+      "description": "AI-powered content strategy and SEO automation system that researches keywords, briefs writers, drafts on-brand content, and publishes 12+ optimised pieces per month — without growing your team.",
+      "url": "https://clickpointconsulting.com.au/service-content-seo",
+      "areaServed": {"@type": "Country", "name": "Australia"},
+      "serviceType": "AI Content Strategy & SEO Automation"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Will AI-generated content rank in Google?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Yes — when it's done correctly. Google's ranking systems evaluate content on quality, relevance, and E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness), not whether a human or AI wrote it. Our process uses AI to handle research, structure, and first drafts, then layers in subject-matter expertise, original insights, and brand voice to produce content that outperforms generic AI output. Our clients average a 94 Lighthouse content score and 38% year-on-year organic traffic growth."}
+        },
+        {
+          "@type": "Question",
+          "name": "How do you ensure AI content matches our brand voice?",
+          "acceptedAnswer": {"@type": "Answer", "text": "We build a custom brand voice model trained on your existing content — tone, vocabulary, sentence structure, and messaging frameworks. Every piece of AI-assisted content is generated through this model and reviewed for brand consistency before publication. Over time, the model improves as it learns from approved content."}
+        },
+        {
+          "@type": "Question",
+          "name": "How many pieces of content do you produce each month?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Our standard content pipeline produces 12+ optimised pieces per month — a mix of long-form SEO articles, short-form social content, email sequences, and supporting assets. Output volume scales with your package. All pieces are keyword-researched, structured for search intent, and aligned to your content calendar."}
+        },
+        {
+          "@type": "Question",
+          "name": "How long before we see SEO results?",
+          "acceptedAnswer": {"@type": "Answer", "text": "SEO results typically begin to show within 3–6 months as new content is indexed and starts to rank. Competitive keywords take longer; informational and long-tail keywords often rank within 6–12 weeks. Our content strategy prioritises quick-win opportunities alongside long-term authority-building content so you see early traction while the broader strategy matures."}
+        },
+        {
+          "@type": "Question",
+          "name": "What's the difference between content marketing and SEO content automation?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Traditional content marketing involves a team manually researching, briefing, writing, editing, and publishing content — a slow, resource-intensive process. SEO content automation uses AI to handle the repeatable parts of this workflow at scale, so your team focuses only on strategy and approval. The result is 3–5× more content output at a fraction of the cost, with consistent quality and SEO optimisation built into every piece."}
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<nav>
+  <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/clickpointconsultingnewlogo.png" class="nav-logo" alt="ClickPoint Consulting">
+  <div class="nav-links">
+    <a class="nav-link" href="#">About</a>
+    <a class="nav-link" href="#">What We Build</a>
+    <a class="nav-link" href="#">Blog</a>
+  </div>
+  <div class="nav-ctas">
+    <a class="btn-ghost" href="#">Become a Partner</a>
+    <a class="btn-primary" href="#">Free Consultation</a>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div>
+      <div class="breadcrumb"><a href="homepage-redesign.html">Home</a> <span>/</span> <span>Content & SEO</span></div>
+      <p class="eyebrow">Content & SEO</p>
+      <h1>Content your team<br>approves. Not <em>creates<br>from scratch.</em></h1>
+      <p class="hero-p">We build <strong>AI-powered content pipelines</strong> that research, draft, and optimise every piece of content — on brand, SEO-ready, and delivered to your team for a final review, not a blank page.</p>
+      <div class="hero-btns">
+        <a class="hero-btn-p" href="#">Book a Free Audit →</a>
+        <a class="hero-btn-s" href="#">See content examples</a>
+      </div>
+    </div>
+    <div>
+      <div class="content-pipeline">
+        <div class="cp-header">
+          <div class="cp-title">Content Pipeline — This Week</div>
+          <div class="cp-date">Apr 28, 2026</div>
+        </div>
+        <div class="cp-body">
+          <div class="cp-brief">
+            <div class="cp-brief-top">
+              <div class="cp-brief-title">Blog: "How AI is Changing B2B Lead Generation in Australia"</div>
+              <div class="cp-brief-status status-ready">Ready to Publish</div>
+            </div>
+            <div class="cp-meta-row">
+              <div class="cp-meta">📝 <strong>1,840 words</strong></div>
+              <div class="cp-meta">🔍 <strong>SEO score: 94/100</strong></div>
+              <div class="cp-meta">📅 <strong>Scheduled: Tue 9am</strong></div>
+            </div>
+            <div class="cp-kw-row">
+              <div class="cp-kw">AI lead generation</div>
+              <div class="cp-kw">B2B automation Australia</div>
+              <div class="cp-kw">marketing automation</div>
+            </div>
+          </div>
+          <div class="cp-brief">
+            <div class="cp-brief-top">
+              <div class="cp-brief-title">LinkedIn: 5-post sequence — "The manual ops tax"</div>
+              <div class="cp-brief-status status-review">In Review</div>
+            </div>
+            <div class="cp-meta-row">
+              <div class="cp-meta">📱 <strong>5 posts drafted</strong></div>
+              <div class="cp-meta">🎯 <strong>Brand voice: ✓</strong></div>
+            </div>
+          </div>
+          <div class="cp-brief">
+            <div class="cp-brief-top">
+              <div class="cp-brief-title">Email: Nurture sequence — SMB decision makers</div>
+              <div class="cp-brief-status status-draft">Drafting</div>
+            </div>
+            <div class="cp-meta-row">
+              <div class="cp-meta">✉️ <strong>4-email sequence</strong></div>
+              <div class="cp-meta">📊 <strong>Segment: 2,400 contacts</strong></div>
+            </div>
+          </div>
+          <div class="cp-stats">
+            <div class="cp-stat"><div class="cp-stat-val">12</div><div class="cp-stat-lbl">Pieces this month</div></div>
+            <div class="cp-stat"><div class="cp-stat-val">94%</div><div class="cp-stat-lbl">Avg SEO score</div></div>
+            <div class="cp-stat"><div class="cp-stat-val">↑38%</div><div class="cp-stat-lbl">Organic traffic</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="problem">
+  <div class="inner">
+    <div class="s-eyebrow">The problem</div>
+    <h2 class="s-h2">Content is the engine.<br>Manual is the <em>handbrake.</em></h2>
+    <div class="prob-grid">
+      <div class="prob-card">
+        <div class="prob-icon">✏️</div>
+        <div class="prob-title">Every brief starts from a blank page</div>
+        <div class="prob-body">Your marketing team spends hours researching topics, formatting briefs, and drafting copy — before a single word gets approved. The best content ideas never get made because there's no bandwidth.</div>
+      </div>
+      <div class="prob-card">
+        <div class="prob-icon">🔍</div>
+        <div class="prob-title">SEO is inconsistent because no one owns it</div>
+        <div class="prob-body">Keyword research gets skipped. Meta descriptions are afterthoughts. Internal linking is manual. The result: good content that no one finds. Your competitors are ranking on terms you're not even tracking.</div>
+      </div>
+      <div class="prob-card">
+        <div class="prob-icon">🎭</div>
+        <div class="prob-title">Brand voice drifts across writers and channels</div>
+        <div class="prob-body">When content is written by different people — or inconsistently briefed — your brand sounds like several companies. Trust erodes. Conversion suffers. And no one knows which version of the brand is right.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="capabilities">
+  <div class="inner">
+    <div class="s-eyebrow">What we build</div>
+    <h2 class="s-h2">An AI content team that<br>works <em>around the clock.</em></h2>
+    <p class="s-sub">Research, draft, optimise, schedule — the entire content pipeline automated end-to-end. Your team focuses on approval and strategy, not production.</p>
+    <div class="cap-grid">
+      <div class="cap-card">
+        <div class="cap-icon">🔎</div>
+        <div>
+          <div class="cap-title">Keyword Research & Opportunity Mapping</div>
+          <div class="cap-body">We continuously scan your keyword landscape, competitor content gaps, and emerging search trends — delivering a prioritised content calendar based on actual ranking opportunity, not guesswork.</div>
+        </div>
+      </div>
+      <div class="cap-card">
+        <div class="cap-icon">✍️</div>
+        <div>
+          <div class="cap-title">AI Drafting with Brand Voice Training</div>
+          <div class="cap-body">We train the AI on your brand voice, tone guidelines, and past content — so every draft sounds like you wrote it. Blog posts, email copy, social sequences, and landing page content. Ready for review, not rebuild.</div>
+        </div>
+      </div>
+      <div class="cap-card">
+        <div class="cap-icon">📈</div>
+        <div>
+          <div class="cap-title">On-Page SEO Optimisation</div>
+          <div class="cap-body">Every piece of content is automatically optimised — meta titles, descriptions, heading structure, internal link suggestions, and schema. Your content ranks. Not just exists.</div>
+        </div>
+      </div>
+      <div class="cap-card">
+        <div class="cap-icon">🗓️</div>
+        <div>
+          <div class="cap-title">Content Calendar & Publishing Workflows</div>
+          <div class="cap-body">A rolling 90-day content calendar, automatically populated and scheduled. Approval workflows built into your existing tools — Notion, Slack, or email — so nothing gets missed and nothing slips through.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="process">
+  <div class="proc-inner">
+    <div class="s-eyebrow" style="color:var(--orange)">How it works</div>
+    <h2 class="proc-h2">From keyword to<br>published in 48 hours.</h2>
+    <p class="proc-sub">The pipeline runs automatically. Your team only touches content at the approval stage — not at every step of production.</p>
+    <div class="proc-steps">
+      <div class="proc-step">
+        <div class="proc-num">1</div>
+        <div class="proc-lbl">Research</div>
+        <div class="proc-title">Keyword & Topic Analysis</div>
+        <div class="proc-body">AI scans ranking opportunities, competitor gaps, and trending topics relevant to your industry and ICP.</div>
+      </div>
+      <div class="proc-step">
+        <div class="proc-num">2</div>
+        <div class="proc-lbl">Brief</div>
+        <div class="proc-title">Structured Brief Generation</div>
+        <div class="proc-body">A detailed content brief is generated — angle, structure, target keywords, word count, and internal link suggestions.</div>
+      </div>
+      <div class="proc-step">
+        <div class="proc-num">3</div>
+        <div class="proc-lbl">Draft</div>
+        <div class="proc-title">AI-Powered Drafting</div>
+        <div class="proc-body">Full draft created in your brand voice — blog post, email, social sequence, or landing page. SEO-optimised on creation.</div>
+      </div>
+      <div class="proc-step">
+        <div class="proc-num">4</div>
+        <div class="proc-lbl">Publish</div>
+        <div class="proc-title">Review & Schedule</div>
+        <div class="proc-body">Draft lands in your approval queue. One click to approve. Scheduled and published automatically to your CMS or platform.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="output">
+  <div class="inner">
+    <div class="s-eyebrow">What you receive</div>
+    <h2 class="s-h2">A full content operation.<br>Without the <em>headcount.</em></h2>
+    <p class="s-sub">Every content type covered. Every channel consistent. Delivered on a schedule that never slips.</p>
+    <div class="output-split">
+      <div class="output-list">
+        <div class="output-item">
+          <div class="output-num">📝</div>
+          <div><div class="output-title">Blog Posts & Thought Leadership</div><div class="output-body">Long-form, SEO-optimised articles — researched, drafted, and ready to publish. 4–8 per month, depending on your content strategy.</div></div>
+        </div>
+        <div class="output-item">
+          <div class="output-num">📱</div>
+          <div><div class="output-title">Social Media Sequences</div><div class="output-body">LinkedIn, Instagram, and Facebook content — in batches of 10–20 posts per month. Scheduled and queued automatically.</div></div>
+        </div>
+        <div class="output-item">
+          <div class="output-num">✉️</div>
+          <div><div class="output-title">Email Nurture Sequences</div><div class="output-body">Targeted email sequences for each segment of your audience — drafted, personalised, and loaded into your email platform ready to send.</div></div>
+        </div>
+        <div class="output-item">
+          <div class="output-num">📊</div>
+          <div><div class="output-title">Monthly Content Performance Report</div><div class="output-body">Organic traffic, ranking movements, engagement by piece — with AI-generated recommendations on what to double down on.</div></div>
+        </div>
+      </div>
+      <div class="output-visual">
+        <div class="output-vis-title">Sample 4-Week Content Calendar</div>
+        <div class="content-cal">
+          <div class="cal-week">
+            <div class="cal-week-label">Week 1</div>
+            <div class="cal-items">
+              <div class="cal-pill pill-blog">Blog post</div>
+              <div class="cal-pill pill-social">5× LinkedIn</div>
+              <div class="cal-pill pill-email">Email #1</div>
+            </div>
+          </div>
+          <div class="cal-week">
+            <div class="cal-week-label">Week 2</div>
+            <div class="cal-items">
+              <div class="cal-pill pill-seo">SEO article</div>
+              <div class="cal-pill pill-social">5× LinkedIn</div>
+              <div class="cal-pill pill-social">3× Instagram</div>
+            </div>
+          </div>
+          <div class="cal-week">
+            <div class="cal-week-label">Week 3</div>
+            <div class="cal-items">
+              <div class="cal-pill pill-blog">Blog post</div>
+              <div class="cal-pill pill-email">Email #2</div>
+              <div class="cal-pill pill-social">5× LinkedIn</div>
+            </div>
+          </div>
+          <div class="cal-week">
+            <div class="cal-week-label">Week 4</div>
+            <div class="cal-items">
+              <div class="cal-pill pill-seo">SEO article</div>
+              <div class="cal-pill pill-social">5× LinkedIn</div>
+              <div class="cal-pill pill-email">Email #3</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="stats-band">
+  <div class="stats-band-inner">
+    <div><div class="sb-val">12<span>+</span></div><div class="sb-label">Pieces of content produced per month — on autopilot</div></div>
+    <div><div class="sb-val">38<span>%</span></div><div class="sb-label">Average increase in organic traffic within 90 days</div></div>
+    <div><div class="sb-val">94</div><div class="sb-label">Average SEO score across all AI-generated content</div></div>
+    <div><div class="sb-val">6<span>hrs</span></div><div class="sb-label">Saved per week on content production per marketer</div></div>
+  </div>
+</div>
+
+
+<!-- FAQ -->
+<section class="faq-section">
+  <div class="faq-inner">
+    <div class="faq-header">
+      <p class="faq-eyebrow">Common questions</p>
+      <h2 class="faq-h2">Everything you need to know<br>about Content &amp; SEO.</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary class="faq-q">Will AI-generated content rank in Google?</summary>
+        <div class="faq-a">Yes — when it's done correctly. Google's systems evaluate content on quality, relevance, and E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness), not whether a human or AI wrote it. Our process uses AI to handle research, structure, and first drafts, then layers in subject-matter expertise, original insights, and brand voice. Our clients average a 94 Lighthouse content score and 38% year-on-year organic traffic growth.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">How do you ensure AI content matches our brand voice?</summary>
+        <div class="faq-a">We build a custom brand voice model trained on your existing content — tone, vocabulary, sentence structure, and messaging frameworks. Every piece of AI-assisted content is generated through this model and reviewed for brand consistency before publication. Over time, the model improves as it learns from approved content.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">How many pieces of content do you produce each month?</summary>
+        <div class="faq-a">Our standard content pipeline produces 12+ optimised pieces per month — a mix of long-form SEO articles, short-form social content, email sequences, and supporting assets. All pieces are keyword-researched, structured for search intent, and aligned to your content calendar.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">How long before we see SEO results?</summary>
+        <div class="faq-a">SEO results typically begin to show within 3–6 months as new content is indexed and starts to rank. Competitive keywords take longer; informational and long-tail keywords often rank within 6–12 weeks. Our content strategy prioritises quick-win opportunities alongside long-term authority-building content so you see early traction while the broader strategy matures.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">What's the difference between content marketing and SEO content automation?</summary>
+        <div class="faq-a">Traditional content marketing involves a team manually researching, briefing, writing, editing, and publishing content — a slow, resource-intensive process. SEO content automation uses AI to handle the repeatable parts of this workflow at scale, so your team focuses only on strategy and approval. The result is 3–5× more content output at a fraction of the cost, with consistent quality and SEO optimisation built into every piece.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="cta-inner">
+    <div class="cta-content">
+      <div class="cta-eyebrow">Get started</div>
+      <h2 class="cta-h2">See what a full content<br>pipeline looks like for your business.</h2>
+      <p class="cta-sub">Book a free audit and we'll map your content gaps, keyword opportunities, and what we'd build to fill them.</p>
+      <div class="cta-btns">
+        <a class="cta-btn-p" href="#">Book your free audit →</a>
+        <a class="cta-btn-s" href="#">See content examples first</a>
+      </div>
+      <div class="cta-note">No commitment. We'll map your content opportunity before you decide anything.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-top">
+    <div>
+      <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" class="footer-brand-logo" alt="ClickPoint Consulting">
+      <div class="footer-tagline">Intelligent automation for marketing and operations teams. We build the system. You lead the growth.</div>
+    </div>
+    <div>
+      <div class="footer-col-title">Company</div>
+      <div class="footer-links">
+        <a class="footer-link" href="#">About Click Point</a>
+        <a class="footer-link" href="#">What We Build</a>
+        <a class="footer-link" href="#">Become a Partner</a>
+        <a class="footer-link" href="#">Blog</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Services</div>
+      <div class="footer-links">
+        <a class="footer-link" href="service-lead-intelligence.html">Lead Intelligence</a>
+        <a class="footer-link" href="service-campaign-performance.html">Campaign Performance</a>
+        <a class="footer-link" href="service-content-seo.html">Content & SEO</a>
+        <a class="footer-link" href="service-tender-intelligence.html">Tender Intelligence</a>
+        <a class="footer-link" href="service-conversion-optimisation.html">Conversion Optimisation</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Contact</div>
+      <div class="footer-contact">
+        <a href="mailto:hello@clickpointconsulting.com.au">hello@clickpointconsulting.com.au</a><br><br>
+        172 New South Head Rd<br>Edgecliff NSW 2027
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div>© 2026 ClickPoint Consulting. All Rights Reserved.</div>
+    <a class="footer-link" href="#">Privacy Policy</a>
+  </div>
+</footer>
+</body>
+</html>

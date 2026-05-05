@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Australia's First Agentic Marketing &amp; Operations Consultancy | ClickPoint Consulting</title>
+<meta name="description" content="The agentic shift is happening now. ClickPoint is Australia's first agentic marketing and operations consultancy — helping businesses deploy custom AI agents before their competitors do. Book a free strategy consultation.">
+<link rel="canonical" href="https://clickpointconsulting.com.au/">
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://clickpointconsulting.com.au/">
+<meta property="og:title" content="Australia's First Agentic Marketing &amp; Operations Consultancy | ClickPoint Consulting">
+<meta property="og:description" content="The agentic shift is happening now. ClickPoint is Australia's first agentic marketing and operations consultancy — helping Australian businesses deploy custom AI agents before their competitors do.">
+<meta property="og:image" content="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/clickpoint-og-image.jpg">
+<meta property="og:site_name" content="ClickPoint Consulting">
+<meta property="og:locale" content="en_AU">
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Australia's First Agentic Marketing &amp; Operations Consultancy | ClickPoint Consulting">
+<meta name="twitter:description" content="The agentic shift is happening now. ClickPoint is Australia's first agentic marketing and operations consultancy — helping Australian businesses deploy custom AI agents before their competitors do.">
+<meta name="twitter:image" content="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/clickpoint-og-image.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&display=swap" rel="stylesheet">
+<style>
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'DM Sans', sans-serif; background: #fff; color: #1C3A2E; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { text-decoration: none; color: inherit; }
+
+/* ── Tokens ── */
+:root {
+  --green: #1C3A2E; --green-mid: #244836; --green-dark: #0f2219;
+  --orange: #D4622A; --orange-light: rgba(212,98,42,0.1);
+  --gray: #6B7280; --gray-light: #F7F8FA; --border: #E4E7EC;
+}
+
+/* ── Nav ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 60px; height: 72px;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(28,58,46,0.07);
+  transition: box-shadow .3s;
+}
+nav.scrolled { box-shadow: 0 4px 24px rgba(28,58,46,0.08); }
+.nav-logo { height: 32px; }
+.nav-links { display: flex; align-items: center; gap: 36px; }
+.nav-link { font-size: 14px; font-weight: 600; color: var(--gray); transition: color .2s; }
+.nav-link:hover { color: var(--green); }
+.nav-ctas { display: flex; align-items: center; gap: 12px; }
+.btn-ghost { padding: 10px 22px; border: 1.5px solid var(--border); border-radius: 100px; font-size: 14px; font-weight: 600; color: var(--green); transition: all .2s; }
+.btn-ghost:hover { border-color: var(--green); }
+.btn-primary { padding: 11px 24px; background: var(--green); color: #fff; border-radius: 100px; font-size: 14px; font-weight: 700; transition: all .25s; }
+.btn-primary:hover { background: var(--green-mid); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(28,58,46,0.2); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  background: var(--green-dark);
+  position: relative; overflow: hidden;
+  display: flex; align-items: center;
+  padding: 120px 60px 80px;
+  gap: 64px;
+}
+
+/* Animated mesh gradient */
+.hero-mesh {
+  position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(212,98,42,0.14) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 70% at 90% 80%, rgba(28,58,46,0.9) 0%, transparent 60%);
+  animation: meshPulse 8s ease-in-out infinite alternate;
+}
+@keyframes meshPulse {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: .85; transform: scale(1.04); }
+}
+
+/* Animated grid */
+.hero-grid {
+  position: absolute; inset: 0; z-index: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(255,255,255,0.03) 79px, rgba(255,255,255,0.03) 80px),
+    repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(255,255,255,0.03) 79px, rgba(255,255,255,0.03) 80px);
+  animation: gridDrift 20s linear infinite;
+}
+@keyframes gridDrift {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(80px, 80px); }
+}
+
+/* Floating orb */
+.hero-orb {
+  position: absolute; width: 600px; height: 600px;
+  border-radius: 50%; z-index: 0;
+  background: radial-gradient(circle, rgba(212,98,42,0.07) 0%, transparent 70%);
+  right: 5%; top: 10%;
+  animation: orbFloat 12s ease-in-out infinite alternate;
+}
+@keyframes orbFloat {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(-40px, 30px) scale(1.1); }
+}
+
+.hero-content { flex: 1; max-width: 580px; position: relative; z-index: 1; }
+.hero-visual  { flex: 1.1; position: relative; z-index: 1; }
+
+/* Hero entrance animations */
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--orange); margin-bottom: 28px;
+  opacity: 0; animation: fadeUp .7s .1s ease forwards;
+}
+.hero-eyebrow::before { content: ''; width: 28px; height: 2px; background: var(--orange); }
+
+.hero-h1 {
+  font-size: clamp(44px, 5vw, 68px); font-weight: 900; color: #fff;
+  line-height: 1.04; letter-spacing: -2.5px; margin-bottom: 24px;
+  opacity: 0; animation: fadeUp .7s .25s ease forwards;
+}
+.hero-h1 em {
+  font-style: normal;
+  background: linear-gradient(135deg, #D4622A 0%, #E8874F 50%, #D4622A 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+@keyframes shimmer { to { background-position: 200% center; } }
+
+.hero-p {
+  font-size: 18px; line-height: 1.7; color: rgba(255,255,255,0.52);
+  margin-bottom: 40px; max-width: 480px;
+  opacity: 0; animation: fadeUp .7s .4s ease forwards;
+}
+.hero-p strong { color: rgba(255,255,255,0.82); font-weight: 600; }
+
+.hero-btns {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 56px;
+  opacity: 0; animation: fadeUp .7s .55s ease forwards;
+}
+.hero-btn-p {
+  padding: 16px 32px; background: var(--orange); color: #fff;
+  border-radius: 12px; font-size: 15px; font-weight: 800;
+  transition: all .25s; box-shadow: 0 4px 24px rgba(212,98,42,0.35);
+  position: relative; overflow: hidden;
+}
+.hero-btn-p::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  opacity: 0; transition: opacity .25s;
+}
+.hero-btn-p:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(212,98,42,0.5); }
+.hero-btn-p:hover::after { opacity: 1; }
+.hero-btn-s {
+  padding: 16px 28px; border: 1.5px solid rgba(255,255,255,0.18);
+  border-radius: 12px; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.72);
+  display: flex; align-items: center; gap: 8px; transition: all .25s;
+}
+.hero-btn-s:hover { border-color: rgba(255,255,255,0.45); color: #fff; gap: 12px; }
+.hero-btn-s svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+.hero-proof {
+  display: flex; align-items: center; gap: 28px;
+  opacity: 0; animation: fadeUp .7s .7s ease forwards;
+}
+.hero-proof-divider { width: 1px; height: 32px; background: rgba(255,255,255,0.1); }
+.hero-proof-stat .val { font-size: 26px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+.hero-proof-stat .lbl { font-size: 11px; color: rgba(255,255,255,0.33); margin-top: 2px; }
+
+/* Hero visual */
+.hero-visual { opacity: 0; animation: fadeLeft .8s .3s ease forwards; }
+.hero-visual-inner {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px; overflow: hidden;
+  box-shadow: 0 40px 120px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
+}
+.dash-bar { background: rgba(0,0,0,0.25); padding: 12px 18px; display: flex; align-items: center; gap: 7px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.dash-dot { width: 10px; height: 10px; border-radius: 50%; }
+.dash-dot.r { background: #FF5F57; } .dash-dot.y { background: #FEBC2E; } .dash-dot.g { background: #28C840; }
+.dash-title { font-size: 11px; color: rgba(255,255,255,0.3); font-weight: 600; letter-spacing: 0.04em; margin-left: 8px; }
+.dash-body { display: flex; min-height: 360px; }
+.dash-sidebar { width: 160px; background: rgba(0,0,0,0.2); border-right: 1px solid rgba(255,255,255,0.05); padding: 16px 0; flex-shrink: 0; }
+.dash-nav-section { padding: 12px 14px 4px; font-size: 8px; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.18); font-weight: 700; }
+.dash-nav-item { padding: 8px 14px; font-size: 11px; color: rgba(255,255,255,0.32); font-weight: 500; display: flex; align-items: center; gap: 7px; }
+.dash-nav-item.active { color: #fff; background: rgba(255,255,255,0.07); border-left: 2px solid var(--orange); }
+.dash-nav-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.5; flex-shrink: 0; }
+.dash-main { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.dash-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.dash-kpi { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px; }
+.dash-kpi-val { font-size: 22px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+.dash-kpi-lbl { font-size: 9px; color: rgba(255,255,255,0.3); margin-top: 3px; }
+.dash-kpi-trend { font-size: 9px; color: #30D158; margin-top: 6px; font-weight: 600; }
+.dash-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dash-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 14px; }
+.dash-card-title { font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.25); font-weight: 700; margin-bottom: 12px; }
+.dash-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.dash-avatar { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 800; color: #fff; flex-shrink: 0; }
+.dash-name { font-size: 10px; color: rgba(255,255,255,0.65); flex: 1; }
+.dash-sub { font-size: 8px; color: rgba(255,255,255,0.25); margin-top: 1px; }
+.dash-badge { padding: 2px 7px; border-radius: 20px; font-size: 7px; font-weight: 700; }
+.db-green { background: rgba(48,209,88,.15); color: #30D158; }
+.db-orange { background: rgba(212,98,42,.2); color: var(--orange); }
+.db-blue { background: rgba(10,132,255,.15); color: #0A84FF; }
+.dash-bars { display: flex; align-items: flex-end; gap: 5px; height: 70px; }
+.dash-bar-el { flex: 1; border-radius: 3px 3px 0 0; background: rgba(212,98,42,0.3); transform-origin: bottom; transform: scaleY(0); transition: transform .6s cubic-bezier(.34,1.56,.64,1); }
+.dash-bar-el.hi { background: var(--orange); }
+.dash-bar-labels { display: flex; gap: 5px; margin-top: 5px; }
+.dash-bar-lbl { flex: 1; text-align: center; font-size: 7px; color: rgba(255,255,255,0.2); }
+.bars-animated .dash-bar-el { transform: scaleY(1); }
+
+/* Live dot */
+.live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #30D158; animation: livePulse 2s ease infinite; }
+@keyframes livePulse { 0%,100%{box-shadow:0 0 0 0 rgba(48,209,88,0.4)} 50%{box-shadow:0 0 0 6px rgba(48,209,88,0)} }
+
+/* ── Trust strip ── */
+.trust { padding: 24px 60px; background: var(--gray-light); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 48px; overflow: hidden; }
+.trust-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9CA3AF; white-space: nowrap; }
+.trust-divider { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+.trust-logos { display: flex; align-items: center; gap: 40px; }
+.trust-logo { font-size: 13px; font-weight: 700; color: #9CA3AF; opacity: 0.65; white-space: nowrap; transition: opacity .2s; }
+.trust-logo:hover { opacity: 1; }
+
+/* ── Shared section ── */
+section { padding: 100px 60px; }
+.inner { max-width: 1200px; margin: 0 auto; }
+.section-eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--orange); margin-bottom: 20px; }
+.section-eyebrow::before { content: ''; width: 24px; height: 2px; background: var(--orange); }
+.section-h2 { font-size: clamp(36px, 4vw, 52px); font-weight: 900; color: var(--green); letter-spacing: -2px; line-height: 1.07; margin-bottom: 16px; }
+.section-h2 em { font-style: normal; color: var(--orange); }
+.section-sub { font-size: 17px; color: var(--gray); line-height: 1.65; max-width: 560px; }
+
+/* ── Scroll reveal ── */
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity .65s ease, transform .65s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: .1s; }
+.reveal-delay-2 { transition-delay: .2s; }
+.reveal-delay-3 { transition-delay: .3s; }
+.reveal-delay-4 { transition-delay: .4s; }
+.reveal-delay-5 { transition-delay: .5s; }
+.reveal-delay-6 { transition-delay: .6s; }
+
+/* ── Problem ── */
+.problem { background: #fff; }
+.problem-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 56px; }
+.problem-card {
+  padding: 36px 32px; border: 1px solid var(--border); border-radius: 20px;
+  background: #fff; transition: all .35s; position: relative; overflow: hidden;
+  cursor: default;
+}
+.problem-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--orange), #E8874F);
+  transform: scaleX(0); transition: transform .4s cubic-bezier(.34,1.2,.64,1);
+  transform-origin: left;
+}
+.problem-card:hover { transform: translateY(-6px); box-shadow: 0 24px 56px rgba(28,58,46,0.09); border-color: rgba(212,98,42,0.2); }
+.problem-card:hover::before { transform: scaleX(1); }
+.problem-num { font-size: 80px; font-weight: 900; color: rgba(28,58,46,0.04); letter-spacing: -4px; line-height: 1; margin-bottom: 14px; }
+.problem-title { font-size: 19px; font-weight: 800; color: var(--green); letter-spacing: -0.3px; margin-bottom: 12px; }
+.problem-body { font-size: 14px; color: var(--gray); line-height: 1.72; }
+
+/* ── Solution / SVG icon cards ── */
+.solution { background: var(--gray-light); }
+.solution-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 56px; }
+.solution-header-right { max-width: 360px; }
+.solution-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+.sol-card {
+  background: #fff; border: 1px solid var(--border); border-radius: 20px;
+  padding: 32px; transition: all .35s; cursor: default; position: relative; overflow: hidden;
+}
+.sol-card::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(212,98,42,0.04), transparent);
+  opacity: 0; transition: opacity .35s;
+}
+.sol-card:hover { border-color: rgba(212,98,42,0.3); transform: translateY(-4px); box-shadow: 0 20px 48px rgba(28,58,46,0.09); }
+.sol-card:hover::after { opacity: 1; }
+
+/* Icon wrapper */
+.sol-icon-wrap {
+  width: 60px; height: 60px; border-radius: 16px;
+  background: linear-gradient(135deg, rgba(212,98,42,0.08) 0%, rgba(254,188,46,0.1) 100%);
+  border: 1px solid rgba(212,98,42,0.12);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 22px; transition: all .4s cubic-bezier(.34,1.3,.64,1);
+  position: relative; z-index: 1;
+}
+.sol-card:hover .sol-icon-wrap {
+  background: linear-gradient(135deg, rgba(212,98,42,0.14) 0%, rgba(254,188,46,0.18) 100%);
+  border-color: rgba(212,98,42,0.3);
+  transform: rotate(-5deg) scale(1.1);
+  box-shadow: 0 8px 24px rgba(212,98,42,0.18);
+}
+.sol-icon-wrap svg { width: 32px; height: 32px; transition: all .35s; }
+
+.sol-title { font-size: 18px; font-weight: 800; color: var(--green); letter-spacing: -0.3px; margin-bottom: 8px; position: relative; z-index: 1; }
+.sol-body { font-size: 14px; color: var(--gray); line-height: 1.65; position: relative; z-index: 1; }
+
+/* ── How it works ── */
+.how { background: var(--green); position: relative; overflow: hidden; }
+.how::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 80% at -10% 50%, rgba(212,98,42,0.1) 0%, transparent 50%), radial-gradient(ellipse 60% 80% at 110% 50%, rgba(212,98,42,0.08) 0%, transparent 50%); animation: meshPulse 10s ease-in-out infinite alternate; }
+.how-inner { max-width: 1200px; margin: 0 auto; position: relative; }
+.how-header { text-align: center; margin-bottom: 72px; }
+.how-header .section-eyebrow { justify-content: center; }
+.how-header .section-h2 { color: #fff; }
+.how-header .section-sub { color: rgba(255,255,255,0.45); margin: 0 auto; }
+.how-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; position: relative; }
+.how-steps::before { content: ''; position: absolute; top: 48px; left: calc(16.66% + 32px); right: calc(16.66% + 32px); height: 1px; background: rgba(255,255,255,0.08); }
+.how-step { padding: 0 40px; text-align: center; }
+.how-step-num {
+  width: 96px; height: 96px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px; font-weight: 900; color: #fff;
+  margin: 0 auto 28px; position: relative; z-index: 1;
+  transition: all .4s cubic-bezier(.34,1.56,.64,1);
+}
+.how-step:hover .how-step-num { background: var(--orange); border-color: var(--orange); box-shadow: 0 0 48px rgba(212,98,42,0.45); transform: scale(1.08); }
+.how-step-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--orange); margin-bottom: 12px; }
+.how-step-title { font-size: 22px; font-weight: 900; color: #fff; letter-spacing: -0.4px; margin-bottom: 12px; }
+.how-step-body { font-size: 14px; color: rgba(255,255,255,0.42); line-height: 1.7; }
+
+/* ── Results ── */
+.results { background: #fff; }
+.results-top { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; margin-bottom: 72px; }
+.results-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.results-stat { padding: 32px; border-radius: 20px; background: var(--gray-light); border: 1px solid var(--border); transition: all .3s; }
+.results-stat:hover { transform: translateY(-3px); box-shadow: 0 12px 36px rgba(28,58,46,0.07); }
+.results-stat.accent { background: var(--green); border-color: var(--green); }
+.stat-val { font-size: 44px; font-weight: 900; color: var(--green); letter-spacing: -2px; margin-bottom: 4px; line-height: 1; }
+.results-stat.accent .stat-val { color: #fff; }
+.stat-label { font-size: 13px; color: var(--gray); line-height: 1.4; }
+.results-stat.accent .stat-label { color: rgba(255,255,255,0.5); }
+.results-link { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--orange); border-bottom: 1.5px solid rgba(212,98,42,0.3); padding-bottom: 2px; transition: all .25s; }
+.results-link:hover { gap: 14px; border-color: var(--orange); }
+
+/* Testimonials */
+.testimonials { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.testi-card { padding: 32px; border: 1px solid var(--border); border-radius: 20px; transition: all .35s; position: relative; overflow: hidden; }
+.testi-card::before { content: '"'; position: absolute; top: -10px; right: 20px; font-size: 120px; font-weight: 900; color: rgba(28,58,46,0.04); line-height: 1; pointer-events: none; }
+.testi-card:hover { transform: translateY(-4px); box-shadow: 0 20px 48px rgba(28,58,46,0.08); border-color: rgba(212,98,42,0.2); }
+.testi-stars { color: var(--orange); font-size: 14px; letter-spacing: 2px; margin-bottom: 16px; }
+.testi-quote { font-size: 15px; color: #374151; line-height: 1.72; margin-bottom: 24px; }
+.testi-author { display: flex; align-items: center; gap: 12px; }
+.testi-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #fff; flex-shrink: 0; }
+.testi-name { font-size: 14px; font-weight: 700; color: var(--green); }
+.testi-role { font-size: 12px; color: var(--gray); margin-top: 1px; }
+
+/* ── CTA ── */
+.cta-section { background: var(--gray-light); }
+.cta-inner {
+  max-width: 1200px; margin: 0 auto;
+  background: var(--green);
+  background-image: radial-gradient(ellipse 80% 100% at 50% -20%, rgba(212,98,42,0.15) 0%, transparent 60%);
+  border-radius: 28px; padding: 96px 80px; text-align: center; position: relative; overflow: hidden;
+}
+.cta-inner::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(-45deg, transparent, transparent 30px, rgba(255,255,255,0.018) 30px, rgba(255,255,255,0.018) 31px); animation: stripeDrift 20s linear infinite; }
+@keyframes stripeDrift { from { background-position: 0 0; } to { background-position: 80px 80px; } }
+.cta-inner-content { position: relative; }
+.cta-eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--orange); margin-bottom: 24px; }
+.cta-h2 { font-size: clamp(36px, 4vw, 56px); font-weight: 900; color: #fff; letter-spacing: -2px; line-height: 1.07; margin-bottom: 16px; }
+.cta-sub { font-size: 18px; color: rgba(255,255,255,0.45); max-width: 480px; margin: 0 auto 44px; line-height: 1.65; }
+.cta-btns { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.cta-btn-p { padding: 18px 40px; background: var(--orange); color: #fff; border-radius: 14px; font-size: 15px; font-weight: 800; box-shadow: 0 8px 32px rgba(212,98,42,0.4); transition: all .25s; position: relative; overflow: hidden; }
+.cta-btn-p::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent); opacity: 0; transition: opacity .25s; }
+.cta-btn-p:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(212,98,42,0.55); }
+.cta-btn-p:hover::after { opacity: 1; }
+.cta-btn-s { padding: 18px 36px; border: 1.5px solid rgba(255,255,255,0.2); border-radius: 14px; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.75); transition: all .25s; }
+.cta-btn-s:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+.cta-note { margin-top: 20px; font-size: 12px; color: rgba(255,255,255,0.24); }
+
+/* ── FAQ ── */
+.faq-section { padding: 100px 0; background: var(--gray-light); }
+.faq-header { max-width: 560px; margin-bottom: 56px; }
+.faq-list { max-width: 800px; display: flex; flex-direction: column; gap: 4px; }
+.faq-item { background: #fff; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: box-shadow .25s; }
+.faq-item[open] { box-shadow: 0 4px 24px rgba(28,58,46,0.07); }
+.faq-q { list-style: none; padding: 24px 28px; font-size: 16px; font-weight: 600; color: var(--green); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.faq-q::after { content: '+'; font-size: 20px; font-weight: 400; color: var(--orange); flex-shrink: 0; transition: transform .25s; }
+.faq-item[open] .faq-q::after { transform: rotate(45deg); }
+.faq-q::-webkit-details-marker { display: none; }
+.faq-a { padding: 0 28px 24px; font-size: 15px; line-height: 1.7; color: var(--gray); }
+
+/* ── Footer ── */
+footer { background: var(--green-dark); padding: 72px 60px 40px; }
+.footer-top { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr; gap: 64px; margin-bottom: 56px; }
+.footer-brand-logo { height: 28px; margin-bottom: 16px; filter: brightness(0) invert(1) opacity(0.8); }
+.footer-tagline { font-size: 13px; line-height: 1.65; color: rgba(255,255,255,0.32); max-width: 280px; }
+.footer-col-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.45); margin-bottom: 20px; }
+.footer-links { display: flex; flex-direction: column; gap: 10px; }
+.footer-link { font-size: 13px; color: rgba(255,255,255,0.32); font-weight: 500; transition: color .2s; }
+.footer-link:hover { color: #fff; }
+.footer-contact { font-size: 13px; color: rgba(255,255,255,0.32); line-height: 1.8; }
+.footer-contact a { color: rgba(255,255,255,0.32); transition: color .2s; }
+.footer-contact a:hover { color: #fff; }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 28px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: rgba(255,255,255,0.28); }
+
+/* ── Keyframes ── */
+@keyframes fadeUp   { from { opacity:0; transform:translateY(32px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeLeft { from { opacity:0; transform:translateX(32px); } to { opacity:1; transform:translateX(0); } }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "LocalBusiness",
+      "@id": "https://clickpointconsulting.com.au/#organization",
+      "name": "ClickPoint Consulting",
+      "description": "AI marketing and operations automation consultancy based in Sydney, Australia. We design and build intelligent automation systems for lead intelligence, campaign performance, content & SEO, tender monitoring, and conversion optimisation.",
+      "url": "https://clickpointconsulting.com.au/",
+      "email": "hello@clickpointconsulting.com.au",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "172 New South Head Rd",
+        "addressLocality": "Edgecliff",
+        "addressRegion": "NSW",
+        "postalCode": "2027",
+        "addressCountry": "AU"
+      },
+      "areaServed": {"@type": "Country", "name": "Australia"},
+      "knowsAbout": ["AI automation", "marketing automation", "operations automation", "lead intelligence", "campaign performance analytics", "SEO content automation", "tender intelligence", "conversion rate optimisation"],
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "AI Marketing & Operations Automation Services",
+        "itemListElement": [
+          {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Lead Intelligence", "url": "https://clickpointconsulting.com.au/service-lead-intelligence"}},
+          {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Campaign Performance", "url": "https://clickpointconsulting.com.au/service-campaign-performance"}},
+          {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Content & SEO", "url": "https://clickpointconsulting.com.au/service-content-seo"}},
+          {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Tender Intelligence", "url": "https://clickpointconsulting.com.au/service-tender-intelligence"}},
+          {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Conversion Optimisation", "url": "https://clickpointconsulting.com.au/service-conversion-optimisation"}}
+        ]
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://clickpointconsulting.com.au/#website",
+      "url": "https://clickpointconsulting.com.au/",
+      "name": "ClickPoint Consulting",
+      "publisher": {"@id": "https://clickpointconsulting.com.au/#organization"}
+    },
+    {
+      "@type": "HowTo",
+      "name": "How ClickPoint Consulting Builds Your Automation System",
+      "description": "Our three-step process to deliver a working marketing and operations automation system in weeks.",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": "1",
+          "name": "Audit",
+          "text": "We map exactly where your team is leaking time — every manual task, every repetitive process, every bottleneck holding growth back."
+        },
+        {
+          "@type": "HowToStep",
+          "position": "2",
+          "name": "Build",
+          "text": "We design and deploy a custom automation stack tailored to your business. Integrations, AI agents, workflows — configured for how you actually operate."
+        },
+        {
+          "@type": "HowToStep",
+          "position": "3",
+          "name": "Automate",
+          "text": "Your system runs in the background, delivering finished outputs every day. Your team stops firefighting and starts leading."
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is AI marketing automation?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "AI marketing automation uses artificial intelligence to handle repetitive marketing and operations tasks automatically — from scoring and routing inbound leads, to generating campaign performance reports, to monitoring tender portals for bid opportunities. Instead of your team doing this work manually, an AI system does it continuously in the background and delivers finished outputs each day."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How is ClickPoint Consulting different from a traditional marketing agency?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Traditional agencies execute campaigns on your behalf. ClickPoint Consulting builds the intelligent infrastructure that makes your marketing and operations team 3–5× more productive. We design and deploy AI automation systems — lead scoring engines, campaign attribution models, content pipelines, tender monitoring tools — that run continuously and deliver finished work to your team without manual intervention."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How long does it take to set up a marketing automation system?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Most clients see their first automation system live within 4–6 weeks. We start with an audit to identify the highest-impact quick wins, then build and deploy in focused sprints. Full stack implementations covering multiple services typically take 8–12 weeks."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What size businesses does ClickPoint Consulting work with?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "We work best with growth-stage and mid-market Australian businesses with 10–500 employees that have real marketing and operations workloads but lack the internal resources to build and manage automation systems themselves. Our clients typically include B2B services, professional services, SaaS, and construction or infrastructure firms who bid for government contracts."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need technical knowledge to use the automation systems you build?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. We build and manage the entire system for you. Your team receives finished outputs — a scored lead brief each morning, a campaign performance report each week, an AI-drafted content calendar — without needing to understand how the automation works. We handle all the technical setup, integration, and ongoing maintenance."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/clickpointconsultingnewlogo.png" class="nav-logo" alt="ClickPoint Consulting">
+  <div class="nav-links">
+    <a class="nav-link" href="#">About</a>
+    <a class="nav-link" href="#">What We Build</a>
+    <a class="nav-link" href="#">Blog</a>
+  </div>
+  <div class="nav-ctas">
+    <a class="btn-ghost" href="#">Become a Partner</a>
+    <a class="btn-primary" href="#">Free Consultation</a>
+  </div>
+</nav>
+
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-mesh"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-orb"></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">The agentic shift is already happening</div>
+    <h1 class="hero-h1">Your competitors are deploying<br>AI agents. Are you still<br>doing it <em>manually?</em></h1>
+    <p class="hero-p">ClickPoint is Australia's first agentic marketing and operations consultancy. We help businesses <strong>move first</strong> — deploying custom AI agents across your pipeline, campaigns, content, and ops before the gap becomes impossible to close.</p>
+    <div class="hero-btns">
+      <a class="hero-btn-p" href="#">Claim your advantage →</a>
+      <a class="hero-btn-s" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+        See How It Works
+      </a>
+    </div>
+    <div class="hero-proof">
+      <div class="hero-proof-stat"><div class="val">10+ hrs</div><div class="lbl">Reclaimed per person, per week</div></div>
+      <div class="hero-proof-divider"></div>
+      <div class="hero-proof-stat"><div class="val">8 weeks</div><div class="lbl">Average time to ROI</div></div>
+      <div class="hero-proof-divider"></div>
+      <div class="hero-proof-stat"><div class="val">94%</div><div class="lbl">Client retention rate</div></div>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="hero-visual-inner">
+      <div class="dash-bar">
+        <div class="dash-dot r"></div><div class="dash-dot y"></div><div class="dash-dot g"></div>
+        <div class="dash-title">ClickPoint HQ — Live Dashboard</div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:10px;color:rgba(255,255,255,0.3)"><span class="live-dot"></span>Live</div>
+      </div>
+      <div class="dash-body">
+        <div class="dash-sidebar">
+          <div class="dash-nav-section">Main</div>
+          <div class="dash-nav-item active"><div class="dash-nav-dot"></div>Dashboard</div>
+          <div class="dash-nav-item"><div class="dash-nav-dot"></div>Lead Intel</div>
+          <div class="dash-nav-item"><div class="dash-nav-dot"></div>Campaigns</div>
+          <div class="dash-nav-section">Automation</div>
+          <div class="dash-nav-item"><div class="dash-nav-dot"></div>Workflows</div>
+          <div class="dash-nav-item"><div class="dash-nav-dot"></div>Reports</div>
+          <div class="dash-nav-section">Clients</div>
+          <div class="dash-nav-item"><div class="dash-nav-dot"></div>Workspaces</div>
+        </div>
+        <div class="dash-main">
+          <div class="dash-kpis">
+            <div class="dash-kpi"><div class="dash-kpi-val" data-count="4830">0</div><div class="dash-kpi-lbl">Qualified Leads</div><div class="dash-kpi-trend">↑ 12% this month</div></div>
+            <div class="dash-kpi"><div class="dash-kpi-val">A$298K</div><div class="dash-kpi-lbl">Pipeline Value</div><div class="dash-kpi-trend">↑ 24% MoM</div></div>
+            <div class="dash-kpi"><div class="dash-kpi-val">1.4s</div><div class="dash-kpi-lbl">AI Response Time</div><div class="dash-kpi-trend">AI routing · live</div></div>
+          </div>
+          <div class="dash-cards">
+            <div class="dash-card">
+              <div class="dash-card-title">Active Workspaces</div>
+              <div class="dash-row"><div class="dash-avatar" style="background:#D4622A">CF</div><div><div class="dash-name">Crestwave Foods</div><div class="dash-sub">New campaign ready</div></div><div class="dash-badge db-orange">Action</div></div>
+              <div class="dash-row"><div class="dash-avatar" style="background:#0A84FF">AD</div><div><div class="dash-name">Apex Dynamics</div><div class="dash-sub">Report generated</div></div><div class="dash-badge db-green">Active</div></div>
+              <div class="dash-row"><div class="dash-avatar" style="background:#30D158">NG</div><div><div class="dash-name">Northfield Group</div><div class="dash-sub">Tender alert sent</div></div><div class="dash-badge db-green">Active</div></div>
+            </div>
+            <div class="dash-card" id="barChartCard">
+              <div class="dash-card-title">Automation Output — This Week</div>
+              <div class="dash-bars" id="heroBars">
+                <div class="dash-bar-el"  style="height:52%"></div>
+                <div class="dash-bar-el"  style="height:65%"></div>
+                <div class="dash-bar-el"  style="height:48%"></div>
+                <div class="dash-bar-el"  style="height:78%"></div>
+                <div class="dash-bar-el"  style="height:60%"></div>
+                <div class="dash-bar-el hi" style="height:95%"></div>
+                <div class="dash-bar-el"  style="height:73%"></div>
+              </div>
+              <div class="dash-bar-labels">
+                <div class="dash-bar-lbl">M</div><div class="dash-bar-lbl">T</div><div class="dash-bar-lbl">W</div><div class="dash-bar-lbl">T</div><div class="dash-bar-lbl">F</div><div class="dash-bar-lbl">S</div><div class="dash-bar-lbl">S</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- TRUST STRIP -->
+<div class="trust">
+  <div class="trust-label">Integrates with</div>
+  <div class="trust-divider"></div>
+  <div class="trust-logos">
+    <div class="trust-logo">HubSpot</div>
+    <div class="trust-logo">Google Ads</div>
+    <div class="trust-logo">Meta Ads</div>
+    <div class="trust-logo">Salesforce</div>
+    <div class="trust-logo">Make.com</div>
+    <div class="trust-logo">Zapier</div>
+    <div class="trust-logo">Slack</div>
+    <div class="trust-logo">GA4</div>
+  </div>
+</div>
+
+
+<!-- PROBLEM -->
+<section class="problem">
+  <div class="inner">
+    <div class="reveal">
+      <p class="section-eyebrow">The cost of waiting</p>
+      <h2 class="section-h2">Every week you wait,<br>early movers pull<br><em>further ahead.</em></h2>
+    </div>
+    <div class="problem-grid">
+      <div class="problem-card reveal reveal-delay-1">
+        <div class="problem-num">01</div>
+        <div class="problem-title">The businesses moving first are building a moat you can't close later.</div>
+        <div class="problem-body">Early adopters of agentic AI are compounding their advantage every single week — faster lead response, better campaign data, more content output. The gap between first movers and laggards isn't staying still. It's widening.</div>
+      </div>
+      <div class="problem-card reveal reveal-delay-2">
+        <div class="problem-num">02</div>
+        <div class="problem-title">Your competitors aren't waiting for the technology to mature.</div>
+        <div class="problem-body">73% of marketing leaders say AI adoption is now a board-level competitive priority. The businesses in your market who move in the next 6 months will have an 18-month operational lead on everyone who waits. That lead compounds. It doesn't shrink.</div>
+      </div>
+      <div class="problem-card reveal reveal-delay-3">
+        <div class="problem-num">03</div>
+        <div class="problem-title">Manual processes don't just slow you down — they hand advantage to your competitors.</div>
+        <div class="problem-body">While your team manually qualifies leads, pulls reports, and searches tender portals, a competitor with an AI agent is doing all of it simultaneously and continuously. The one who deploys first gets there first. Every time.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- SOLUTION -->
+<section class="solution">
+  <div class="inner">
+    <div class="solution-header">
+      <div class="reveal">
+        <p class="section-eyebrow">What we build for you</p>
+        <h2 class="section-h2">The six agents your<br>competitors wish they<br><em>had deployed first.</em></h2>
+      </div>
+      <div class="solution-header-right reveal reveal-delay-2">
+        <p class="section-sub">Every system is custom-built for your business — no templates, no off-the-shelf packages. We consult first, understand how your business actually works, then design and deploy agents built specifically around your challenges.</p>
+      </div>
+    </div>
+    <div class="solution-grid">
+
+      <!-- Card 1: Lead Intelligence -->
+      <div class="sol-card reveal reveal-delay-1">
+        <div class="sol-icon-wrap">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="g-lead" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#D4622A"/>
+                <stop offset="100%" stop-color="#FEBC2E"/>
+              </linearGradient>
+            </defs>
+            <circle cx="16" cy="16" r="13" stroke="url(#g-lead)" stroke-width="1.6" stroke-dasharray="4 2"/>
+            <circle cx="16" cy="16" r="8"  stroke="url(#g-lead)" stroke-width="1.8"/>
+            <circle cx="16" cy="16" r="3"  stroke="url(#g-lead)" stroke-width="2"/>
+            <line x1="19.5" y1="12.5" x2="27" y2="5" stroke="url(#g-lead)" stroke-width="1.8" stroke-linecap="round"/>
+            <circle cx="27" cy="5" r="1.8" fill="#FEBC2E"/>
+          </svg>
+        </div>
+        <div class="sol-title">Lead Intelligence</div>
+        <div class="sol-body">Qualified prospects — scored, enriched, and ranked — land in your team's inbox every morning at 6am. Zero manual research. Zero cold lists.</div>
+      </div>
+
+      <!-- Card 2: Campaign Performance -->
+      <div class="sol-card reveal reveal-delay-2">
+        <div class="sol-icon-wrap">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="g-camp" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#D4622A"/>
+                <stop offset="100%" stop-color="#FEBC2E"/>
+              </linearGradient>
+            </defs>
+            <rect x="2"  y="20" width="6" height="10" rx="1.5" stroke="url(#g-camp)" stroke-width="1.6"/>
+            <rect x="13" y="13" width="6" height="17" rx="1.5" stroke="url(#g-camp)" stroke-width="1.6"/>
+            <rect x="24" y="5"  width="6" height="25" rx="1.5" stroke="url(#g-camp)" stroke-width="1.6"/>
+            <polyline points="5,21 16,14 27,6" stroke="url(#g-camp)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="5"  cy="21" r="2.2" fill="#D4622A"/>
+            <circle cx="16" cy="14" r="2.2" fill="#E87838"/>
+            <circle cx="27" cy="6"  r="2.2" fill="#FEBC2E"/>
+          </svg>
+        </div>
+        <div class="sol-title">Campaign Performance</div>
+        <div class="sol-body">Know exactly which campaigns close deals — not just which get clicks. Revenue attribution across every channel, compiled and delivered automatically every week.</div>
+      </div>
+
+      <!-- Card 3: Content & SEO -->
+      <div class="sol-card reveal reveal-delay-3">
+        <div class="sol-icon-wrap">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="g-cont" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#D4622A"/>
+                <stop offset="100%" stop-color="#FEBC2E"/>
+              </linearGradient>
+            </defs>
+            <path d="M5 3 H20 Q22 3 23 5 L27 10 Q28 11 28 13 V27 Q28 29 26 29 H6 Q4 29 4 27 V5 Q4 3 5 3Z" stroke="url(#g-cont)" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M20 3 V9 Q20 11 22 11 H28" stroke="url(#g-cont)" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="9" y1="15" x2="19" y2="15" stroke="url(#g-cont)" stroke-width="1.6" stroke-linecap="round"/>
+            <line x1="9" y1="19" x2="19" y2="19" stroke="url(#g-cont)" stroke-width="1.6" stroke-linecap="round"/>
+            <line x1="9" y1="23" x2="14" y2="23" stroke="url(#g-cont)" stroke-width="1.6" stroke-linecap="round"/>
+            <circle cx="23" cy="23" r="4.5" stroke="url(#g-cont)" stroke-width="1.7"/>
+            <line x1="26.2" y1="26.2" x2="29" y2="29" stroke="url(#g-cont)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="sol-title">Content & SEO</div>
+        <div class="sol-body">On-brand, SEO-optimised content — researched, drafted, and scheduled at scale. Your team approves the final cut. The agent does everything else.</div>
+      </div>
+
+      <!-- Card 4: Tender Intelligence -->
+      <div class="sol-card reveal reveal-delay-1">
+        <div class="sol-icon-wrap">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="g-tend" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#D4622A"/>
+                <stop offset="100%" stop-color="#FEBC2E"/>
+              </linearGradient>
+            </defs>
+            <path d="M6 3 H22 Q24 3 24 5 V27 Q24 29 22 29 H6 Q4 29 4 27 V5 Q4 3 6 3Z" stroke="url(#g-tend)" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M9 12 L13 16 L19 9" stroke="url(#g-tend)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="9"  y1="20" x2="19" y2="20" stroke="url(#g-tend)" stroke-width="1.6" stroke-linecap="round"/>
+            <line x1="9"  y1="24" x2="15" y2="24" stroke="url(#g-tend)" stroke-width="1.6" stroke-linecap="round"/>
+            <circle cx="26" cy="8" r="5" stroke="url(#g-tend)" stroke-width="1.6"/>
+            <line x1="26" y1="5.5" x2="26" y2="7.5" stroke="url(#g-tend)" stroke-width="1.8" stroke-linecap="round"/>
+            <circle cx="26" cy="10" r="1" fill="#FEBC2E"/>
+          </svg>
+        </div>
+        <div class="sol-title">Tender Intelligence</div>
+        <div class="sol-body">Every relevant government tender — scored, briefed, and flagged — before your competitors see it. Your BD team focuses on winning, not searching.</div>
+      </div>
+
+      <!-- Card 5: Conversion Optimisation -->
+      <div class="sol-card reveal reveal-delay-2">
+        <div class="sol-icon-wrap">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="g-conv" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#D4622A"/>
+                <stop offset="100%" stop-color="#FEBC2E"/>
+              </linearGradient>
+            </defs>
+            <path d="M4 4 H28 L23 11 H9 Z" stroke="url(#g-conv)" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M9 11 L11.5 18 H20.5 L23 11" stroke="url(#g-conv)" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M11.5 18 L13.5 25 H18.5 L20.5 18" stroke="url(#g-conv)" stroke-width="1.7" stroke-linejoin="round"/>
+            <line x1="16" y1="25" x2="16" y2="29" stroke="url(#g-conv)" stroke-width="2" stroke-linecap="round"/>
+            <polyline points="13,27 16,30 19,27" stroke="url(#g-conv)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="sol-title">Conversion Optimisation</div>
+        <div class="sol-body">Continuous A/B testing and funnel analysis running in the background. Your conversion rate compounds every month — without your team running a single experiment manually.</div>
+      </div>
+
+      <!-- Card 6: Brand Management -->
+      <div class="sol-card reveal reveal-delay-3">
+        <div class="sol-icon-wrap">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="g-brand" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#D4622A"/>
+                <stop offset="100%" stop-color="#FEBC2E"/>
+              </linearGradient>
+            </defs>
+            <path d="M16 2 L29 9.5 V22.5 L16 30 L3 22.5 V9.5 Z" stroke="url(#g-brand)" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M16 8 L23 12 V20 L16 24 L9 20 V12 Z" stroke="url(#g-brand)" stroke-width="1.4" stroke-linejoin="round" stroke-dasharray="3 2"/>
+            <circle cx="16" cy="16" r="3.5" stroke="url(#g-brand)" stroke-width="1.8"/>
+            <circle cx="16" cy="16" r="1"   fill="#FEBC2E"/>
+          </svg>
+        </div>
+        <div class="sol-title">Marketing Ops</div>
+        <div class="sol-body">Workflows, approvals, handoffs, and reporting — automated across your entire marketing and ops function. Your team stops chasing status updates and starts moving.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- HOW IT WORKS -->
+<section class="how">
+  <div class="how-inner">
+    <div class="how-header reveal">
+      <p class="section-eyebrow">How fast can you move?</p>
+      <h2 class="section-h2">Audit to live agents<br>in six weeks.</h2>
+      <p class="section-sub">Most businesses take 6–12 months to get an AI system working properly. We get you live in weeks. Every week earlier is a week your competitors aren't catching up.</p>
+    </div>
+    <div class="how-steps">
+      <div class="how-step reveal reveal-delay-1">
+        <div class="how-step-num">1</div>
+        <div class="how-step-label">Weeks 1–2</div>
+        <div class="how-step-title">Audit</div>
+        <div class="how-step-body">We map every gap, bottleneck, and competitive vulnerability across your marketing and operations. You'll see exactly where competitors could be pulling ahead — and what we'd build to close it.</div>
+      </div>
+      <div class="how-step reveal reveal-delay-2">
+        <div class="how-step-num">2</div>
+        <div class="how-step-label">Weeks 2–5</div>
+        <div class="how-step-title">Deploy</div>
+        <div class="how-step-body">We build and deploy your custom agent stack — lead scoring, campaign attribution, content pipelines, ops workflows — integrated directly with your existing tools and CRM.</div>
+      </div>
+      <div class="how-step reveal reveal-delay-3">
+        <div class="how-step-num">3</div>
+        <div class="how-step-label">Week 6 onwards</div>
+        <div class="how-step-title">Run</div>
+        <div class="how-step-body">Your agents run autonomously. Finished deliverables land with your team every day. We monitor, optimise, and expand the system as your business grows.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- RESULTS -->
+<section class="results">
+  <div class="inner">
+    <div class="results-top">
+      <div class="results-stats reveal">
+        <div class="results-stat accent">
+          <div class="stat-val" data-count="10" data-suffix="+">0</div>
+          <div class="stat-label">Hours reclaimed per person, per week</div>
+        </div>
+        <div class="results-stat">
+          <div class="stat-val" data-count="8" data-suffix=" wks">0</div>
+          <div class="stat-label">Average time to measurable ROI</div>
+        </div>
+        <div class="results-stat">
+          <div class="stat-val" data-count="70" data-suffix="%">0</div>
+          <div class="stat-label">Of repetitive tasks automated in 90 days</div>
+        </div>
+        <div class="results-stat">
+          <div class="stat-val" data-count-decimal="3.2" data-suffix="×">0</div>
+          <div class="stat-label">Faster campaign execution on average</div>
+        </div>
+      </div>
+      <div class="reveal reveal-delay-2">
+        <p class="section-eyebrow">Real results</p>
+        <h2 class="section-h2" style="margin-bottom:16px">What first movers<br>actually gain.</h2>
+        <p class="section-sub" style="margin-bottom:32px">These aren't projections. They're what our clients see when they move first — while their competitors are still deciding whether to start.</p>
+        <a class="results-link" href="#">Read our case studies →</a>
+      </div>
+    </div>
+    <div class="testimonials">
+      <div class="testi-card reveal reveal-delay-1">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-quote">"Before ClickPoint, our team spent Monday morning pulling reports. Now they land in everyone's inbox at 7am — automatically, formatted, and ready to act on."</div>
+        <div class="testi-author">
+          <div class="testi-avatar">SM</div>
+          <div><div class="testi-name">Sarah M.</div><div class="testi-role">Marketing Director, Financial Services</div></div>
+        </div>
+      </div>
+      <div class="testi-card reveal reveal-delay-2">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-quote">"We were winning 1 in 5 tenders because we couldn't move fast enough. The tender intelligence system changed that. We respond in half the time with better briefs."</div>
+        <div class="testi-author">
+          <div class="testi-avatar">JK</div>
+          <div><div class="testi-name">James K.</div><div class="testi-role">BD Manager, Construction & Trades</div></div>
+        </div>
+      </div>
+      <div class="testi-card reveal reveal-delay-3">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-quote">"The audit alone was worth it. They found 14 hours a week our team was losing to completely automatable tasks. The ROI was immediate and obvious."</div>
+        <div class="testi-author">
+          <div class="testi-avatar">RC</div>
+          <div><div class="testi-name">Rachel C.</div><div class="testi-role">COO, Professional Services</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-inner reveal">
+    <div class="cta-inner-content">
+      <div class="cta-eyebrow">The window is closing</div>
+      <h2 class="cta-h2">The window to move first<br>is closing.</h2>
+      <p class="cta-sub">Book a free strategy consultation. We'll map exactly where competitors could be pulling ahead in your market — and show you what we'd build to close the gap permanently.</p>
+      <div class="cta-btns">
+        <a class="cta-btn-p" href="#">Book your free consultation →</a>
+        <a class="cta-btn-s" href="#">Talk to us first</a>
+      </div>
+      <div class="cta-note">No commitment. No sales pitch. Just clarity on your competitive position.</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- FAQ -->
+<section class="faq-section">
+  <div class="inner">
+    <div class="faq-header reveal">
+      <p class="section-eyebrow">Common questions</p>
+      <h2 class="section-h2">Everything you need<br>to know before we talk.</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item reveal">
+        <summary class="faq-q">What is AI marketing automation?</summary>
+        <div class="faq-a">AI marketing automation uses artificial intelligence to handle repetitive marketing and operations tasks automatically — from scoring and routing inbound leads, to generating campaign performance reports, to monitoring tender portals for bid opportunities. Instead of your team doing this work manually, an AI system does it continuously in the background and delivers finished outputs each day.</div>
+      </details>
+      <details class="faq-item reveal reveal-delay-1">
+        <summary class="faq-q">How is ClickPoint Consulting different from a traditional marketing agency?</summary>
+        <div class="faq-a">Traditional agencies execute campaigns on your behalf. ClickPoint Consulting builds the intelligent infrastructure that makes your marketing and operations team 3–5× more productive. We design and deploy AI automation systems — lead scoring engines, campaign attribution models, content pipelines, tender monitoring tools — that run continuously and deliver finished work to your team without manual intervention.</div>
+      </details>
+      <details class="faq-item reveal reveal-delay-2">
+        <summary class="faq-q">How long does it take to set up a marketing automation system?</summary>
+        <div class="faq-a">Most clients see their first automation system live within 4–6 weeks. We start with an audit to identify the highest-impact quick wins, then build and deploy in focused sprints. Full stack implementations covering multiple services typically take 8–12 weeks.</div>
+      </details>
+      <details class="faq-item reveal reveal-delay-3">
+        <summary class="faq-q">What size businesses does ClickPoint Consulting work with?</summary>
+        <div class="faq-a">We work best with growth-stage and mid-market Australian businesses with 10–500 employees that have real marketing and operations workloads but lack the internal resources to build and manage automation systems themselves. Our clients typically include B2B services, professional services, SaaS, and construction or infrastructure firms who bid for government contracts.</div>
+      </details>
+      <details class="faq-item reveal">
+        <summary class="faq-q">Do I need technical knowledge to use the systems you build?</summary>
+        <div class="faq-a">No. We build and manage the entire system for you. Your team receives finished outputs — a scored lead brief each morning, a campaign performance report each week, an AI-drafted content calendar — without needing to understand how the automation works. We handle all the technical setup, integration, and ongoing maintenance.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" class="footer-brand-logo" alt="ClickPoint Consulting">
+      <div class="footer-tagline">Australia's first agentic marketing and operations consultancy. Move first. Build the moat. Lead the market.</div>
+    </div>
+    <div>
+      <div class="footer-col-title">Company</div>
+      <div class="footer-links">
+        <a class="footer-link" href="#">About Click Point</a>
+        <a class="footer-link" href="#">What We Build</a>
+        <a class="footer-link" href="#">Become a Partner</a>
+        <a class="footer-link" href="#">Blog</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Services</div>
+      <div class="footer-links">
+        <a class="footer-link" href="service-lead-intelligence.html">Lead Intelligence</a>
+        <a class="footer-link" href="service-campaign-performance.html">Campaign Performance</a>
+        <a class="footer-link" href="service-content-seo.html">Content & SEO</a>
+        <a class="footer-link" href="service-tender-intelligence.html">Tender Intelligence</a>
+        <a class="footer-link" href="service-conversion-optimisation.html">Conversion Optimisation</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Contact</div>
+      <div class="footer-contact">
+        <a href="mailto:hello@clickpointconsulting.com.au">hello@clickpointconsulting.com.au</a><br><br>
+        172 New South Head Rd<br>Edgecliff NSW 2027
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div>© 2026 ClickPoint Consulting. All Rights Reserved.</div>
+    <a class="footer-link" href="#">Privacy Policy</a>
+  </div>
+</footer>
+
+
+<script>
+/* ── Nav scroll shadow ── */
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 20);
+});
+
+/* ── Scroll reveal ── */
+const revealEls = document.querySelectorAll('.reveal');
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); } });
+}, { threshold: 0.12 });
+revealEls.forEach(el => revealObserver.observe(el));
+
+/* ── Counter animation ── */
+function animateCount(el, target, isDecimal, suffix) {
+  const duration = 1600;
+  const start = performance.now();
+  const update = (now) => {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    const val = isDecimal ? (ease * target).toFixed(1) : Math.round(ease * target);
+    el.textContent = val + suffix;
+    if (t < 1) requestAnimationFrame(update);
+  };
+  requestAnimationFrame(update);
+}
+
+const counterEls = document.querySelectorAll('[data-count], [data-count-decimal]');
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const el = e.target;
+      const suffix = el.dataset.suffix || '';
+      if (el.dataset.count) animateCount(el, parseInt(el.dataset.count), false, suffix);
+      if (el.dataset.countDecimal) animateCount(el, parseFloat(el.dataset.countDecimal), true, suffix);
+      counterObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+counterEls.forEach(el => counterObserver.observe(el));
+
+/* ── Bar chart animation ── */
+const barChart = document.getElementById('heroBars');
+const barObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { barChart.classList.add('bars-animated'); barObserver.unobserve(e.target); }
+  });
+}, { threshold: 0.5 });
+if (barChart) barObserver.observe(barChart);
+
+/* Stagger bar animations */
+document.querySelectorAll('.dash-bar-el').forEach((bar, i) => {
+  bar.style.transitionDelay = `${i * 0.06 + 0.3}s`;
+});
+</script>
+</body>
+</html>

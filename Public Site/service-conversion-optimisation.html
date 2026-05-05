@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conversion Rate Optimisation &amp; AI-Powered A/B Testing | ClickPoint Consulting</title>
+<meta name="description" content="ClickPoint Consulting builds AI-driven conversion optimisation systems that run continuous A/B tests, identify friction points in your funnel, and deliver data-backed recommendations — achieving a 2.3× average conversion lift.">
+<link rel="canonical" href="https://clickpointconsulting.com.au/service-conversion-optimisation">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://clickpointconsulting.com.au/service-conversion-optimisation">
+<meta property="og:title" content="Conversion Rate Optimisation &amp; AI-Powered A/B Testing | ClickPoint Consulting">
+<meta property="og:description" content="We build AI-powered CRO systems that run continuous A/B tests, analyse user behaviour, and surface the exact changes needed to turn more visitors into customers — 2.3× average conversion lift.">
+<meta property="og:image" content="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/clickpoint-og-image.jpg">
+<meta property="og:site_name" content="ClickPoint Consulting">
+<meta property="og:locale" content="en_AU">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Conversion Rate Optimisation &amp; AI-Powered A/B Testing | ClickPoint Consulting">
+<meta name="twitter:description" content="We build AI-powered CRO systems that run continuous A/B tests, analyse user behaviour, and surface the exact changes needed to turn more visitors into customers — 2.3× average conversion lift.">
+<meta name="twitter:image" content="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/clickpoint-og-image.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'DM Sans', sans-serif; background: #fff; color: #1C3A2E; -webkit-font-smoothing: antialiased; }
+a { text-decoration: none; color: inherit; }
+:root {
+  --green: #1C3A2E; --green-mid: #244836; --green-dark: #0f2219;
+  --orange: #D4622A; --orange-light: rgba(212,98,42,0.1);
+  --gray: #6B7280; --gray-light: #F7F8FA; --border: #E4E7EC;
+}
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 60px; height: 72px; background: rgba(255,255,255,0.92); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(28,58,46,0.07); }
+.nav-logo { height: 32px; }
+.nav-links { display: flex; align-items: center; gap: 36px; }
+.nav-link { font-size: 14px; font-weight: 600; color: var(--gray); transition: color .2s; }
+.nav-link:hover { color: var(--green); }
+.nav-ctas { display: flex; align-items: center; gap: 12px; }
+.btn-ghost { padding: 10px 22px; border: 1.5px solid var(--border); border-radius: 100px; font-size: 14px; font-weight: 600; color: var(--green); }
+.btn-primary { padding: 11px 24px; background: var(--green); color: #fff; border-radius: 100px; font-size: 14px; font-weight: 700; }
+.btn-primary:hover { background: var(--green-mid); }
+
+.page-hero { padding: 148px 60px 100px; background: var(--green-dark); background-image: radial-gradient(ellipse 70% 60% at 100% 50%, rgba(212,98,42,0.1) 0%, transparent 60%), repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(255,255,255,0.025) 79px, rgba(255,255,255,0.025) 80px), repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(255,255,255,0.025) 79px, rgba(255,255,255,0.025) 80px); }
+.page-hero-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 20px; }
+.breadcrumb a { color: rgba(255,255,255,0.3); }
+.eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--orange); margin-bottom: 24px; }
+.eyebrow::before { content: ''; width: 28px; height: 2px; background: var(--orange); }
+h1 { font-size: clamp(40px, 4vw, 60px); font-weight: 900; color: #fff; line-height: 1.05; letter-spacing: -2px; margin-bottom: 20px; }
+h1 em { font-style: normal; background: linear-gradient(135deg, #D4622A 0%, #E8874F 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-p { font-size: 18px; line-height: 1.7; color: rgba(255,255,255,0.5); margin-bottom: 36px; max-width: 500px; }
+.hero-p strong { color: rgba(255,255,255,0.8); font-weight: 600; }
+.hero-btns { display: flex; gap: 14px; }
+.hero-btn-p { padding: 15px 32px; background: var(--orange); color: #fff; border-radius: 12px; font-size: 15px; font-weight: 800; box-shadow: 0 4px 20px rgba(212,98,42,0.35); transition: all .25s; }
+.hero-btn-p:hover { transform: translateY(-2px); }
+.hero-btn-s { padding: 15px 28px; border: 1.5px solid rgba(255,255,255,0.18); border-radius: 12px; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.7); transition: all .25s; }
+.hero-btn-s:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
+
+/* CRO dashboard visual */
+.cro-visual { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.4); }
+.cv-header { background: rgba(0,0,0,0.2); padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: space-between; }
+.cv-title { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 0.06em; text-transform: uppercase; }
+.cv-live { font-size: 10px; color: #30D158; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+.cv-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #30D158; }
+.cv-body { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.cv-kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.cv-kpi { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px; }
+.cv-kpi-val { font-size: 24px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+.cv-kpi-lbl { font-size: 9px; color: rgba(255,255,255,0.3); margin-top: 3px; }
+.cv-kpi-delta { font-size: 9px; margin-top: 5px; font-weight: 600; color: #30D158; }
+.cv-tests { }
+.cv-tests-title { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.25); margin-bottom: 10px; }
+.cv-test { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 12px; margin-bottom: 8px; }
+.cv-test-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.cv-test-name { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.65); }
+.cv-test-badge { padding: 2px 8px; border-radius: 20px; font-size: 8px; font-weight: 700; }
+.badge-running { background: rgba(10,132,255,0.15); color: #0A84FF; }
+.badge-winner { background: rgba(48,209,88,0.15); color: #30D158; }
+.cv-variants { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.cv-variant { background: rgba(255,255,255,0.04); border-radius: 6px; padding: 6px 8px; }
+.cv-v-label { font-size: 8px; color: rgba(255,255,255,0.25); margin-bottom: 3px; }
+.cv-v-val { font-size: 13px; font-weight: 800; color: #fff; }
+.cv-v-win { color: #30D158; }
+
+section { padding: 96px 60px; }
+.inner { max-width: 1200px; margin: 0 auto; }
+.s-eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--orange); margin-bottom: 20px; }
+.s-eyebrow::before { content: ''; width: 24px; height: 2px; background: var(--orange); }
+.s-h2 { font-size: clamp(32px, 3.5vw, 48px); font-weight: 900; color: var(--green); letter-spacing: -1.8px; line-height: 1.08; margin-bottom: 14px; }
+.s-h2 em { font-style: normal; color: var(--orange); }
+.s-sub { font-size: 17px; color: var(--gray); line-height: 1.65; max-width: 560px; }
+
+.problem { background: #fff; }
+.prob-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 52px; }
+.prob-card { padding: 36px 32px; border: 1px solid var(--border); border-radius: 20px; transition: all .3s; position: relative; overflow: hidden; }
+.prob-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--orange); transform: scaleX(0); transition: transform .3s; transform-origin: left; }
+.prob-card:hover { transform: translateY(-4px); box-shadow: 0 20px 48px rgba(28,58,46,0.07); border-color: rgba(212,98,42,0.2); }
+.prob-card:hover::after { transform: scaleX(1); }
+.prob-icon { font-size: 32px; margin-bottom: 16px; }
+.prob-title { font-size: 18px; font-weight: 800; color: var(--green); letter-spacing: -0.3px; margin-bottom: 10px; }
+.prob-body { font-size: 14px; color: var(--gray); line-height: 1.7; }
+
+.capabilities { background: var(--gray-light); }
+.cap-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 52px; }
+.cap-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 36px; transition: all .3s; display: flex; gap: 24px; }
+.cap-card:hover { border-color: var(--orange); box-shadow: 0 12px 36px rgba(28,58,46,0.07); transform: translateY(-2px); }
+.cap-icon { width: 56px; height: 56px; border-radius: 14px; background: var(--orange-light); display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+.cap-title { font-size: 18px; font-weight: 800; color: var(--green); letter-spacing: -0.3px; margin-bottom: 8px; }
+.cap-body { font-size: 14px; color: var(--gray); line-height: 1.65; }
+
+.process { background: var(--green); position: relative; overflow: hidden; }
+.process::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(212,98,42,0.12) 0%, transparent 60%); }
+.proc-inner { max-width: 1200px; margin: 0 auto; position: relative; }
+.proc-h2 { font-size: clamp(32px, 3.5vw, 48px); font-weight: 900; color: #fff; letter-spacing: -1.8px; line-height: 1.08; margin-bottom: 14px; }
+.proc-sub { font-size: 17px; color: rgba(255,255,255,0.4); max-width: 560px; margin-bottom: 56px; line-height: 1.65; }
+.proc-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+.proc-step { position: relative; }
+.proc-step:not(:last-child)::after { content: '→'; position: absolute; top: 22px; right: -16px; font-size: 20px; color: rgba(255,255,255,0.15); }
+.proc-num { width: 48px; height: 48px; border-radius: 12px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #fff; margin-bottom: 18px; transition: all .3s; }
+.proc-step:hover .proc-num { background: var(--orange); border-color: var(--orange); }
+.proc-lbl { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--orange); margin-bottom: 6px; }
+.proc-title { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -0.3px; margin-bottom: 8px; }
+.proc-body { font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.65; }
+
+.what-we-fix { background: #fff; }
+.fix-split { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; margin-top: 52px; }
+.fix-list { display: flex; flex-direction: column; gap: 16px; }
+.fix-item { display: flex; gap: 16px; padding: 22px 24px; border: 1px solid var(--border); border-radius: 16px; transition: all .3s; }
+.fix-item:hover { border-color: var(--orange); box-shadow: 0 6px 20px rgba(28,58,46,0.06); }
+.fix-icon { font-size: 22px; flex-shrink: 0; }
+.fix-title { font-size: 15px; font-weight: 800; color: var(--green); margin-bottom: 4px; }
+.fix-body { font-size: 13px; color: var(--gray); line-height: 1.6; }
+.fix-results { background: var(--green); border-radius: 20px; padding: 36px; }
+.fix-results-title { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.4); margin-bottom: 24px; text-transform: uppercase; letter-spacing: 0.06em; }
+.result-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.result-row:last-child { border-bottom: none; }
+.result-label { font-size: 13px; color: rgba(255,255,255,0.5); }
+.result-before { font-size: 18px; font-weight: 900; color: rgba(255,255,255,0.3); letter-spacing: -0.5px; }
+.result-after { font-size: 18px; font-weight: 900; color: #30D158; letter-spacing: -0.5px; }
+.result-arrow { font-size: 14px; color: rgba(255,255,255,0.2); }
+
+.stats-band { background: var(--green); padding: 72px 60px; }
+.stats-band-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 48px; }
+.sb-val { font-size: 52px; font-weight: 900; color: #fff; letter-spacing: -2.5px; line-height: 1; margin-bottom: 8px; }
+.sb-val span { font-size: 28px; }
+.sb-label { font-size: 14px; color: rgba(255,255,255,0.4); line-height: 1.5; }
+
+/* FAQ */
+.faq-section { padding: 100px 60px; background: #fff; }
+.faq-inner { max-width: 1200px; margin: 0 auto; }
+.faq-header { max-width: 560px; margin-bottom: 48px; }
+.faq-eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--orange); margin-bottom: 16px; }
+.faq-eyebrow::before { content: ''; width: 24px; height: 2px; background: var(--orange); }
+.faq-h2 { font-size: clamp(26px, 3vw, 36px); font-weight: 800; line-height: 1.2; color: var(--green); }
+.faq-list { max-width: 800px; display: flex; flex-direction: column; gap: 4px; }
+.faq-item { background: var(--gray-light); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: box-shadow .25s; }
+.faq-item[open] { box-shadow: 0 4px 24px rgba(28,58,46,0.07); background: #fff; }
+.faq-q { list-style: none; padding: 22px 26px; font-size: 15px; font-weight: 600; color: var(--green); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.faq-q::after { content: '+'; font-size: 20px; font-weight: 400; color: var(--orange); flex-shrink: 0; transition: transform .25s; }
+.faq-item[open] .faq-q::after { transform: rotate(45deg); }
+.faq-q::-webkit-details-marker { display: none; }
+.faq-a { padding: 0 26px 22px; font-size: 14px; line-height: 1.75; color: var(--gray); }
+
+.cta-section { background: var(--gray-light); padding: 80px 60px; }
+.cta-inner { max-width: 1200px; margin: 0 auto; background: var(--green); background-image: radial-gradient(ellipse 80% 100% at 50% -20%, rgba(212,98,42,0.15) 0%, transparent 60%); border-radius: 28px; padding: 88px 80px; text-align: center; position: relative; overflow: hidden; }
+.cta-inner::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(-45deg, transparent, transparent 30px, rgba(255,255,255,0.015) 30px, rgba(255,255,255,0.015) 31px); }
+.cta-content { position: relative; }
+.cta-eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--orange); margin-bottom: 20px; }
+.cta-h2 { font-size: clamp(32px, 4vw, 52px); font-weight: 900; color: #fff; letter-spacing: -2px; line-height: 1.07; margin-bottom: 14px; }
+.cta-sub { font-size: 17px; color: rgba(255,255,255,0.45); max-width: 460px; margin: 0 auto 40px; line-height: 1.65; }
+.cta-btns { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.cta-btn-p { padding: 16px 36px; background: var(--orange); color: #fff; border-radius: 12px; font-size: 15px; font-weight: 800; box-shadow: 0 6px 24px rgba(212,98,42,0.4); transition: all .25s; }
+.cta-btn-p:hover { transform: translateY(-2px); }
+.cta-btn-s { padding: 16px 32px; border: 1.5px solid rgba(255,255,255,0.2); border-radius: 12px; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.7); transition: all .25s; }
+.cta-btn-s:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+.cta-note { margin-top: 18px; font-size: 12px; color: rgba(255,255,255,0.22); }
+
+footer { background: var(--green-dark); padding: 72px 60px 40px; }
+.footer-top { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr; gap: 64px; margin-bottom: 56px; }
+.footer-brand-logo { height: 28px; margin-bottom: 16px; filter: brightness(0) invert(1) opacity(0.8); }
+.footer-tagline { font-size: 13px; line-height: 1.65; color: rgba(255,255,255,0.35); max-width: 280px; }
+.footer-col-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+.footer-links { display: flex; flex-direction: column; gap: 10px; }
+.footer-link { font-size: 13px; color: rgba(255,255,255,0.35); font-weight: 500; transition: color .2s; }
+.footer-link:hover { color: #fff; }
+.footer-contact { font-size: 13px; color: rgba(255,255,255,0.35); line-height: 1.8; }
+.footer-contact a { color: rgba(255,255,255,0.35); }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 28px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: rgba(255,255,255,0.35); }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Service",
+      "name": "Conversion Rate Optimisation",
+      "provider": {"@id": "https://clickpointconsulting.com.au/#organization"},
+      "description": "AI-powered conversion rate optimisation system that runs continuous A/B tests, analyses user behaviour patterns, and delivers data-backed recommendations — achieving a 2.3× average conversion lift for clients.",
+      "url": "https://clickpointconsulting.com.au/service-conversion-optimisation",
+      "areaServed": {"@type": "Country", "name": "Australia"},
+      "serviceType": "AI Conversion Rate Optimisation & A/B Testing"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is conversion rate optimisation (CRO)?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Conversion rate optimisation (CRO) is the systematic process of increasing the percentage of website visitors who take a desired action — filling out a form, booking a demo, making a purchase, or calling your business. It involves analysing user behaviour, identifying friction points in your funnel, testing changes (A/B testing), and implementing the variations that produce measurably better results. AI-powered CRO automates much of this process so testing runs continuously rather than in occasional manual sprints."}
+        },
+        {
+          "@type": "Question",
+          "name": "How long does an A/B test need to run to be valid?",
+          "acceptedAnswer": {"@type": "Answer", "text": "A statistically valid A/B test typically requires a minimum of 1–2 weeks and enough traffic to achieve 95% statistical significance — usually at least 500–1,000 conversions split across variants. Our system monitors tests in real time and automatically flags when significance thresholds are met, so you never call a winner too early or run a test longer than necessary."}
+        },
+        {
+          "@type": "Question",
+          "name": "What elements of a website can be tested?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Almost anything that affects user behaviour can be tested — headlines, hero copy, CTA button text and placement, form length and fields, page layout and content hierarchy, pricing presentation, social proof placement, imagery, and page load speed. Our AI identifies which elements are most likely to impact conversion based on heatmap data, session recordings, and behavioural analytics before prioritising what to test first."}
+        },
+        {
+          "@type": "Question",
+          "name": "How quickly can we expect to see conversion improvements?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Most clients see their first statistically significant test result within 4–6 weeks. Quick-win optimisations — fixing obvious friction points like slow forms, unclear CTAs, or mobile layout issues — often deliver improvements within the first 2 weeks. The compounding effect of continuous testing typically delivers a 2.3× conversion lift within 6 months."}
+        },
+        {
+          "@type": "Question",
+          "name": "Do we need high website traffic for CRO to work?",
+          "acceptedAnswer": {"@type": "Answer", "text": "You need enough traffic to generate statistically meaningful results, but you don't need massive volume. Sites with 1,000+ monthly visitors can run meaningful tests on high-traffic pages. For lower-traffic sites, we focus on qualitative analysis — heatmaps, session recordings, user interviews — to identify and fix high-confidence issues before moving into A/B testing as traffic grows."}
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<nav>
+  <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/clickpointconsultingnewlogo.png" class="nav-logo" alt="ClickPoint Consulting">
+  <div class="nav-links">
+    <a class="nav-link" href="#">About</a>
+    <a class="nav-link" href="#">What We Build</a>
+    <a class="nav-link" href="#">Blog</a>
+  </div>
+  <div class="nav-ctas">
+    <a class="btn-ghost" href="#">Become a Partner</a>
+    <a class="btn-primary" href="#">Free Consultation</a>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div>
+      <div class="breadcrumb"><a href="homepage-redesign.html">Home</a> <span>/</span> <span>Conversion Optimisation</span></div>
+      <p class="eyebrow">Conversion Optimisation</p>
+      <h1>Traffic without<br>conversion is just <em>noise.</em><br>We fix that.</h1>
+      <p class="hero-p">We build <strong>automated testing, tracking, and optimisation systems</strong> that continuously improve your conversion rates — without your team running manual experiments every week.</p>
+      <div class="hero-btns">
+        <a class="hero-btn-p" href="#">Book a Free Audit →</a>
+        <a class="hero-btn-s" href="#">See our results</a>
+      </div>
+    </div>
+    <div>
+      <div class="cro-visual">
+        <div class="cv-header">
+          <div class="cv-title">CRO Dashboard — Live Tests</div>
+          <div class="cv-live">Optimising</div>
+        </div>
+        <div class="cv-body">
+          <div class="cv-kpi-row">
+            <div class="cv-kpi">
+              <div class="cv-kpi-val">4.7%</div>
+              <div class="cv-kpi-lbl">Conversion Rate</div>
+              <div class="cv-kpi-delta">↑ from 2.1% (baseline)</div>
+            </div>
+            <div class="cv-kpi">
+              <div class="cv-kpi-val">$38</div>
+              <div class="cv-kpi-lbl">Cost per Lead</div>
+              <div class="cv-kpi-delta">↓ from $71 (baseline)</div>
+            </div>
+            <div class="cv-kpi">
+              <div class="cv-kpi-val">3</div>
+              <div class="cv-kpi-lbl">Active A/B Tests</div>
+              <div class="cv-kpi-delta">2 approaching significance</div>
+            </div>
+          </div>
+          <div class="cv-tests">
+            <div class="cv-tests-title">Active Experiments</div>
+            <div class="cv-test">
+              <div class="cv-test-top">
+                <div class="cv-test-name">Homepage Hero CTA — "Book Audit" vs "See How It Works"</div>
+                <div class="cv-test-badge badge-running">Running — Day 8</div>
+              </div>
+              <div class="cv-variants">
+                <div class="cv-variant"><div class="cv-v-label">Control</div><div class="cv-v-val">2.4% CVR</div></div>
+                <div class="cv-variant"><div class="cv-v-label">Variant A</div><div class="cv-v-val cv-v-win">4.1% CVR ↑</div></div>
+              </div>
+            </div>
+            <div class="cv-test">
+              <div class="cv-test-top">
+                <div class="cv-test-name">Lead form — 3 fields vs 6 fields</div>
+                <div class="cv-test-badge badge-winner">Winner Found ✓</div>
+              </div>
+              <div class="cv-variants">
+                <div class="cv-variant"><div class="cv-v-label">Control (6 fields)</div><div class="cv-v-val">18% completion</div></div>
+                <div class="cv-variant"><div class="cv-v-label">Variant (3 fields)</div><div class="cv-v-val cv-v-win">41% completion ↑</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="problem">
+  <div class="inner">
+    <div class="s-eyebrow">The problem</div>
+    <h2 class="s-h2">Your traffic is working.<br>Your <em>pages</em> aren't.</h2>
+    <div class="prob-grid">
+      <div class="prob-card">
+        <div class="prob-icon">💸</div>
+        <div class="prob-title">You're paying for traffic that never converts</div>
+        <div class="prob-body">The average website converts 1–3% of visitors. That means 97–99% of your ad spend, SEO effort, and content marketing ends in a bounce. Small conversion improvements compound into massive revenue gains.</div>
+      </div>
+      <div class="prob-card">
+        <div class="prob-icon">🤷</div>
+        <div class="prob-title">You don't know why people are leaving</div>
+        <div class="prob-body">Without proper tracking — heatmaps, session recordings, form analytics, funnel drop-off data — you're guessing. You change things based on intuition and hope. That's not a strategy, it's chance.</div>
+      </div>
+      <div class="prob-card">
+        <div class="prob-icon">🔄</div>
+        <div class="prob-title">A/B testing is manual, slow, and rarely done</div>
+        <div class="prob-body">Setting up a test, waiting for significance, analysing results, and deploying a winner takes weeks — manually. Most teams run one or two tests a quarter. The best companies run dozens simultaneously.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="capabilities">
+  <div class="inner">
+    <div class="s-eyebrow">What we build</div>
+    <h2 class="s-h2">An optimisation engine<br>that <em>never stops testing.</em></h2>
+    <p class="s-sub">We instrument your site, build your testing infrastructure, and run continuous experiments — so conversion rates improve every month, automatically.</p>
+    <div class="cap-grid">
+      <div class="cap-card">
+        <div class="cap-icon">🔬</div>
+        <div>
+          <div class="cap-title">Behavioural Analytics & Tracking Setup</div>
+          <div class="cap-body">We instrument your site with heatmaps, session recordings, form analytics, and funnel tracking — so you can see exactly where visitors drop off, what they're ignoring, and what's confusing them.</div>
+        </div>
+      </div>
+      <div class="cap-card">
+        <div class="cap-icon">⚗️</div>
+        <div>
+          <div class="cap-title">Automated A/B Testing Infrastructure</div>
+          <div class="cap-body">We build a continuous testing pipeline — hypothesis generation, variant creation, statistical significance monitoring, and automated winner deployment. Your site improves itself, week after week.</div>
+        </div>
+      </div>
+      <div class="cap-card">
+        <div class="cap-icon">📄</div>
+        <div>
+          <div class="cap-title">Landing Page Optimisation</div>
+          <div class="cap-body">Every page in your conversion funnel is audited, redesigned to conversion best practices, and continuously tested. Headlines, CTAs, form fields, social proof placement — all systematically optimised.</div>
+        </div>
+      </div>
+      <div class="cap-card">
+        <div class="cap-icon">📊</div>
+        <div>
+          <div class="cap-title">Conversion Reporting & Recommendations</div>
+          <div class="cap-body">Weekly CRO reports with test results, winning variants, revenue impact calculations, and a prioritised backlog of the next highest-impact experiments to run.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="process">
+  <div class="proc-inner">
+    <div class="s-eyebrow" style="color:var(--orange)">How it works</div>
+    <h2 class="proc-h2">Instrument, hypothesise,<br>test, and deploy — on repeat.</h2>
+    <p class="proc-sub">A systematic, continuously running optimisation loop — not a one-off project.</p>
+    <div class="proc-steps">
+      <div class="proc-step">
+        <div class="proc-num">1</div>
+        <div class="proc-lbl">Audit</div>
+        <div class="proc-title">Conversion Audit</div>
+        <div class="proc-body">We analyse your existing funnel — traffic, drop-off points, form behaviour, and page performance — to identify the highest-impact optimisation opportunities.</div>
+      </div>
+      <div class="proc-step">
+        <div class="proc-num">2</div>
+        <div class="proc-lbl">Instrument</div>
+        <div class="proc-title">Tracking Setup</div>
+        <div class="proc-body">We instrument your site with behavioural analytics, heatmaps, and conversion tracking — giving you the data foundation that makes every future test meaningful.</div>
+      </div>
+      <div class="proc-step">
+        <div class="proc-num">3</div>
+        <div class="proc-lbl">Test</div>
+        <div class="proc-title">Continuous Experiments</div>
+        <div class="proc-body">A rolling programme of A/B tests — ranked by expected impact, run to statistical significance, and monitored automatically with no manual intervention required.</div>
+      </div>
+      <div class="proc-step">
+        <div class="proc-num">4</div>
+        <div class="proc-lbl">Deploy</div>
+        <div class="proc-title">Winner Implementation</div>
+        <div class="proc-body">Winning variants are automatically deployed. Results are reported with revenue impact calculations. The backlog refills with the next round of tests.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="what-we-fix">
+  <div class="inner">
+    <div class="s-eyebrow">What we optimise</div>
+    <h2 class="s-h2">Every point in your<br>funnel where <em>revenue leaks.</em></h2>
+    <p class="s-sub">We work across your entire conversion path — not just your homepage.</p>
+    <div class="fix-split">
+      <div class="fix-list">
+        <div class="fix-item">
+          <div class="fix-icon">🏠</div>
+          <div><div class="fix-title">Homepage & Landing Pages</div><div class="fix-body">Hero headlines, CTAs, social proof positioning, above-the-fold layout, and page speed — systematically tested and improved.</div></div>
+        </div>
+        <div class="fix-item">
+          <div class="fix-icon">📝</div>
+          <div><div class="fix-title">Lead Forms & Contact Pages</div><div class="fix-body">Field count, order, friction points, and thank-you page sequences — optimised to maximise completion rates without sacrificing lead quality.</div></div>
+        </div>
+        <div class="fix-item">
+          <div class="fix-icon">📧</div>
+          <div><div class="fix-title">Email & Nurture Sequences</div><div class="fix-body">Subject lines, send times, CTA placement, and sequence length — continuously tested to improve open rates and click-through.</div></div>
+        </div>
+        <div class="fix-item">
+          <div class="fix-icon">📱</div>
+          <div><div class="fix-title">Mobile Experience</div><div class="fix-body">Mobile accounts for 60%+ of traffic but often converts at half the desktop rate. We audit and fix the mobile experience specifically.</div></div>
+        </div>
+      </div>
+      <div class="fix-results">
+        <div class="fix-results-title">Typical results after 90 days</div>
+        <div class="result-row">
+          <div class="result-label">Homepage CVR</div>
+          <div class="result-before">1.8%</div>
+          <div class="result-arrow">→</div>
+          <div class="result-after">4.2%</div>
+        </div>
+        <div class="result-row">
+          <div class="result-label">Form completion</div>
+          <div class="result-before">19%</div>
+          <div class="result-arrow">→</div>
+          <div class="result-after">44%</div>
+        </div>
+        <div class="result-row">
+          <div class="result-label">Cost per lead</div>
+          <div class="result-before">A$68</div>
+          <div class="result-arrow">→</div>
+          <div class="result-after">A$31</div>
+        </div>
+        <div class="result-row">
+          <div class="result-label">Qualified lead rate</div>
+          <div class="result-before">34%</div>
+          <div class="result-arrow">→</div>
+          <div class="result-after">58%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="stats-band">
+  <div class="stats-band-inner">
+    <div><div class="sb-val">2.3<span>×</span></div><div class="sb-label">Average conversion rate improvement in the first 90 days</div></div>
+    <div><div class="sb-val">54<span>%</span></div><div class="sb-label">Average reduction in cost per lead after optimisation</div></div>
+    <div><div class="sb-val">10<span>+</span></div><div class="sb-label">Active A/B tests running simultaneously at any time</div></div>
+    <div><div class="sb-val">48<span>hrs</span></div><div class="sb-label">From audit to your first live experiment</div></div>
+  </div>
+</div>
+
+
+<!-- FAQ -->
+<section class="faq-section">
+  <div class="faq-inner">
+    <div class="faq-header">
+      <p class="faq-eyebrow">Common questions</p>
+      <h2 class="faq-h2">Everything you need to know<br>about Conversion Optimisation.</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary class="faq-q">What is conversion rate optimisation (CRO)?</summary>
+        <div class="faq-a">Conversion rate optimisation (CRO) is the systematic process of increasing the percentage of website visitors who take a desired action — filling out a form, booking a demo, making a purchase, or calling your business. It involves analysing user behaviour, identifying friction points in your funnel, running A/B tests, and implementing the variations that produce measurably better results. AI-powered CRO automates much of this process so testing runs continuously rather than in occasional manual sprints.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">How long does an A/B test need to run to be valid?</summary>
+        <div class="faq-a">A statistically valid A/B test typically requires a minimum of 1–2 weeks and enough traffic to achieve 95% statistical significance — usually at least 500–1,000 conversions split across variants. Our system monitors tests in real time and automatically flags when significance thresholds are met, so you never call a winner too early or run a test longer than necessary.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">What elements of a website can be tested?</summary>
+        <div class="faq-a">Almost anything that affects user behaviour can be tested — headlines, hero copy, CTA button text and placement, form length and fields, page layout, pricing presentation, social proof placement, imagery, and page load speed. Our AI identifies which elements are most likely to impact conversion based on heatmap data, session recordings, and behavioural analytics before prioritising what to test first.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">How quickly can we expect to see conversion improvements?</summary>
+        <div class="faq-a">Most clients see their first statistically significant test result within 4–6 weeks. Quick-win optimisations — fixing obvious friction points like slow forms, unclear CTAs, or mobile layout issues — often deliver improvements within the first 2 weeks. The compounding effect of continuous testing typically delivers a 2.3× conversion lift within 6 months.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Do we need high website traffic for CRO to work?</summary>
+        <div class="faq-a">You need enough traffic to generate statistically meaningful results, but you don't need massive volume. Sites with 1,000+ monthly visitors can run meaningful tests on high-traffic pages. For lower-traffic sites, we focus on qualitative analysis — heatmaps, session recordings, user interviews — to identify and fix high-confidence issues before moving into A/B testing as traffic grows.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="cta-inner">
+    <div class="cta-content">
+      <div class="cta-eyebrow">Get started</div>
+      <h2 class="cta-h2">Find out where your<br>funnel is leaking revenue.</h2>
+      <p class="cta-sub">Book a free 30-minute conversion audit. We'll analyse your funnel, identify your biggest drop-off points, and show you exactly what we'd test first.</p>
+      <div class="cta-btns">
+        <a class="cta-btn-p" href="#">Book your free audit →</a>
+        <a class="cta-btn-s" href="#">See our results first</a>
+      </div>
+      <div class="cta-note">No commitment. You'll leave with a clear picture of your conversion opportunity.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-top">
+    <div>
+      <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" class="footer-brand-logo" alt="ClickPoint Consulting">
+      <div class="footer-tagline">Intelligent automation for marketing and operations teams. We build the system. You lead the growth.</div>
+    </div>
+    <div>
+      <div class="footer-col-title">Company</div>
+      <div class="footer-links">
+        <a class="footer-link" href="#">About Click Point</a>
+        <a class="footer-link" href="#">What We Build</a>
+        <a class="footer-link" href="#">Become a Partner</a>
+        <a class="footer-link" href="#">Blog</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Services</div>
+      <div class="footer-links">
+        <a class="footer-link" href="service-lead-intelligence.html">Lead Intelligence</a>
+        <a class="footer-link" href="service-campaign-performance.html">Campaign Performance</a>
+        <a class="footer-link" href="service-content-seo.html">Content & SEO</a>
+        <a class="footer-link" href="service-tender-intelligence.html">Tender Intelligence</a>
+        <a class="footer-link" href="service-conversion-optimisation.html">Conversion Optimisation</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Contact</div>
+      <div class="footer-contact">
+        <a href="mailto:hello@clickpointconsulting.com.au">hello@clickpointconsulting.com.au</a><br><br>
+        172 New South Head Rd<br>Edgecliff NSW 2027
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div>© 2026 ClickPoint Consulting. All Rights Reserved.</div>
+    <a class="footer-link" href="#">Privacy Policy</a>
+  </div>
+</footer>
+</body>
+</html>
