@@ -3580,7 +3580,7 @@ function wsConnectIntegration(platformId) {
       toast.textContent = '🎨 Opening Canva…';
       document.body.appendChild(toast);
       try {
-        const resp    = await fetch(`/api/canva/auth?workspace_id=${encodeURIComponent(wid)}`);
+        const resp    = await fetch(`${WS_API}/api/canva/auth?workspace_id=${encodeURIComponent(wid)}`);
         const authData = await resp.json();
         const authUrl  = authData.auth_url;
         if (!authUrl) throw new Error('No auth URL returned');
