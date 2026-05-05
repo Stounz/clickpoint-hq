@@ -3684,28 +3684,70 @@ async function wsDisconnectIntegration(integrationId, platformId) {
 
 // ── Guided Tour ───────────────────────────────────────────────────────────────
 const WS_TOUR_STEPS = [
+  // ── Step 1: Kick off in Settings → Integrations ──
+  {
+    selector: '#wsIntegrationsCard',
+    view: 'settings',
+    waitMs: 1400, // allow async wsLoadIntegrations() to render
+    title: 'First — connect your platforms',
+    body: 'Before your team can run campaigns and report on results, we need access to your ad accounts. This takes about 2 minutes and unlocks everything.',
+    position: 'bottom'
+  },
+  // ── Step 2–5: Key platforms ──
+  {
+    selector: '#wsIntRow_google_ads',
+    view: 'settings',
+    title: 'Google Ads',
+    body: 'Share your Customer ID (format: 123-456-7890) so Derek can access your campaigns, manage bids, and report on spend. Find it in the top-right of Google Ads.',
+    position: 'top'
+  },
+  {
+    selector: '#wsIntRow_meta_ads',
+    view: 'settings',
+    title: 'Meta Ads',
+    body: 'Your Ad Account ID lets Cleo manage your Facebook and Instagram campaigns. Find it in Meta Ads Manager → Account Overview (a 15-digit number).',
+    position: 'top'
+  },
+  {
+    selector: '#wsIntRow_google_analytics',
+    view: 'settings',
+    title: 'Google Analytics',
+    body: 'Your GA4 Measurement ID (G-XXXXXXXXXX) gives us full visibility into traffic, conversions, and attribution across every channel.',
+    position: 'top'
+  },
+  {
+    selector: '#wsIntRow_search_console',
+    view: 'settings',
+    title: 'Search Console',
+    body: 'Connects your SEO data — Raj uses this to track rankings, click-through rates, and indexing issues for your site.',
+    position: 'top'
+  },
+  // ── Step 6–7: Back to dashboard actions ──
   {
     selector: '#wsTourBtnCampaign',
+    view: 'dashboard',
     title: 'Request a new campaign',
-    body: 'Brief your team on a new campaign — Google Ads, Meta, SEO, email, and more. We handle the rest.',
+    body: 'Brief your team on a new campaign — Google Ads, Meta, SEO, email, and more. We handle the strategy, creative, and execution.',
     position: 'top'
   },
   {
     selector: '#wsTourBtnReports',
+    view: 'dashboard',
     title: 'View your reports',
-    body: 'Monthly performance reports land here. Track what\'s working and see your results over time.',
+    body: 'Monthly performance reports land here. See exactly what\'s working, what spend went where, and what\'s planned next.',
     position: 'top'
   },
+  // ── Step 8–9: AI CMO + Brand Hub ──
   {
     selector: '[data-view="ai"]',
     title: 'Ask your CMO',
-    body: 'Sarah has full visibility into your account. Ask her anything — strategy, spend, priorities, what the numbers mean.',
+    body: 'Sarah has full visibility into your account. Ask her anything — strategy, spend, what the numbers mean, or what to focus on next.',
     position: 'right'
   },
   {
     selector: '[data-view="brand"]',
     title: 'Your Brand Hub',
-    body: 'Store your brand guidelines, colours, logos, and tone of voice so every campaign stays on-brand.',
+    body: 'Store your brand guidelines, colours, logos, and tone of voice so every campaign your team runs stays on-brand.',
     position: 'right'
   }
 ];
@@ -3730,12 +3772,31 @@ function wsStartTour() {
   });
 }
 
-function _wsShowTourStep() {
+let _wsTourCurrentView = null;
+
+async function _wsShowTourStep() {
   if (_wsTourTargetEl) _wsTourTargetEl.classList.remove('ws-tour-highlight');
+  _wsTourTooltip.classList.remove('visible');
   const step = WS_TOUR_STEPS[_wsTourStep];
+
+  // Switch view if the step requires it (only if different from current)
+  if (step.view && step.view !== _wsTourCurrentView) {
+    wsSetView(step.view);
+    _wsTourCurrentView = step.view;
+    // Wait for view + any async loads (e.g. wsLoadIntegrations) to render
+    await new Promise(r => setTimeout(r, step.waitMs || 700));
+  }
+
   _wsTourTargetEl = document.querySelector(step.selector);
-  if (!_wsTourTargetEl) { wsEndTour(); return; }
-  _wsTourTargetEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  if (!_wsTourTargetEl) {
+    // Skip this step if element not in DOM (e.g. integration not yet rendered)
+    _wsTourStep++;
+    if (_wsTourStep < WS_TOUR_STEPS.length) _wsShowTourStep();
+    else wsEndTour();
+    return;
+  }
+  _wsTourTargetEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+
   setTimeout(() => {
     _wsTourTargetEl.classList.add('ws-tour-highlight');
     const rect = _wsTourTargetEl.getBoundingClientRect();
@@ -3749,7 +3810,7 @@ function _wsShowTourStep() {
       <div class="ws-tour-body">${step.body}</div>
       <div class="ws-tour-foot">
         <div class="ws-tour-dots">${dots}</div>
-        <button class="ws-tour-skip" onclick="wsEndTour()">Skip</button>
+        <button class="ws-tour-skip" onclick="wsEndTour()">Skip tour</button>
         <button class="ws-tour-next" onclick="wsTourNext()">${isLast ? 'Done ✓' : 'Next →'}</button>
       </div>`;
     _wsPosTooltip(rect, step.position);
