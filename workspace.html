@@ -769,7 +769,7 @@
       <div class="ws-nav-section">Marketing</div>
       <div class="ws-nav-item" data-view="campaigns" onclick="wsSetView('campaigns')">🚀 &nbsp;Campaigns <span class="ws-nav-badge" id="wsNavCampaignBadge" style="display:none"></span></div>
       <div class="ws-nav-item" data-view="analytics" onclick="wsSetView('analytics')">📈 &nbsp;Analytics</div>
-      <div class="ws-nav-item" data-view="reports" onclick="wsSetView('reports')">📋 &nbsp;Reports</div>
+      <div class="ws-nav-item" data-view="reports" onclick="wsSetView('reports')">📊 &nbsp;Status Report</div>
       <div class="ws-nav-item" data-view="library" onclick="wsSetView('library')">📁 &nbsp;Library <span class="ws-nav-badge" id="wsNavLibBadge" style="display:none"></span></div>
       <div class="ws-nav-section">Agency Staff</div>
       <div class="ws-nav-item" data-view="ai" onclick="wsSetView('ai')">🎯 &nbsp;Your CMO</div>
@@ -964,8 +964,8 @@
 
       <!-- ── Reports View ── -->
       <div class="ws-view" id="view-reports">
-        <div class="ws-page-title">Reports</div>
-        <div class="ws-page-sub">Monthly performance reports prepared by your agency team.</div>
+        <div class="ws-page-title">📊 Status Report</div>
+        <div class="ws-page-sub">Live snapshot of your campaigns, deliverables, and account health.</div>
         <div class="ws-card" id="wsReportsList"></div>
       </div>
 
@@ -1151,6 +1151,7 @@
           <button onclick="wsLibFilter('Strategy',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--dark);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">Strategy</button>
           <button onclick="wsLibFilter('SEO',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--dark);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">SEO</button>
           <button onclick="wsLibFilter('Ads',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--dark);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">Ads</button>
+          <button onclick="wsLibFilter('Design',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--dark);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">Design</button>
         </div>
         <div id="wsLibraryList"></div>
       </div>
@@ -2287,21 +2288,115 @@ function wsRenderAnalytics(platform) {
   `;
 }
 
-// ── Reports ───────────────────────────────────────────────────────────────────
+// ── Reports / Status Report ───────────────────────────────────────────────────
 async function wsLoadReports() {
   const container = document.getElementById('wsReportsList');
+  const campaigns  = wsPendingCampaigns || [];
+  const lib        = wsGetLibrary();
+  const now        = new Date();
+  const dateStr    = now.toLocaleDateString('en-AU', { day:'numeric', month:'long', year:'numeric' });
+
+  // ── Campaign summary ──────────────────────────────────────────────────────
+  const statusMap = { pending:'Pending Review', reviewing:'Under Review', active:'Active', paused:'Paused', complete:'Completed' };
+  const statusColor = { pending:'#D4622A', reviewing:'#C47A00', active:'#1C8C44', paused:'#888', complete:'#0A84FF' };
+  const statusBg    = { pending:'rgba(212,98,42,0.08)', reviewing:'rgba(255,159,10,0.1)', active:'rgba(48,209,88,0.08)', paused:'#F4F3EE', complete:'rgba(10,132,255,0.08)' };
+
+  const campaignRows = campaigns.length ? campaigns.map(c => {
+    const col = statusColor[c.status] || '#888';
+    const bg  = statusBg[c.status]   || '#F4F3EE';
+    const lbl = c.sarah_reply ? (c.status === 'reviewing' ? '💬 Awaiting your reply' : statusMap[c.status]) : statusMap[c.status] || c.status;
+    return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);">
+      <div style="font-size:18px;">${{pending:'⏳',reviewing:'🔍',active:'🚀',paused:'⏸',complete:'✅'}[c.status]||'📌'}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
+        <div style="font-size:11px;color:var(--muted);">${c.channel || '—'} · ${c.type || '—'}</div>
+      </div>
+      <div style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${bg};color:${col};white-space:nowrap;">${lbl}</div>
+    </div>`;
+  }).join('') : `<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">No campaigns yet.</div>`;
+
+  // ── Deliverables summary ───────────────────────────────────────────────────
+  const approved = lib.filter(i => i.status === 'approved').length;
+  const pending  = lib.filter(i => i.status === 'pending').length;
+  const changes  = lib.filter(i => i.status === 'changes').length;
+  const total    = lib.length;
+
+  const recentLib = lib.slice(0, 4);
+  const recentRows = recentLib.length ? recentLib.map(item => {
+    const statusLbl = { pending:'Pending', approved:'Approved', changes:'Changes Req.' }[item.status] || 'Pending';
+    const col = { pending:'#C47A00', approved:'#1C8C44', changes:'#D4622A' }[item.status] || '#888';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #F0EFE9;">
+      <div style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(28,58,46,0.07);color:var(--teal);white-space:nowrap;">${item.type}</div>
+      <div style="flex:1;font-size:12px;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.author}</div>
+      <div style="font-size:11px;font-weight:700;color:${col};white-space:nowrap;">${statusLbl}</div>
+    </div>`;
+  }).join('') : `<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px;">No deliverables yet.</div>`;
+
+  // ── Support summary ────────────────────────────────────────────────────────
+  const esc = JSON.parse(localStorage.getItem('cp_esc_' + wsSession.workspaceId) || '[]');
+  const openEsc  = esc.filter(e => !e.resolved).length;
+  const closedEsc= esc.filter(e => e.resolved).length;
+
   container.innerHTML = `
-    <div class="ws-card-title">📋 Monthly Reports</div>
-    <div style="text-align:center;padding:48px 24px;">
-      <div style="font-size:32px;margin-bottom:12px;">📋</div>
-      <div style="font-weight:700;color:var(--dark);margin-bottom:6px;">No reports yet</div>
-      <div style="font-size:13px;color:var(--muted);">Your ClickPoint team generates a performance report on the 1st of each month. It will appear here automatically.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div>
+        <div class="ws-card-title" style="margin-bottom:2px;">📊 Account Status Report</div>
+        <div style="font-size:12px;color:var(--muted);">Generated ${dateStr} · ${wsSession.companyName || 'Your workspace'}</div>
+      </div>
+    </div>
+
+    <!-- KPI row -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;">
+      ${[
+        { label:'Campaigns', value: campaigns.length, sub: campaigns.filter(c=>c.status==='active').length + ' active', icon:'🚀', color:'var(--teal)' },
+        { label:'Deliverables', value: total, sub: approved + ' approved', icon:'📁', color:'#1C8C44' },
+        { label:'Pending Review', value: pending, sub: 'awaiting approval', icon:'⏳', color:'#C47A00' },
+        { label:'Open Issues', value: openEsc, sub: closedEsc + ' resolved', icon:'🚨', color: openEsc ? '#D4622A' : '#888' },
+      ].map(k => `
+        <div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:16px;">
+          <div style="font-size:22px;margin-bottom:4px;">${k.icon}</div>
+          <div style="font-size:26px;font-weight:900;color:${k.color};line-height:1;">${k.value}</div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-top:4px;">${k.label}</div>
+          <div style="font-size:11px;color:var(--muted);">${k.sub}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- Campaign pipeline -->
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;">🚀 Campaign Pipeline</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">${campaigns.length} campaign${campaigns.length !== 1 ? 's' : ''} on record</div>
+      ${campaignRows}
+    </div>
+
+    <!-- Deliverables -->
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div>
+          <div style="font-size:13px;font-weight:800;color:var(--text);">📁 Recent Deliverables</div>
+          <div style="font-size:11px;color:var(--muted);">${total} total · ${approved} approved · ${pending} pending · ${changes} changes requested</div>
+        </div>
+        <button onclick="wsSetView('library')" style="padding:6px 14px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--teal);">View all →</button>
+      </div>
+      ${recentRows}
+    </div>
+
+    <!-- Support -->
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:13px;font-weight:800;color:var(--text);">🚨 Support & Issues</div>
+          <div style="font-size:11px;color:var(--muted);">${openEsc} open · ${closedEsc} resolved</div>
+        </div>
+        <button onclick="wsSetView('escalations')" style="padding:6px 14px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--teal);">Raise issue →</button>
+      </div>
+      ${openEsc === 0 ? `<div style="margin-top:14px;padding:12px;background:rgba(48,209,88,0.07);border-radius:10px;font-size:13px;color:#1C8C44;font-weight:600;">✅ No open issues — all good!</div>` : ''}
     </div>
   `;
 }
 
 function wsOpenReport(period, summary) {
-  alert(`📋 ${period}\n\n${summary}\n\n(Full report viewer coming soon — ask your account manager for the full PDF.)`);
+  alert(`📋 ${period}\n\n${summary}`);
 }
 
 // ── Escalations ───────────────────────────────────────────────────────────────
@@ -2839,13 +2934,13 @@ function wsLoadLibrary(filter = 'all') {
 function wsLibApprove(id) {
   const items = wsGetLibrary();
   const item = items.find(i => i.id === id);
-  if (item) { item.status = 'approved'; wsSaveLib(items); wsLoadLibrary(); wsLogActivity('deliverable_approved', `Deliverable approved: ${item.author} — ${item.type}`); }
+  if (item) { item.status = 'approved'; wsSaveLib(items); wsLoadLibrary(wsLibActiveFilter || 'all'); wsLogActivity('deliverable_approved', `Deliverable approved: ${item.author} — ${item.type}`); }
 }
 
 function wsLibRequestChanges(id) {
   const items = wsGetLibrary();
   const item = items.find(i => i.id === id);
-  if (item) { item.status = 'changes'; wsSaveLib(items); wsLoadLibrary(); wsLogActivity('changes_requested', `Changes requested on: ${item.author} — ${item.type}`); }
+  if (item) { item.status = 'changes'; wsSaveLib(items); wsLoadLibrary(wsLibActiveFilter || 'all'); wsLogActivity('changes_requested', `Changes requested on: ${item.author} — ${item.type}`); }
 }
 
 function wsLibCopy(id) {
@@ -3906,57 +4001,82 @@ function wsMaybeTour() {
 // ── Lightweight markdown renderer for agent replies ───────────────────────────
 function wsMd(text) {
   if (!text) return '';
-  let s = text
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); // escape HTML first
 
-  // ── Tables ──────────────────────────────────────────────────────────────────
-  // Convert markdown tables: | col | col | rows
-  s = s.replace(/((?:^\|.+\|\n?)+)/gm, tableBlock => {
-    const rows = tableBlock.trim().split('\n').filter(r => r.trim());
-    let html = '<div class="ws-md-table-wrap"><table class="ws-md-table">';
-    rows.forEach((row, i) => {
-      if (/^\|[\s\-:|\s]+\|$/.test(row.replace(/&amp;/g,'').replace(/&lt;/g,'').replace(/&gt;/g,''))) return; // separator row
-      const cells = row.split('|').filter((_, ci, arr) => ci > 0 && ci < arr.length);
-      const tag = i === 0 ? 'th' : 'td';
-      html += '<tr>' + cells.map(c => `<${tag}>${c.trim()}</${tag}>`).join('') + '</tr>';
-    });
-    html += '</table></div>';
-    return html;
-  });
+  // Inline formatter (runs on any text fragment)
+  function inlineFmt(t) {
+    return t
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code class="ws-md-code">$1</code>');
+  }
 
-  // ── Headings ────────────────────────────────────────────────────────────────
-  s = s
-    .replace(/^### (.+)$/gm, '<h4 class="ws-md-h3">$1</h4>')
-    .replace(/^## (.+)$/gm,  '<h3 class="ws-md-h2">$1</h3>')
-    .replace(/^# (.+)$/gm,   '<h2 class="ws-md-h1">$1</h2>');
+  const lines = text.replace(/\r\n/g, '\n').split('\n');
+  const out = [];
+  let i = 0;
 
-  // ── Inline formatting ────────────────────────────────────────────────────────
-  s = s
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`(.+?)`/g, '<code class="ws-md-code">$1</code>');
+  while (i < lines.length) {
+    const raw = lines[i];
+    const line = raw.trim();
 
-  // ── Dividers ─────────────────────────────────────────────────────────────────
-  s = s.replace(/^---+$/gm, '<hr class="ws-md-hr">');
+    // ── Blank line ────────────────────────────────────────────────────────────
+    if (!line) { out.push('<div class="ws-md-gap"></div>'); i++; continue; }
 
-  // ── Numbered lists ───────────────────────────────────────────────────────────
-  s = s.replace(/((?:^\d+\..+\n?)+)/gm, listBlock => {
-    const items = listBlock.trim().split('\n');
-    return '<ol class="ws-md-ol">' + items.map(li => `<li>${li.replace(/^\d+\.\s*/,'')}</li>`).join('') + '</ol>';
-  });
+    // ── Headings ──────────────────────────────────────────────────────────────
+    if (line.startsWith('### ')) { out.push(`<h4 class="ws-md-h3">${inlineFmt(line.slice(4))}</h4>`); i++; continue; }
+    if (line.startsWith('## '))  { out.push(`<h3 class="ws-md-h2">${inlineFmt(line.slice(3))}</h3>`); i++; continue; }
+    if (line.startsWith('# '))   { out.push(`<h2 class="ws-md-h1">${inlineFmt(line.slice(2))}</h2>`); i++; continue; }
 
-  // ── Bullet lists ─────────────────────────────────────────────────────────────
-  s = s.replace(/((?:^[-*] .+\n?)+)/gm, listBlock => {
-    const items = listBlock.trim().split('\n');
-    return '<ul class="ws-md-ul">' + items.map(li => `<li>${li.replace(/^[-*] /,'')}</li>`).join('') + '</ul>';
-  });
+    // ── Divider ───────────────────────────────────────────────────────────────
+    if (/^---+$/.test(line)) { out.push('<hr class="ws-md-hr">'); i++; continue; }
 
-  // ── Paragraphs ───────────────────────────────────────────────────────────────
-  s = s
-    .replace(/\n{2,}/g, '</p><p class="ws-md-p">')
-    .replace(/\n/g, '<br>');
+    // ── Table block ───────────────────────────────────────────────────────────
+    if (line.startsWith('|')) {
+      const tRows = [];
+      while (i < lines.length && lines[i].trim().startsWith('|')) {
+        tRows.push(lines[i].trim()); i++;
+      }
+      let tableHtml = '<div class="ws-md-table-wrap"><table class="ws-md-table">';
+      let headerDone = false;
+      tRows.forEach(r => {
+        // skip separator rows (|---|---|)
+        if (/^\|[\s\-:|]+\|$/.test(r)) return;
+        const cells = r.split('|').slice(1, -1);
+        if (!headerDone) {
+          tableHtml += '<tr>' + cells.map(c => `<th>${inlineFmt(c.trim())}</th>`).join('') + '</tr>';
+          headerDone = true;
+        } else {
+          tableHtml += '<tr>' + cells.map(c => `<td>${inlineFmt(c.trim())}</td>`).join('') + '</tr>';
+        }
+      });
+      tableHtml += '</table></div>';
+      out.push(tableHtml); continue;
+    }
 
-  return `<p class="ws-md-p">${s}</p>`;
+    // ── Bullet list block ─────────────────────────────────────────────────────
+    if (/^[-*] /.test(line)) {
+      const items = [];
+      while (i < lines.length && /^[-*] /.test(lines[i].trim())) {
+        items.push(`<li>${inlineFmt(lines[i].trim().slice(2))}</li>`); i++;
+      }
+      out.push(`<ul class="ws-md-ul">${items.join('')}</ul>`); continue;
+    }
+
+    // ── Numbered list block ───────────────────────────────────────────────────
+    if (/^\d+\. /.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\d+\. /.test(lines[i].trim())) {
+        items.push(`<li>${inlineFmt(lines[i].trim().replace(/^\d+\. /,''))}</li>`); i++;
+      }
+      out.push(`<ol class="ws-md-ol">${items.join('')}</ol>`); continue;
+    }
+
+    // ── Normal paragraph line ─────────────────────────────────────────────────
+    const esc = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    out.push(`<p class="ws-md-p">${inlineFmt(esc)}</p>`);
+    i++;
+  }
+
+  return out.join('');
 }
 
 // ── Campaign Detail Drawer ────────────────────────────────────────────────────
