@@ -1882,9 +1882,10 @@ function wsInitApp() {
   const _wsObKey = 'cp_onboarded_' + (wsSession && wsSession.workspaceId);
   if (localStorage.getItem(_wsObKey)) wsMaybeTour();
 
-  // Check if returning from Canva OAuth — URL param ?canva=connected
+  // Check if returning from Canva OAuth — URL param ?canva=connected or ?canva=error
   const urlParams = new URLSearchParams(location.search);
-  if (urlParams.get('canva') === 'connected') {
+  const canvaParam = urlParams.get('canva');
+  if (canvaParam === 'connected') {
     // Clean the URL without reloading
     history.replaceState({}, '', location.pathname);
     // Show success toast + reload integrations
@@ -1892,6 +1893,12 @@ function wsInitApp() {
       _wsToast('✅ Canva connected! Design assets are now active.');
       wsSetView('settings');
       setTimeout(() => wsLoadIntegrations(), 400);
+    }, 300);
+  } else if (canvaParam === 'error') {
+    history.replaceState({}, '', location.pathname);
+    setTimeout(() => {
+      _wsToast('❌ Canva connection failed. Please try again.', 'error');
+      wsSetView('settings');
     }, 300);
   }
 

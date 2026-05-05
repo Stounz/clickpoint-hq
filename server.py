@@ -3981,20 +3981,21 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._html(500, self._canva_result_page('error', str(e)))
 
     def _canva_result_page(self, result: str, detail: str = '') -> str:
-        """Return an HTML page that notifies the opener window and closes itself."""
+        """Return an HTML page that redirects back to the platform after OAuth."""
         if result == 'success':
-            redirect = f'{PLATFORM_URL}/workspace.html?canva=connected&ws={detail}'
+            redirect = f'{PLATFORM_URL}/workspace.html?canva=connected&w={detail}'
             script = f"setTimeout(() => window.location.href = '{redirect}', 1200);"
             body = (
                 '<div style="text-align:center;">'
                 '<div style="font-size:56px;margin-bottom:12px;">✅</div>'
                 '<h2 style="font-size:22px;font-weight:700;margin-bottom:8px;">Canva connected!</h2>'
-                '<p style="color:rgba(255,255,255,0.65);font-size:14px;">Your design tool is now active.<br>This window will close automatically.</p>'
+                '<p style="color:rgba(255,255,255,0.65);font-size:14px;">Your design tool is now active.<br>Taking you back to your workspace…</p>'
                 '</div>'
             )
         else:
-            script = "if (window.opener) { window.opener.postMessage({type:'canva_error'}, '*'); window.close(); }"
-            body   = f'<div style="text-align:center;"><div style="font-size:56px;margin-bottom:12px;">❌</div><h2>Connection failed</h2><p style="color:rgba(255,255,255,0.6);">{detail}</p></div>'
+            redirect = f'{PLATFORM_URL}/workspace.html?canva=error'
+            script = f"setTimeout(() => window.location.href = '{redirect}', 2500);"
+            body   = f'<div style="text-align:center;"><div style="font-size:56px;margin-bottom:12px;">❌</div><h2>Connection failed</h2><p style="color:rgba(255,255,255,0.6);">{detail}<br><br>Taking you back…</p></div>'
 
         return (
             '<html><head><meta charset="utf-8">'
