@@ -73,6 +73,8 @@ def _load_env() -> dict:
         'STRIPE_SECRET_KEY':  _d('c2tfbGl2ZV81MUNOaVhsSDJJSHZVNmlVNUZaa3JZUTVNa3dQQzd6RmVLY21RckZQY3FWUHlBd0IyQ3NMRlBGblhrekhSNVhpMUtaeU1XTzFnaDFLQnJFUklodzNPd2hacTAwekNhVzlWczg='),
         'SUPABASE_URL':       _d('aHR0cHM6Ly9iYW5lbHZ6anR0ZHFrd21idnlibS5zdXBhYmFzZS5jbw=='),
         'SUPABASE_SERVICE_KEY': _d('c2Jfc2VjcmV0X0NKekNfaW9FUTJERUJNZDRhV3g5eFFfcGZrUmp0V3U='),
+        'CANVA_CLIENT_ID':     _d('T0MtQVozMllmMlZycHRr'),
+        'CANVA_CLIENT_SECRET': _d('Y252Y2FZYzZtWndGNjRCWjh4cE5mYzhXN1hodlRGVTh2a0kwaTFIY0pjd09ORTE0NTdlM2E='),
         # STRIPE_PRICE_GROWTH, STRIPE_PRICE_PRO, STRIPE_WEBHOOK_SECRET — set once Stripe products are created
     }
     for k, v in _baked.items():
@@ -107,6 +109,9 @@ STRIPE_PRICE_PRO           = _ENV.get('STRIPE_PRICE_PRO', '')      # price_xxx f
 STRIPE_WEBHOOK_SECRET      = _ENV.get('STRIPE_WEBHOOK_SECRET', '')
 PLATFORM_URL               = _ENV.get('PLATFORM_URL', 'https://platform.clickpointconsulting.com.au')
 HUBSPOT_TOKEN              = _ENV.get('HUBSPOT_TOKEN', '')  # Set via Railway env var
+CANVA_CLIENT_ID            = _ENV.get('CANVA_CLIENT_ID', '')
+CANVA_CLIENT_SECRET        = _ENV.get('CANVA_CLIENT_SECRET', '')
+CANVA_REDIRECT_URI         = 'https://web-production-c959ce.up.railway.app/api/canva/callback'
 
 if not API_KEY:
     print('\n⚠️  No API key found.')
@@ -1116,6 +1121,255 @@ def _supabase_req(method: str, path: str, payload: dict = None, service_role: bo
         body = resp.read()
         return json.loads(body) if body else []
 
+# ── Canva OAuth + Design Generation ──────────────────────────────────────────
+import base64 as _canva_b64
+import urllib.parse as _canva_up
+import threading as _canva_threading
+
+_canva_token_lock = _canva_threading.Lock()
+_canva_token_cache = {}   # {'access_token':..., 'refresh_token':..., 'expires_at': float}
+
+def _canva_basic_auth():
+    creds = f'{CANVA_CLIENT_ID}:{CANVA_CLIENT_SECRET}'
+    return _canva_b64.b64encode(creds.encode()).decode()
+
+def _canva_token_request(params: dict) -> dict:
+    body = _canva_up.urlencode(params).encode()
+    req = urllib.request.Request(
+        'https://api.canva.com/rest/v1/oauth/token',
+        data=body,
+        headers={
+            'Authorization': f'Basic {_canva_basic_auth()}',
+            'Content-Type':  'application/x-www-form-urlencoded',
+        },
+        method='POST'
+    )
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        return json.loads(resp.read())
+
+def canva_exchange_code(code: str) -> dict:
+    """Exchange authorization code for access + refresh tokens. Called once by /api/canva/callback."""
+    data = _canva_token_request({
+        'grant_type':   'authorization_code',
+        'code':         code,
+        'redirect_uri': CANVA_REDIRECT_URI,
+    })
+    import time
+    with _canva_token_lock:
+        _canva_token_cache.update({
+            'access_token':  data['access_token'],
+            'refresh_token': data.get('refresh_token', ''),
+            'expires_at':    time.time() + data.get('expires_in', 3600) - 60,
+        })
+    # Persist refresh token to Supabase so it survives server restarts
+    _canva_persist_tokens(data['access_token'], data.get('refresh_token', ''), data.get('expires_in', 3600))
+    return data
+
+def _canva_persist_tokens(access_token, refresh_token, expires_in):
+    """Store Canva tokens in Supabase platform_settings table."""
+    import time
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        return
+    payload = {
+        'key':   'canva_tokens',
+        'value': json.dumps({
+            'access_token':  access_token,
+            'refresh_token': refresh_token,
+            'expires_at':    time.time() + expires_in - 60,
+        }),
+    }
+    try:
+        # Upsert into platform_settings
+        key = SUPABASE_SERVICE_KEY
+        url = f'{SUPABASE_URL}/rest/v1/platform_settings?key=eq.canva_tokens'
+        existing = []
+        req = urllib.request.Request(url, headers={
+            'apikey': key, 'Authorization': f'Bearer {key}', 'Content-Type': 'application/json'
+        })
+        with urllib.request.urlopen(req, timeout=10) as r:
+            existing = json.loads(r.read())
+        if existing:
+            req2 = urllib.request.Request(url, data=json.dumps({'value': payload['value']}).encode(),
+                headers={'apikey': key, 'Authorization': f'Bearer {key}',
+                         'Content-Type': 'application/json', 'Prefer': 'return=representation'},
+                method='PATCH')
+        else:
+            req2 = urllib.request.Request(f'{SUPABASE_URL}/rest/v1/platform_settings',
+                data=json.dumps(payload).encode(),
+                headers={'apikey': key, 'Authorization': f'Bearer {key}',
+                         'Content-Type': 'application/json', 'Prefer': 'return=representation'},
+                method='POST')
+        with urllib.request.urlopen(req2, timeout=10):
+            pass
+    except Exception as e:
+        print(f'  ⚠️  canva token persist error: {e}')
+
+def _canva_load_tokens_from_supabase():
+    """Load persisted Canva tokens from Supabase on first use."""
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        return
+    try:
+        key = SUPABASE_SERVICE_KEY
+        req = urllib.request.Request(
+            f'{SUPABASE_URL}/rest/v1/platform_settings?key=eq.canva_tokens',
+            headers={'apikey': key, 'Authorization': f'Bearer {key}'}
+        )
+        with urllib.request.urlopen(req, timeout=10) as r:
+            rows = json.loads(r.read())
+        if rows:
+            tokens = json.loads(rows[0]['value'])
+            with _canva_token_lock:
+                _canva_token_cache.update(tokens)
+    except Exception as e:
+        print(f'  ⚠️  canva token load error: {e}')
+
+def canva_get_access_token() -> str:
+    """Return a valid Canva access token, refreshing if needed. Returns '' if not authenticated."""
+    import time
+    with _canva_token_lock:
+        if not _canva_token_cache:
+            pass  # load below outside lock
+    if not _canva_token_cache:
+        _canva_load_tokens_from_supabase()
+    with _canva_token_lock:
+        at   = _canva_token_cache.get('access_token', '')
+        rt   = _canva_token_cache.get('refresh_token', '')
+        exp  = _canva_token_cache.get('expires_at', 0)
+    if not at and not rt:
+        return ''
+    if at and time.time() < exp:
+        return at
+    if not rt:
+        return ''
+    # Refresh
+    try:
+        data = _canva_token_request({'grant_type': 'refresh_token', 'refresh_token': rt})
+        import time as _t
+        new_at = data['access_token']
+        new_rt = data.get('refresh_token', rt)
+        new_exp = _t.time() + data.get('expires_in', 3600) - 60
+        with _canva_token_lock:
+            _canva_token_cache.update({'access_token': new_at, 'refresh_token': new_rt, 'expires_at': new_exp})
+        _canva_persist_tokens(new_at, new_rt, data.get('expires_in', 3600))
+        return new_at
+    except Exception as e:
+        print(f'  ⚠️  canva token refresh error: {e}')
+        return ''
+
+def canva_generate_and_export(brief_text: str, brand_name: str) -> list:
+    """
+    Generate 2 Instagram post designs via Canva AI and return exported PNG URLs.
+    Returns list of download URLs, or [] on failure.
+    """
+    token = canva_get_access_token()
+    if not token:
+        print('  ⚠️  Canva: no access token — skipping design generation')
+        return []
+
+    def _canva_api(method, path, payload=None):
+        url = f'https://api.canva.com/rest/v1/{path}'
+        data = json.dumps(payload).encode() if payload else None
+        req = urllib.request.Request(url, data=data, method=method, headers={
+            'Authorization': f'Bearer {token}',
+            'Content-Type':  'application/json',
+        })
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.loads(r.read())
+
+    try:
+        # 1 — Start AI design generation job
+        gen_payload = {
+            'title': f'{brand_name} — Instagram Post',
+            'design_type': {'type': 'preset', 'name': 'InstagramPost'},
+            'prompt': (
+                f'Create a professional Instagram post for {brand_name}. '
+                f'Context: {brief_text[:300]}. '
+                'Clean, modern aesthetic. Brand colours prominent. Ready to post.'
+            ),
+        }
+        gen_resp = _canva_api('POST', 'ai/designs', gen_payload)
+        job_id = gen_resp.get('job', {}).get('id') or gen_resp.get('id')
+        if not job_id:
+            print(f'  ⚠️  Canva gen: unexpected response: {list(gen_resp.keys())}')
+            return []
+        print(f'  🎨 Canva gen job started: {job_id}')
+
+        # 2 — Poll until complete (up to 60s)
+        import time
+        candidates = []
+        for _ in range(20):
+            time.sleep(3)
+            status_resp = _canva_api('GET', f'ai/designs/{job_id}')
+            status = status_resp.get('job', {}).get('status') or status_resp.get('status')
+            if status == 'success':
+                candidates = (status_resp.get('job', {}).get('result', {}).get('designs')
+                              or status_resp.get('result', {}).get('designs', []))
+                break
+            if status in ('failed', 'error'):
+                print(f'  ⚠️  Canva gen job failed: {status_resp}')
+                return []
+
+        if not candidates:
+            print('  ⚠️  Canva gen: no candidates returned')
+            return []
+
+        # 3 — Create real designs + export as PNG (first 2 candidates)
+        urls = []
+        for candidate in candidates[:2]:
+            try:
+                cid = candidate.get('id') or candidate.get('design_id')
+                if not cid:
+                    continue
+                # Create editable design from candidate
+                design_resp = _canva_api('POST', f'ai/designs/{job_id}/create', {'candidate_id': cid})
+                design_id = (design_resp.get('design', {}).get('id')
+                             or design_resp.get('id'))
+                if not design_id:
+                    continue
+                # Export as PNG
+                export_resp = _canva_api('POST', 'exports', {
+                    'design_id': design_id,
+                    'format':    {'type': 'png', 'width': 1080, 'height': 1080, 'export_quality': 'pro'},
+                })
+                exp_job_id = export_resp.get('job', {}).get('id') or export_resp.get('id')
+                # Poll export
+                for _ in range(15):
+                    time.sleep(2)
+                    exp_status = _canva_api('GET', f'exports/{exp_job_id}')
+                    if (exp_status.get('job', {}).get('status') or exp_status.get('status')) == 'success':
+                        export_urls = (exp_status.get('job', {}).get('urls')
+                                       or exp_status.get('urls', []))
+                        if export_urls:
+                            urls.append(export_urls[0])
+                        break
+            except Exception as e:
+                print(f'  ⚠️  Canva export error for candidate: {e}')
+                continue
+
+        print(f'  ✅ Canva: {len(urls)} design PNG(s) exported')
+        return urls
+
+    except urllib.error.HTTPError as e:
+        body = e.read().decode()
+        print(f'  ⚠️  Canva API error {e.code}: {body[:300]}')
+        return []
+    except Exception as e:
+        print(f'  ⚠️  Canva generate_and_export error: {e}')
+        return []
+
+def canva_auth_url() -> str:
+    """Return the Canva OAuth authorization URL for the one-time setup."""
+    if not CANVA_CLIENT_ID:
+        return ''
+    scopes = 'design:content:read design:content:write design:meta:read asset:read asset:write'
+    params = _canva_up.urlencode({
+        'client_id':     CANVA_CLIENT_ID,
+        'redirect_uri':  CANVA_REDIRECT_URI,
+        'response_type': 'code',
+        'scope':         scopes,
+    })
+    return f'https://www.canva.com/api/oauth/authorize?{params}'
+
 # ── Anthropic API call ────────────────────────────────────────────────────────
 def call_anthropic(api_key, system_prompt, messages, max_tokens=2000):
     payload = json.dumps({
@@ -1222,6 +1476,10 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_campaigns_list()
         elif self.path.startswith('/api/campaign/updates'):
             self._handle_campaign_updates_get()
+        elif self.path == '/api/canva/auth':
+            self._handle_canva_auth()
+        elif self.path.startswith('/api/canva/callback'):
+            self._handle_canva_callback()
         else:
             # Serve static files from working directory
             import os as _os
@@ -3473,12 +3731,23 @@ class AgentHandler(BaseHTTPRequestHandler):
                 'created_at': datetime.datetime.utcnow().isoformat(),
             } if deliverable_text else None
 
+            # — Auto-generate real Canva design PNGs —
+            canva_urls = []
+            if design_deliverable_text and CANVA_CLIENT_ID and CANVA_CLIENT_SECRET:
+                try:
+                    brand = _co or _name or 'Brand'
+                    canva_urls = canva_generate_and_export(design_deliverable_text, brand)
+                    if canva_urls:
+                        print(f'  🖼️  Canva: {len(canva_urls)} PNG(s) generated for "{_name}"')
+                except Exception as e:
+                    print(f'  ⚠️  Canva pipeline error: {e}')
+
             design_entry = {
                 'agent':      'zara',
                 'agentName':  'Zara Osei · Creative',
                 'type':       'Design',
                 'content':    design_deliverable_text,
-                'design_urls': [],   # populated by Canva export when available
+                'design_urls': canva_urls,
                 'created_at': datetime.datetime.utcnow().isoformat(),
             } if design_deliverable_text else None
 
@@ -3666,6 +3935,51 @@ class AgentHandler(BaseHTTPRequestHandler):
             print(f'[campaign/reply] error: {e}')
             self._error(500, str(e))
 
+    def _handle_canva_auth(self):
+        """Return the Canva OAuth authorization URL."""
+        url = canva_auth_url()
+        if not url:
+            self._error(503, 'Canva client ID not configured'); return
+        self._json(200, {'auth_url': url})
+
+    def _handle_canva_callback(self):
+        """Handle Canva OAuth callback — exchange code for tokens and store them."""
+        import urllib.parse as _up_cb
+        parsed = _up_cb.urlparse(self.path)
+        params = _up_cb.parse_qs(parsed.query)
+        code  = params.get('code', [''])[0]
+        error = params.get('error', [''])[0]
+        if error:
+            html = f'<h2>❌ Canva auth failed: {error}</h2><p>Close this tab and try again.</p>'
+            self._html(400, html); return
+        if not code:
+            self._html(400, '<h2>❌ No code received from Canva.</h2>'); return
+        try:
+            data = canva_exchange_code(code)
+            html = (
+                '<html><head><style>body{font-family:sans-serif;display:flex;align-items:center;'
+                'justify-content:center;min-height:100vh;background:#1C3A2E;color:#fff;margin:0;}</style></head>'
+                '<body><div style="text-align:center;">'
+                '<h1 style="font-size:48px;margin-bottom:8px;">✅</h1>'
+                '<h2 style="font-size:24px;font-weight:700;margin-bottom:8px;">Canva connected!</h2>'
+                '<p style="color:rgba(255,255,255,0.7);">Design assets will now be automatically generated for campaigns. '
+                'You can close this tab.</p>'
+                '</div></body></html>'
+            )
+            print(f'  ✅ Canva OAuth complete — tokens stored')
+            self._html(200, html)
+        except Exception as e:
+            self._html(500, f'<h2>❌ Token exchange failed: {e}</h2>')
+
+    def _html(self, code, html: str):
+        body = html.encode()
+        self.send_response(code)
+        self.send_header('Content-Type', 'text/html; charset=utf-8')
+        self.send_header('Content-Length', len(body))
+        self.send_cors_headers()
+        self.end_headers()
+        self.wfile.write(body)
+
     def _json(self, code, data):
         body = json.dumps(data).encode()
         self.send_response(code)
@@ -3686,6 +4000,7 @@ def _run_db_migrations():
         return
     migrations = [
         "ALTER TABLE workspace_access ADD COLUMN IF NOT EXISTS partner_id TEXT DEFAULT NULL;",
+        "CREATE TABLE IF NOT EXISTS platform_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TIMESTAMPTZ DEFAULT now());",
     ]
     for sql in migrations:
         try:
