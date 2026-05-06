@@ -1277,18 +1277,69 @@ def canva_get_access_token(workspace_id: str = '') -> str:
         print(f'  ⚠️  canva token refresh error ({wid}): {e}')
         return ''
 
-def canva_generate_and_export(brief_text: str, brand_name: str, workspace_id: str = '') -> list:
+# ── Brand Hub helpers ────────────────────────────────────────────────────────
+
+def _save_brand_hub(workspace_id: str, data: dict) -> bool:
+    """Persist brand hub data for a workspace to Supabase platform_settings."""
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        return False
+    key = f'brand_hub_{workspace_id}'
+    try:
+        hdrs = {
+            'apikey': SUPABASE_SERVICE_KEY,
+            'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates,return=representation',
+        }
+        req = urllib.request.Request(
+            f'{SUPABASE_URL}/rest/v1/platform_settings',
+            data=json.dumps({'key': key, 'value': json.dumps(data)}).encode(),
+            headers=hdrs, method='POST',
+        )
+        with urllib.request.urlopen(req, timeout=10):
+            pass
+        print(f'  ✅ Brand hub saved for workspace: {workspace_id}')
+        return True
+    except Exception as e:
+        print(f'  ⚠️  brand hub save error: {e}')
+        return False
+
+def _load_brand_hub(workspace_id: str) -> dict:
+    """Load brand hub data for a workspace from Supabase platform_settings."""
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        return {}
+    key = f'brand_hub_{workspace_id}'
+    try:
+        import urllib.parse as _up_bhl
+        req = urllib.request.Request(
+            f'{SUPABASE_URL}/rest/v1/platform_settings?key=eq.{_up_bhl.quote(key)}',
+            headers={
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            }
+        )
+        with urllib.request.urlopen(req, timeout=10) as r:
+            rows = json.loads(r.read())
+        if rows:
+            return json.loads(rows[0]['value'])
+    except Exception as e:
+        print(f'  ⚠️  brand hub load error ({workspace_id}): {e}')
+    return {}
+
+def canva_generate_and_export(brief_text: str, brand_name: str, workspace_id: str = '', brand_hub: dict = None) -> list:
     """
     Create Canva designs for a campaign and return edit URLs.
 
     Strategy (in order of preference):
-      1. If the workspace has brand templates → autofill the first one
-      2. Otherwise → create a blank Instagram Post design in their Canva account
+      1. If the workspace has brand templates → autofill the first one (exports PNG)
+      2. Otherwise → create a blank 1080×1080 canvas → return edit URL with brand
+         context in the title so the client knows what to build
 
-    Returns a list of Canva edit URLs (prefixed with 'canva:' so the frontend
-    knows to render an "Edit in Canva" button rather than a download link).
+    brand_hub: optional dict from platform brand hub (colors, tone, logo, etc.)
+    Returns a list of URLs — PNG download URLs or 'canva:' prefixed edit URLs.
     """
     import time
+    brand_hub = brand_hub or {}
     token = canva_get_access_token(workspace_id)
     if not token:
         print('  ⚠️  Canva: no access token — skipping design generation')
@@ -1372,10 +1423,19 @@ def canva_generate_and_export(brief_text: str, brand_name: str, workspace_id: st
 
         # ── Strategy 2: create a blank 1080×1080 Instagram Post design ─────────
         if not design_id:
-            print(f'  🎨 Canva: creating blank Instagram Post design for {brand_name}')
+            # Build a descriptive title using brand hub data so the client knows
+            # what to create when they open the canvas in Canva
+            colors  = ', '.join(filter(None, [brand_hub.get(f'bCol{n}','') for n in '12345']))
+            tone    = brand_hub.get('bTone', '') or brand_hub.get('bFormality', '')
+            tagline = brand_hub.get('bTagline', '')
+            title_parts = [brand_name]
+            if tagline: title_parts.append(tagline)
+            canvas_title = ' — '.join(title_parts)[:80]
+            print(f'  🎨 Canva: creating blank 1080×1080 canvas for {brand_name}'
+                  + (f' (colours: {colors})' if colors else ''))
             create_resp = _canva_api('POST', 'designs', {
                 'design_type': {'type': 'custom', 'width': 1080, 'height': 1080, 'unit': 'px'},
-                'title': f'{brand_name} — {brief_text[:60]}',
+                'title': canvas_title,
             })
             design = create_resp.get('design', {})
             design_id = design.get('id')
@@ -1547,6 +1607,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_canva_auth()
         elif self.path.startswith('/api/canva/callback'):
             self._handle_canva_callback()
+        elif self.path.startswith('/api/brand-hub'):
+            self._handle_brand_hub_get()
         else:
             # Serve static files from working directory
             import os as _os
@@ -1636,6 +1698,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_escalation_create()
         elif self.path.startswith('/api/escalation/'):
             self._handle_escalation_update()
+        elif self.path.startswith('/api/brand-hub'):
+            self._handle_brand_hub_post()
         else:
             self.send_response(404)
             self.end_headers()
@@ -3768,6 +3832,36 @@ class AgentHandler(BaseHTTPRequestHandler):
                 except Exception as e:
                     print(f'  ⚠️  {assigned_agent} async deliverable error: {e}')
 
+            # — Load brand hub for this workspace (used by Zara + Canva) —
+            brand_hub = _load_brand_hub(_ws) if _ws else {}
+            brand_hub_summary = ''
+            if brand_hub:
+                colors  = ', '.join(filter(None, [brand_hub.get(f'bCol{n}','') for n in '12345']))
+                tone    = brand_hub.get('bTone', '') or brand_hub.get('bFormality', '')
+                fonts   = f"{brand_hub.get('bHFont','')} / {brand_hub.get('bBFont','')}".strip(' /')
+                logo    = brand_hub.get('bLogoUrl', '')
+                tagline = brand_hub.get('bTagline', '')
+                mission = brand_hub.get('bMission', '')
+                img_sty = brand_hub.get('bImgStyle', '')
+                traits  = ', '.join(brand_hub.get('bTraits', []))
+                vp      = brand_hub.get('bValueProp', '')
+                words_u = brand_hub.get('bWordsUse', '')
+                words_a = brand_hub.get('bWordsAvoid', '')
+                parts = []
+                if tagline:  parts.append(f'Tagline: {tagline}')
+                if mission:  parts.append(f'Mission: {mission}')
+                if colors:   parts.append(f'Brand colours: {colors}')
+                if fonts:    parts.append(f'Fonts: {fonts}')
+                if tone:     parts.append(f'Tone: {tone}')
+                if traits:   parts.append(f'Brand personality: {traits}')
+                if img_sty:  parts.append(f'Image style: {img_sty}')
+                if vp:       parts.append(f'Value proposition: {vp}')
+                if words_u:  parts.append(f'Use words: {words_u}')
+                if words_a:  parts.append(f'Avoid words: {words_a}')
+                if logo:     parts.append(f'Logo URL: {logo}')
+                brand_hub_summary = '\n'.join(parts)
+                print(f'  🎨 Brand hub loaded for {_ws}: {len(parts)} fields')
+
             # — Design deliverable: auto-generate when brief mentions design assets —
             design_deliverable_text = ''
             design_keywords = ['design asset', 'design assets', 'creative asset', 'creative assets',
@@ -3777,12 +3871,18 @@ class AgentHandler(BaseHTTPRequestHandler):
             needs_design = any(kw in brief_lower for kw in design_keywords) or assigned_agent == 'zara'
             if needs_design and sarah_reply and API_KEY and assigned_agent != 'zara':
                 try:
+                    brand_hub_block = (
+                        f'\n\nBRAND GUIDELINES (from client brand hub):\n{brand_hub_summary}'
+                        if brand_hub_summary else
+                        '\n\nBRAND GUIDELINES: Not yet completed by client — use brief and campaign context.'
+                    )
                     zara_context = (
                         f"Campaign: {_name}\nClient: {_co}\n"
                         f"Type: {_ctype}\nChannel: {_ch}\n"
                         f"Target Audience: {_aud or 'Not specified'}\n"
                         f"Brief: {_br or 'No brief provided'}\n\n"
                         f"CMO Assessment (Sarah Lin):\n{sarah_reply[:600]}"
+                        f"{brand_hub_block}"
                     )
                     design_text = call_anthropic(
                         API_KEY, AGENT_PROMPTS.get('zara', ''),
@@ -3803,14 +3903,16 @@ class AgentHandler(BaseHTTPRequestHandler):
                 'created_at': datetime.datetime.utcnow().isoformat(),
             } if deliverable_text else None
 
-            # — Auto-generate real Canva design PNGs —
+            # — Auto-generate Canva design (brand template → blank canvas edit URL) —
             canva_urls = []
             if design_deliverable_text and CANVA_CLIENT_ID and CANVA_CLIENT_SECRET:
                 try:
                     brand = _co or _name or 'Brand'
-                    canva_urls = canva_generate_and_export(design_deliverable_text, brand, _ws)
+                    canva_urls = canva_generate_and_export(
+                        design_deliverable_text, brand, _ws, brand_hub=brand_hub
+                    )
                     if canva_urls:
-                        print(f'  🖼️  Canva: {len(canva_urls)} PNG(s) generated for "{_name}"')
+                        print(f'  🖼️  Canva: {len(canva_urls)} design(s) for "{_name}"')
                 except Exception as e:
                     print(f'  ⚠️  Canva pipeline error: {e}')
 
@@ -4006,6 +4108,33 @@ class AgentHandler(BaseHTTPRequestHandler):
         except Exception as e:
             print(f'[campaign/reply] error: {e}')
             self._error(500, str(e))
+
+    # ── Brand Hub ─────────────────────────────────────────────────────────────
+
+    def _handle_brand_hub_get(self):
+        """GET /api/brand-hub?workspaceId=X — load brand hub data from Supabase."""
+        import urllib.parse as _up_bh
+        params = _up_bh.parse_qs(_up_bh.urlparse(self.path).query)
+        workspace_id = params.get('workspaceId', [''])[0].strip()
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        data = _load_brand_hub(workspace_id)
+        self._json(200, {'data': data})
+
+    def _handle_brand_hub_post(self):
+        """POST /api/brand-hub — save brand hub data to Supabase."""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = body.get('workspaceId', '').strip()
+        data = body.get('data', {})
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        if not isinstance(data, dict):
+            self._error(400, 'data must be an object'); return
+        ok = _save_brand_hub(workspace_id, data)
+        self._json(200, {'ok': ok})
 
     def _handle_canva_auth(self):
         """Return the Canva OAuth authorization URL for a workspace."""

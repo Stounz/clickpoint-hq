@@ -3039,13 +3039,11 @@ const WS_BH_FIELDS = [
   'bComplianceNotes'
 ];
 
-function wsLoadBrandHub() {
-  const saved = JSON.parse(localStorage.getItem(wsBrandKey()) || '{}');
+function wsApplyBrandHubData(saved) {
   WS_BH_FIELDS.forEach(id => {
     const el = document.getElementById(id);
     if (el && saved[id] !== undefined) el.value = saved[id];
   });
-  // Restore live swatches and pickers
   ['1','2','3','4','5'].forEach(n => {
     const hexEl  = document.getElementById('bCol' + n);
     const swatch = document.getElementById('bSwatch' + n);
@@ -3055,23 +3053,51 @@ function wsLoadBrandHub() {
       if (picker) picker.value = hexEl.value;
     }
   });
-  // Restore personality traits
   if (Array.isArray(saved.bTraits)) {
     document.querySelectorAll('.ws-bh-trait').forEach(el => {
-      if (saved.bTraits.includes(el.dataset.trait)) el.classList.add('selected');
+      el.classList.toggle('selected', saved.bTraits.includes(el.dataset.trait));
     });
   }
 }
 
-function wsSaveBrandHub() {
+async function wsLoadBrandHub() {
+  // Try server first (source of truth), fall back to localStorage
+  try {
+    const resp = await fetch(`${WS_API}/api/brand-hub?workspaceId=${encodeURIComponent(wsSession.workspaceId)}`);
+    if (resp.ok) {
+      const { data } = await resp.json();
+      if (data && Object.keys(data).length > 0) {
+        localStorage.setItem(wsBrandKey(), JSON.stringify(data));
+        wsApplyBrandHubData(data);
+        return;
+      }
+    }
+  } catch(e) {}
+  // Fallback: localStorage
+  const saved = JSON.parse(localStorage.getItem(wsBrandKey()) || '{}');
+  wsApplyBrandHubData(saved);
+}
+
+async function wsSaveBrandHub() {
   const data = {};
   WS_BH_FIELDS.forEach(id => {
     const el = document.getElementById(id);
     if (el) data[id] = el.value;
   });
-  // Save personality traits
   data.bTraits = Array.from(document.querySelectorAll('.ws-bh-trait.selected')).map(el => el.dataset.trait);
+
+  // Save locally first (instant)
   localStorage.setItem(wsBrandKey(), JSON.stringify(data));
+
+  // Sync to server so campaign pipeline can access it
+  try {
+    await fetch(`${WS_API}/api/brand-hub`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ workspaceId: wsSession.workspaceId, data })
+    });
+  } catch(e) {}
+
   const toast = document.getElementById('bSavedToast');
   toast.style.display = 'inline';
   setTimeout(() => toast.style.display = 'none', 2500);
