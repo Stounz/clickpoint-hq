@@ -332,6 +332,7 @@ AGENT_PROFILES = {
     'raj':   {'name':'Raj Nair',   'role':'SEO & Analytics Specialist','skills':['Technical SEO','Core Web Vitals','GA4 Setup','Search Console','Crawl & Indexing','UTM Strategy','Monthly Reporting']},
     'zara':  {'name':'Zara Osei',  'role':'Creative Director',         'skills':['Display Banners','Brand Identity','Creative Briefs','Ad Creative','Meta & TikTok Visual','Typography','Design QA']},
     'cleo':  {'name':'Cleo Chan',  'role':'Social Media Specialist',   'skills':['Meta Ads','TikTok Ads','LinkedIn Strategy','Spark Ads','Lookalike Audiences','Community Management','Influencer Briefs']},
+    'emma':  {'name':'Emma Ross',  'role':'Email Marketing Specialist','skills':['Email Sequences','Klaviyo','Mailchimp','Deliverability','Subject Lines','A/B Testing','Drip Campaigns','List Segmentation']},
 }
 # Internal-only agents (not exposed to UI agent selector)
 _INTERNAL_AGENTS = {'task_extractor'}
@@ -1583,7 +1584,7 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_metrics_get()
         elif self.path.startswith('/api/integrations/list'):
             self._handle_integrations_list()
-        elif self.path == '/api/reports':
+        elif self.path.startswith('/api/reports') and not self.path.startswith('/api/reports/save'):
             self._handle_reports_list()
         elif self.path.startswith('/api/portal'):
             self._handle_portal_get()
@@ -1968,7 +1969,7 @@ class AgentHandler(BaseHTTPRequestHandler):
         """Return memories, optionally filtered by agent and/or client."""
         from urllib.parse import urlparse, parse_qs
         params = parse_qs(urlparse(self.path).query)
-        agent_key = params.get('agent', [''])[0]
+        agent_key = params.get('agentId', params.get('agent', ['']))[0]
         client    = params.get('client', [''])[0]
         if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
             self._json(200, {'memories': []}); return
@@ -2341,6 +2342,10 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         raw = self.rfile.read(int(self.headers.get('Content-Length', 0)))
         sig_header = self.headers.get('Stripe-Signature', '')
+
+        # Require signature when secret is configured — reject unsigned requests
+        if STRIPE_WEBHOOK_SECRET and not sig_header:
+            self._error(400, 'Missing Stripe-Signature header'); return
 
         # Verify webhook signature if secret is configured
         if STRIPE_WEBHOOK_SECRET and sig_header:
@@ -3181,7 +3186,11 @@ class AgentHandler(BaseHTTPRequestHandler):
             except Exception:
                 pass
 
-        # Dev/demo fallback — accept any 6-digit code
+        # If Supabase is reachable but code didn't match, reject
+        if SUPABASE_URL and SUPABASE_SERVICE_KEY:
+            self._json(200, {'success': False, 'error': 'Invalid access code'}); return
+
+        # Dev-only fallback when Supabase is not configured — accept any 6-digit code
         company_name = ' '.join(w.capitalize() for w in workspace_id.split('-'))
         self._json(200, {'success': True, 'demo': True, 'companyName': company_name, 'workspaceId': workspace_id})
 
@@ -3493,6 +3502,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             body = self._read_body()
         except Exception:
             self._error(400, 'Invalid JSON'); return
+        if not body.get('client') or not body.get('period'):
+            self._error(400, 'client and period are required'); return
         if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
             self._json(200, {'saved': False, 'reason': 'Supabase not configured'}); return
         try:
