@@ -1279,9 +1279,14 @@ def canva_get_access_token(workspace_id: str = '') -> str:
 
 def canva_generate_and_export(brief_text: str, brand_name: str, workspace_id: str = '') -> list:
     """
-    Find a brand template in the workspace's Canva account, autofill it with
-    campaign content, export as PNG and return download URLs.
-    Falls back to [] if no brand templates exist or on any error.
+    Create Canva designs for a campaign and return edit URLs.
+
+    Strategy (in order of preference):
+      1. If the workspace has brand templates → autofill the first one
+      2. Otherwise → create a blank Instagram Post design in their Canva account
+
+    Returns a list of Canva edit URLs (prefixed with 'canva:' so the frontend
+    knows to render an "Edit in Canva" button rather than a download link).
     """
     import time
     token = canva_get_access_token(workspace_id)
@@ -1304,88 +1309,97 @@ def canva_generate_and_export(brief_text: str, brand_name: str, workspace_id: st
             print(f'  ⚠️  Canva API {method} /{path} → {e.code}: {body[:200]}')
             raise
 
-    try:
-        # 1 — Find a brand template to autofill
-        templates_resp = _canva_api('GET', 'brand-templates?limit=5')
-        templates = templates_resp.get('items', [])
-        if not templates:
-            print('  ⚠️  Canva: no brand templates found — skipping design generation')
-            return []
+    def _get_design_edit_url(design):
+        """Extract edit URL from a design object."""
+        urls = design.get('urls', {})
+        return urls.get('edit_url') or urls.get('view_url') or ''
 
-        template = templates[0]
-        template_id = template.get('id')
-        print(f'  🎨 Canva: using brand template {template_id} — {template.get("title","")}')
-
-        # 2 — Get the template dataset (fields we can autofill)
-        dataset_resp = _canva_api('GET', f'brand-templates/{template_id}/dataset')
-        dataset = dataset_resp.get('dataset', {})
-
-        # Build autofill data from brief — map text fields to campaign content
-        autofill_data = {}
-        short_copy = f'{brand_name} — {brief_text[:120]}'
-        for field_name, field_info in dataset.items():
-            ftype = field_info.get('type', '')
-            if ftype == 'text':
-                autofill_data[field_name] = {'type': 'text', 'text': short_copy}
-
-        if not autofill_data:
-            print('  ⚠️  Canva: template has no text fields — skipping autofill')
-            return []
-
-        # 3 — Create autofill job
-        autofill_resp = _canva_api('POST', 'autofills', {
-            'brand_template_id': template_id,
-            'title': f'{brand_name} — Campaign Design',
-            'data': autofill_data,
-        })
-        job_id = autofill_resp.get('job', {}).get('id') or autofill_resp.get('id')
-        if not job_id:
-            print(f'  ⚠️  Canva autofill: unexpected response: {list(autofill_resp.keys())}')
-            return []
-        print(f'  🎨 Canva autofill job: {job_id}')
-
-        # 4 — Poll for autofill completion
-        design_id = None
-        for _ in range(20):
-            time.sleep(3)
-            status_resp = _canva_api('GET', f'autofills/{job_id}')
-            status = status_resp.get('job', {}).get('status') or status_resp.get('status')
-            if status == 'success':
-                design_id = (status_resp.get('job', {}).get('result', {}).get('design', {}).get('id')
-                             or status_resp.get('result', {}).get('design', {}).get('id'))
-                break
-            if status in ('failed', 'error'):
-                print(f'  ⚠️  Canva autofill failed: {status_resp}')
-                return []
-
-        if not design_id:
-            print('  ⚠️  Canva autofill: no design produced')
-            return []
-        print(f'  🎨 Canva design created: {design_id}')
-
-        # 5 — Export design as PNG
-        urls = []
+    def _export_design(design_id):
+        """Export a design as PNG and return the first download URL, or ''."""
         try:
             export_resp = _canva_api('POST', 'exports', {
                 'design_id': design_id,
                 'format':    {'type': 'png', 'export_quality': 'pro'},
             })
             exp_job_id = export_resp.get('job', {}).get('id') or export_resp.get('id')
-            # Poll export
             for _ in range(15):
                 time.sleep(2)
                 exp_status = _canva_api('GET', f'exports/{exp_job_id}')
                 if (exp_status.get('job', {}).get('status') or exp_status.get('status')) == 'success':
-                    export_urls = (exp_status.get('job', {}).get('urls')
-                                   or exp_status.get('urls', []))
-                    if export_urls:
-                        urls.append(export_urls[0])
-                    break
+                    urls = exp_status.get('job', {}).get('urls') or exp_status.get('urls', [])
+                    return urls[0] if urls else ''
         except Exception as e:
             print(f'  ⚠️  Canva export error: {e}')
+        return ''
 
-        print(f'  ✅ Canva: {len(urls)} design PNG(s) exported')
-        return urls
+    try:
+        design_id   = None
+        used_method = 'blank'
+
+        # ── Strategy 1: autofill a brand template if one exists ──────────────
+        try:
+            templates_resp = _canva_api('GET', 'brand-templates?limit=5')
+            templates = templates_resp.get('items', [])
+            if templates:
+                template_id = templates[0].get('id')
+                print(f'  🎨 Canva: autofilling brand template {template_id}')
+                dataset_resp = _canva_api('GET', f'brand-templates/{template_id}/dataset')
+                dataset = dataset_resp.get('dataset', {})
+                autofill_data = {
+                    k: {'type': 'text', 'text': f'{brand_name} — {brief_text[:120]}'}
+                    for k, v in dataset.items() if v.get('type') == 'text'
+                }
+                if autofill_data:
+                    af_resp = _canva_api('POST', 'autofills', {
+                        'brand_template_id': template_id,
+                        'title': f'{brand_name} — Campaign Design',
+                        'data': autofill_data,
+                    })
+                    job_id = af_resp.get('job', {}).get('id') or af_resp.get('id')
+                    for _ in range(20):
+                        time.sleep(3)
+                        s = _canva_api('GET', f'autofills/{job_id}')
+                        st = s.get('job', {}).get('status') or s.get('status')
+                        if st == 'success':
+                            design_id = (s.get('job', {}).get('result', {}).get('design', {}).get('id')
+                                         or s.get('result', {}).get('design', {}).get('id'))
+                            used_method = 'brand_template'
+                            break
+                        if st in ('failed', 'error'):
+                            break
+        except Exception as e:
+            print(f'  ℹ️  Canva: no brand template autofill ({e}) — falling back to blank design')
+
+        # ── Strategy 2: create a blank Instagram Post design ─────────────────
+        if not design_id:
+            print(f'  🎨 Canva: creating blank Instagram Post design for {brand_name}')
+            create_resp = _canva_api('POST', 'designs', {
+                'design_type': {'type': 'preset', 'name': 'InstagramPost'},
+                'title': f'{brand_name} — {brief_text[:60]}',
+            })
+            design = create_resp.get('design', {})
+            design_id = design.get('id')
+
+        if not design_id:
+            print('  ⚠️  Canva: could not create design')
+            return []
+
+        print(f'  ✅ Canva design created ({used_method}): {design_id}')
+
+        # ── Try to export as PNG; fall back to edit URL ───────────────────────
+        png_url = _export_design(design_id)
+        if png_url:
+            print(f'  ✅ Canva: PNG exported')
+            return [png_url]
+
+        # Fall back to edit URL so client can open the design in Canva
+        design_info = _canva_api('GET', f'designs/{design_id}')
+        edit_url = _get_design_edit_url(design_info.get('design', design_info))
+        if edit_url:
+            print(f'  ✅ Canva: returning edit URL')
+            return [f'canva:{edit_url}']
+
+        return []
 
     except urllib.error.HTTPError as e:
         body = e.read().decode()

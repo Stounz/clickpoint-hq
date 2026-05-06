@@ -2950,14 +2950,24 @@ function wsLoadLibrary(filter = 'all') {
       <button class="ws-lib-changes" onclick="wsLibRequestChanges('${item.id}')">Request Changes</button>
     ` : '';
     const campaignTag = item.campaignName ? `<span style="font-size:10px;color:var(--muted);background:#F4F3EE;padding:2px 7px;border-radius:10px;">${item.campaignName}</span>` : '';
-    // Design asset download buttons (shown when real image URLs are attached)
+    // Design asset buttons — download PNGs or open Canva edit links
     const designUrls = item.design_urls || [];
+    const isDesign = item.type === 'Design';
     const downloadBtns = designUrls.length ? `
       <div style="margin:12px 0 4px;padding:12px 14px;background:#F4F3EE;border-radius:10px;border:1.5px solid var(--border);">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px;">🖼️ Design Assets — Click to Download</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px;">🎨 Canva Designs</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;">
-          ${designUrls.map((url, i) => `<a href="${url}" download="design-asset-${i+1}.png" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--teal);color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='#254d3a'" onmouseout="this.style.background='var(--teal)'">⬇ Asset ${i+1}</a>`).join('')}
+          ${designUrls.map((url, i) => {
+            const isCanvaLink = url.startsWith('canva:');
+            const href = isCanvaLink ? url.slice(6) : url;
+            const label = isCanvaLink ? `✏️ Edit in Canva` : `⬇ Download ${i+1}`;
+            const bg = isCanvaLink ? '#7D2AE8' : 'var(--teal)';
+            const hoverBg = isCanvaLink ? '#5e1db5' : '#254d3a';
+            const attrs = isCanvaLink ? `target="_blank"` : `download="design-asset-${i+1}.png" target="_blank"`;
+            return `<a href="${href}" ${attrs} style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:${bg};color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;" onmouseover="this.style.background='${hoverBg}'" onmouseout="this.style.background='${bg}'">${label}</a>`;
+          }).join('')}
         </div>
+        ${designUrls.some(u => u.startsWith('canva:')) ? `<div style="font-size:10px;color:var(--muted);margin-top:8px;">💡 Add <a href="https://www.canva.com/brand-templates/" target="_blank" style="color:var(--teal);text-decoration:none;">brand templates</a> in Canva for fully auto-generated designs.</div>` : ''}
       </div>` : '';
     return `<div class="ws-lib-item" id="libitem_${item.id.replace(/[^a-zA-Z0-9_-]/g,'_')}">
       <div class="ws-lib-item-header">
