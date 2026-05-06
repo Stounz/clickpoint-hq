@@ -1370,11 +1370,11 @@ def canva_generate_and_export(brief_text: str, brand_name: str, workspace_id: st
         except Exception as e:
             print(f'  ℹ️  Canva: no brand template autofill ({e}) — falling back to blank design')
 
-        # ── Strategy 2: create a blank Instagram Post design ─────────────────
+        # ── Strategy 2: create a blank 1080×1080 Instagram Post design ─────────
         if not design_id:
             print(f'  🎨 Canva: creating blank Instagram Post design for {brand_name}')
             create_resp = _canva_api('POST', 'designs', {
-                'design_type': {'type': 'preset', 'name': 'InstagramPost'},
+                'design_type': {'type': 'custom', 'width': 1080, 'height': 1080, 'unit': 'px'},
                 'title': f'{brand_name} — {brief_text[:60]}',
             })
             design = create_resp.get('design', {})
