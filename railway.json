@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "python3 server.py",
+    "startCommand": "pip install cryptography>=41.0.0 -q && python3 server.py",
     "healthcheckPath": "/health",
     "restartPolicyType": "ON_FAILURE"
   }
