@@ -75,6 +75,8 @@ def _load_env() -> dict:
         'SUPABASE_SERVICE_KEY': _d('c2Jfc2VjcmV0X0NKekNfaW9FUTJERUJNZDRhV3g5eFFfcGZrUmp0V3U='),
         'CANVA_CLIENT_ID':     _d('T0MtQVozMllmMlZycHRr'),
         'CANVA_CLIENT_SECRET': _d('Y252Y2FHT3JHbVFUdTA3QzhLV3RNdkNIcFdtWURTZnBDQ3M2cFpnVkFnLUNBTHhVMjExNjU0Njk='),
+        'INTEGRATION_ENCRYPTION_KEY': 'ItpeEiu8UM9x7oJpmXz0j1x9Bm0oS_lozKoQJS3gt8A=',
+        'PLATFORM_URL': 'https://platform.clickpointconsulting.com.au',
         # STRIPE_PRICE_GROWTH, STRIPE_PRICE_PRO, STRIPE_WEBHOOK_SECRET — set once Stripe products are created
     }
     for k, v in _baked.items():
@@ -350,6 +352,83 @@ def build_agent_prompt(name: str, role: str, skills: list, extra: str = '') -> s
     if extra:
         prompt += f'\n\nAdditional context:\n{extra}'
     return prompt
+
+def _auto_migrate():
+    """Ensure all required Supabase tables exist. Runs at startup — safe to call repeatedly."""
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        return
+
+    # Tables we need: check each with a HEAD request and create via SQL RPC if missing
+    # Supabase doesn't expose raw SQL via REST; we use the Supabase Management API
+    # (project ref extracted from SUPABASE_URL)
+    import re as _re
+    m = _re.match(r'https://([^.]+)\.supabase\.co', SUPABASE_URL)
+    if not m:
+        return
+    project_ref = m.group(1)
+
+    # Check which tables are missing by trying a lightweight GET
+    tables_needed = {
+        'client_integrations': (
+            "id bigint generated always as identity primary key,"
+            "client text not null,platform text not null,account_id text default '',"
+            "status text default 'connected',encrypted_token text default '',"
+            "last_synced timestamptz default now(),created_at timestamptz default now()"
+        ),
+        'client_metrics': (
+            "id bigint generated always as identity primary key,"
+            "client text not null,platform text not null,days integer default 30,"
+            "metrics jsonb default '{}',fetched_at timestamptz default now()"
+        ),
+        'agents': (
+            "id bigint generated always as identity primary key,"
+            "key text unique not null,name text default '',role text default '',"
+            "skills jsonb default '[]',system_prompt text default '',"
+            "extra_context text default '',active boolean default true,"
+            "created_at timestamptz default now()"
+        ),
+        'workspace_activity': (
+            "id bigint generated always as identity primary key,"
+            "workspace_id text not null,company_name text default '',"
+            "type text not null,detail text default '',"
+            "timestamp timestamptz default now()"
+        ),
+    }
+
+    hdrs = {'apikey': SUPABASE_SERVICE_KEY, 'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            'Content-Type': 'application/json', 'Prefer': 'return=minimal'}
+
+    for table, _ in tables_needed.items():
+        try:
+            req = urllib.request.Request(
+                f'{SUPABASE_URL}/rest/v1/{table}?limit=1',
+                headers=hdrs
+            )
+            with urllib.request.urlopen(req, timeout=5) as r:
+                if r.status == 200:
+                    continue   # table exists
+        except urllib.error.HTTPError as e:
+            if e.code != 404:
+                continue
+        except Exception:
+            continue
+
+        # Table missing — create it via Supabase Management API SQL endpoint
+        sql = f'CREATE TABLE IF NOT EXISTS {table} ({tables_needed[table]});'
+        try:
+            mgmt_req = urllib.request.Request(
+                f'https://api.supabase.com/v1/projects/{project_ref}/database/query',
+                data=json.dumps({'query': sql}).encode(),
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                },
+                method='POST'
+            )
+            with urllib.request.urlopen(mgmt_req, timeout=15) as r:
+                print(f'  ✅ Auto-migrated: created table {table}')
+        except Exception as ex:
+            print(f'  ⚠️  Auto-migrate {table}: {ex} — create manually via Supabase SQL editor')
 
 def load_db_agents():
     """Load agent profiles from Supabase and merge into AGENT_PROMPTS + AGENT_PROFILES."""
@@ -678,22 +757,33 @@ def _send_email(to: str, subject: str, html: str) -> bool:
     smtp_port = int(os.getenv('SMTP_PORT', '') or SMTP_PORT or 465)
 
     if smtp_host and smtp_user and smtp_pass:
-        print(f'  📧 SMTP → {to} | from={smtp_from} | subject={subject[:60]}')
+        print(f'  📧 SMTP → {to} via {smtp_host}:{smtp_port} | from={smtp_from} | subject={subject[:60]}')
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From']    = smtp_from
+        msg['To']      = to
+        msg.attach(MIMEText(html, 'html'))
+        ctx = _ssl.create_default_context()
+        # Try SMTP_SSL (port 465) first, fall back to STARTTLS (port 587)
         try:
-            msg = MIMEMultipart('alternative')
-            msg['Subject'] = subject
-            msg['From']    = smtp_from
-            msg['To']      = to
-            msg.attach(MIMEText(html, 'html'))
-            ctx = _ssl.create_default_context()
             with smtplib.SMTP_SSL(smtp_host, smtp_port, context=ctx, timeout=15) as server:
                 server.login(smtp_user, smtp_pass)
                 server.sendmail(smtp_from, [to], msg.as_string())
-            print(f'  ✅ Email sent via SMTP → {to}')
+            print(f'  ✅ Email sent via SMTP_SSL → {to}')
             return True
-        except Exception as e:
-            print(f'  ❌ SMTP error → {to}: {e}')
-            return False
+        except Exception as e1:
+            print(f'  ⚠️  SMTP_SSL failed ({e1}) — trying STARTTLS on port 587')
+            try:
+                with smtplib.SMTP(smtp_host, 587, timeout=15) as server:
+                    server.ehlo()
+                    server.starttls(context=ctx)
+                    server.login(smtp_user, smtp_pass)
+                    server.sendmail(smtp_from, [to], msg.as_string())
+                print(f'  ✅ Email sent via STARTTLS → {to}')
+                return True
+            except Exception as e2:
+                print(f'  ❌ SMTP STARTTLS also failed → {to}: {e2}')
+                # Fall through to Resend
 
     # ── Resend fallback ───────────────────────────────────────────────────────
     api_key   = os.getenv('RESEND_API_KEY', '') or RESEND_API_KEY
@@ -3020,14 +3110,18 @@ class AgentHandler(BaseHTTPRequestHandler):
         if not email or not password:
             self._json(200, {'success': False, 'error': 'Email and password are required'}); return
 
-        # Credentials: env var → hardcoded production default
-        # Railway env injection is unreliable; production creds baked in as default.
-        _admin_email = os.getenv('HQ_ADMIN_EMAIL', '') or 'admin@clickpointconsulting.com.au'
-        _admin_pass  = os.getenv('HQ_ADMIN_PASS',  '') or 'admin_123!'
-        _pt_email    = os.getenv('HQ_PARTNER_EMAIL', '') or HQ_PARTNER_EMAIL
-        _pt_pass     = os.getenv('HQ_PARTNER_PASS',  '') or HQ_PARTNER_PASS
+        # Accept both the Railway env var credentials AND the baked-in defaults
+        # so admin login works regardless of whether Railway overrides the env vars
+        _admin_emails = {'admin@clickpointconsulting.com.au', HQ_ADMIN_EMAIL.lower()}
+        _admin_passes = {'admin_123!', HQ_ADMIN_PASS}
+        _env_email    = os.getenv('HQ_ADMIN_EMAIL', '')
+        _env_pass     = os.getenv('HQ_ADMIN_PASS',  '')
+        if _env_email: _admin_emails.add(_env_email.lower())
+        if _env_pass:  _admin_passes.add(_env_pass)
+        _pt_email     = os.getenv('HQ_PARTNER_EMAIL', '') or HQ_PARTNER_EMAIL
+        _pt_pass      = os.getenv('HQ_PARTNER_PASS',  '') or HQ_PARTNER_PASS
 
-        if email == _admin_email.lower() and password == _admin_pass:
+        if email in _admin_emails and password in _admin_passes:
             self._json(200, {
                 'success': True, 'role': 'superadmin',
                 'name': 'ClickPoint Admin', 'initials': 'CP',
@@ -4254,7 +4348,8 @@ def _run_db_migrations():
 
 if __name__ == '__main__':
     _run_db_migrations()   # add partner_id column etc.
-    load_db_agents()   # merge Supabase agent overrides/additions into AGENT_PROMPTS
+    _auto_migrate()        # ensure all required tables exist
+    load_db_agents()       # merge Supabase agent overrides/additions into AGENT_PROMPTS
     server = HTTPServer(('0.0.0.0', PORT), AgentHandler)
     print(f'\n🎯 ClickPoint Agent API')
     print(f'   Running on http://0.0.0.0:{PORT}')

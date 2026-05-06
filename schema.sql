@@ -208,3 +208,46 @@ insert into cmd_escalations (priority, client, title, body, raised_by, raised_ti
 ('HIGH',   'Crestwave Foods',  'Budget reallocation approval needed',            'Crestwave Foods has requested a 40% increase in social media ad spend mid-campaign (£4,200 → £5,880/mo). This requires reallocating £1,680 from their SEO retainer. Cleo and Sarah have both reviewed it and recommend approval, but need your sign-off as it changes contracted scope.', 'cleo', '15m ago', 'Approve — social ROI is outperforming SEO this quarter and client momentum is strong.', false),
 ('MEDIUM', 'DataForge AI',     'Technical SEO changes need client authorisation', 'The audit found critical issues requiring direct changes to the DataForge AI website: canonical tag restructure, Core Web Vitals fixes, and schema markup. These changes require client dev team access. Raj needs authorisation to proceed — estimated 3-day implementation window.', 'raj',  '42m ago', 'Approve and cc the DataForge AI CTO on the access request email.', false),
 ('LOW',    'Vanta Studios',    'Creative brief sign-off overdue by 3 days',       'The Q2 creative brief for Vanta Studios was sent for approval on Apr 18 and has not been signed off. Zara cannot begin production without it. Two chaser emails sent — no response. May need a direct call from Sarah.', 'zara', '2h ago',  'Call the Vanta Studios account lead directly — this is blocking 4 assets.', false);
+
+-- ── Additional tables (added post-QA audit) ─────────────────────────────────
+
+create table if not exists client_integrations (
+  id              bigserial primary key,
+  client          text not null,
+  platform        text not null,
+  account_id      text default '',
+  status          text default 'connected',
+  encrypted_token text default '',
+  last_synced     timestamptz default now(),
+  created_at      timestamptz default now()
+);
+
+create table if not exists client_metrics (
+  id         bigserial primary key,
+  client     text not null,
+  platform   text not null,
+  days       integer default 30,
+  metrics    jsonb default '{}',
+  fetched_at timestamptz default now()
+);
+
+create table if not exists agents (
+  id             bigserial primary key,
+  key            text unique not null,
+  name           text default '',
+  role           text default '',
+  skills         jsonb default '[]',
+  system_prompt  text default '',
+  extra_context  text default '',
+  active         boolean default true,
+  created_at     timestamptz default now()
+);
+
+create table if not exists workspace_activity (
+  id           bigserial primary key,
+  workspace_id text not null,
+  company_name text default '',
+  type         text not null,
+  detail       text default '',
+  timestamp    timestamptz default now()
+);
