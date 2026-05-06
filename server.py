@@ -1386,17 +1386,19 @@ def canva_generate_and_export(brief_text: str, brand_name: str, workspace_id: st
 
         print(f'  ✅ Canva design created ({used_method}): {design_id}')
 
-        # ── Try to export as PNG; fall back to edit URL ───────────────────────
-        png_url = _export_design(design_id)
-        if png_url:
-            print(f'  ✅ Canva: PNG exported')
-            return [png_url]
+        # ── Brand template → try PNG export (has real content) ───────────────
+        # Blank design → skip export (white canvas is useless), return edit URL
+        if used_method == 'brand_template':
+            png_url = _export_design(design_id)
+            if png_url:
+                print(f'  ✅ Canva: PNG exported from brand template')
+                return [png_url]
 
-        # Fall back to edit URL so client can open the design in Canva
+        # Return edit URL — client opens their pre-sized canvas in Canva
         design_info = _canva_api('GET', f'designs/{design_id}')
         edit_url = _get_design_edit_url(design_info.get('design', design_info))
         if edit_url:
-            print(f'  ✅ Canva: returning edit URL')
+            print(f'  ✅ Canva: returning edit URL ({"brand template fallback" if used_method == "brand_template" else "blank canvas — client to design"})')
             return [f'canva:{edit_url}']
 
         return []
