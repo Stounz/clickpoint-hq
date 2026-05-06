@@ -1659,7 +1659,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             check_keys = ['HQ_ADMIN_EMAIL','HQ_ADMIN_PASS','HQ_PARTNER_EMAIL','HQ_PARTNER_PASS',
                           'RESEND_API_KEY','NOTIFY_EMAIL','STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET',
                           'STRIPE_PRICE_GROWTH','STRIPE_PRICE_PRO','PLATFORM_URL',
-                          'HUBSPOT_TOKEN','SUPABASE_URL','SUPABASE_SERVICE_KEY']
+                          'HUBSPOT_TOKEN','SUPABASE_URL','SUPABASE_SERVICE_KEY',
+                          'INTEGRATION_ENCRYPTION_KEY','CANVA_CLIENT_ID','SMTP_HOST']
             # Show both os.getenv (live) and _ENV (startup) to diagnose Railway injection
             self.wfile.write(json.dumps({
                 'live':    {k: bool(os.getenv(k, ''))   for k in check_keys},
