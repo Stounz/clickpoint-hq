@@ -38,15 +38,10 @@ def _load_env() -> dict:
     # System env overrides file
     for k in list(result):
         result[k] = os.getenv(k, result[k])
-    # Also pick up env vars that weren't in .env (e.g. set via Railway/Heroku dashboard)
-    for k in ('ANTHROPIC_API_KEY', 'SUPABASE_URL', 'SUPABASE_SERVICE_KEY',
-               'INTEGRATION_ENCRYPTION_KEY', 'SLACK_WEBHOOK_URL', 'RESEND_API_KEY', 'RESEND_FROM', 'NOTIFY_EMAIL',
-               'HQ_ADMIN_EMAIL', 'HQ_ADMIN_PASS', 'HQ_PARTNER_EMAIL', 'HQ_PARTNER_PASS',
-               'STRIPE_SECRET_KEY', 'STRIPE_PRICE_GROWTH', 'STRIPE_PRICE_PRO',
-               'STRIPE_WEBHOOK_SECRET', 'PLATFORM_URL', 'HUBSPOT_TOKEN'):
-        env_val = os.getenv(k, '')
-        if env_val:
-            result[k] = env_val
+    # Pick up ALL env vars set via Railway / Heroku / system (overrides .env file)
+    for k, v in os.environ.items():
+        if v:
+            result[k] = v
 
     # APP_CONFIG fallback — single JSON variable containing all secrets.
     app_config_raw = os.getenv('APP_CONFIG', '')
@@ -77,6 +72,8 @@ def _load_env() -> dict:
         'CANVA_CLIENT_SECRET': _d('Y252Y2FHT3JHbVFUdTA3QzhLV3RNdkNIcFdtWURTZnBDQ3M2cFpnVkFnLUNBTHhVMjExNjU0Njk='),
         'INTEGRATION_ENCRYPTION_KEY': 'ItpeEiu8UM9x7oJpmXz0j1x9Bm0oS_lozKoQJS3gt8A=',
         'PLATFORM_URL': 'https://platform.clickpointconsulting.com.au',
+        'HQ_PARTNER_EMAIL': _d('cGFydG5lckBjbGlja3BvaW50Y29uc3VsdGluZy5jb20uYXU='),
+        'HQ_PARTNER_PASS':  _d('cGFydG5lcl8xMjMh'),
         # STRIPE_PRICE_GROWTH, STRIPE_PRICE_PRO, STRIPE_WEBHOOK_SECRET — set once Stripe products are created
     }
     for k, v in _baked.items():
