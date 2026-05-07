@@ -1995,12 +1995,12 @@
   <!-- Top stats bar -->
   <div class="stats-bar">
     <div class="glass-card stat-tile" onclick="openStatPanel('team')">
-      <div class="stat-value">13</div>
+      <div class="stat-value" id="dashTeamTile">13</div>
       <div class="stat-label">Team Members</div>
       <div class="stat-hint">View breakdown ↗</div>
     </div>
     <div class="glass-card stat-tile" onclick="openStatPanel('tasks')">
-      <div class="stat-value">31</div>
+      <div class="stat-value" id="dashTasksTile">31</div>
       <div class="stat-label">Active Tasks</div>
       <div class="stat-hint">View breakdown ↗</div>
     </div>
@@ -2010,12 +2010,12 @@
       <div class="stat-hint">View breakdown ↗</div>
     </div>
     <div class="glass-card stat-tile" onclick="openStatPanel('scheduled')">
-      <div class="stat-value">16</div>
+      <div class="stat-value" id="dashScheduledTile">16</div>
       <div class="stat-label">Scheduled This Week</div>
       <div class="stat-hint">View schedule ↗</div>
     </div>
     <div class="glass-card stat-tile" onclick="openStatPanel('clients')" style="border-color: rgba(48,209,88,0.3); background: rgba(48,209,88,0.06);">
-      <div class="stat-value" style="background: linear-gradient(135deg,#30D158,#5AC8FA); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">24</div>
+      <div class="stat-value" id="dashClientsTile" style="background: linear-gradient(135deg,#30D158,#5AC8FA); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">24</div>
       <div class="stat-label">Active Clients</div>
       <div class="stat-hint">View roster ↗</div>
     </div>
@@ -2685,8 +2685,8 @@ function hqSignOut() {
   location.reload();
 }
 
-// Run auth check immediately
-hqCheckSession();
+// Run auth check after DOM is ready
+document.addEventListener('DOMContentLoaded', function() { hqCheckSession(); });
 
 const teamMeetings = [
   { freq:"Weekly", title:"Monday All-Team Stand-up", desc:"Full team reviews previous week's outcomes, surfaces blockers, and aligns on this week's top priorities. Each specialist delivers a 90-second performance snapshot. Directors flag cross-functional dependencies.", time:"Mon 9:00 AM · 20 min · All 13 members", color:"#30D158" },
@@ -6016,6 +6016,9 @@ function renderDashClients() {
   if (!el) return;
   const totalMRR = clients.filter(c => c.type === 'Retainer' && c.status !== 'Review')
     .reduce((s, c) => s + parseInt(c.value.replace(/\$|K|\/mo/g, '')), 0);
+  // Keep the header stat tile in sync with the computed MRR
+  const revTile = document.getElementById('dashRevTile');
+  if (revTile && totalMRR > 0) revTile.textContent = '$' + totalMRR + 'K';
   el.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
       <div>
@@ -7341,7 +7344,15 @@ function dbShowSync(msg, ok = true) {
 // ── Clients ────────────────────────────────────────────────────────────────
 async function dbLoadClients() {
   const { data, error } = await db.from('clients').select('*').order('id');
-  if (error) { console.warn('Supabase clients:', error.message); return; }
+  if (error) {
+    console.warn('Supabase clients:', error.message);
+    // Show fallback "—" on stat tiles when data cannot be loaded
+    ['dashClientsTile','dashRevTile'].forEach(function(id) {
+      const el = document.getElementById(id);
+      if (el && (el.textContent === '24' || el.textContent === '$278K')) el.textContent = '—';
+    });
+    return;
+  }
   // Replace the in-memory array with live data
   clients.length = 0;
   data.forEach(r => clients.push({
@@ -7349,6 +7360,9 @@ async function dbLoadClients() {
     value: r.value, status: r.status, initials: r.initials, bg: r.bg,
     _id: r.id
   }));
+  // Update active clients stat tile
+  const clientsTile = document.getElementById('dashClientsTile');
+  if (clientsTile) clientsTile.textContent = clients.filter(c => c.status !== 'Review').length || clients.length;
   // Re-render dashboard clients table if visible
   if (document.getElementById('dashClientsWrap')) renderDashClients();
   dbShowSync('✓ Clients synced');
@@ -7639,6 +7653,15 @@ async function anlLoad() {
   const body = document.getElementById('anlBody');
   body.innerHTML = '<div style="text-align:center;padding:60px;color:#aaa;font-size:13px;">⏳ Fetching metrics…</div>';
 
+  // 5-second timeout: show fallback if data hasn't loaded
+  let timedOut = false;
+  const anlTimeoutId = setTimeout(function() {
+    timedOut = true;
+    if (body.innerHTML.includes('Fetching metrics')) {
+      body.innerHTML = '<div style="text-align:center;padding:60px;color:#aaa;font-size:13px;">No analytics data available yet.<br><button onclick="anlLoad()" style="margin-top:14px;padding:8px 20px;background:#1C3A2E;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Retry</button></div>';
+    }
+  }, 5000);
+
   // Which platforms to show: core + any extras connected for this client
   const connected  = intgConnections.filter(c => c.client === anlClient).map(c => c.platform);
   const extras     = connected.filter(p => !ANL_CORE.includes(p));
@@ -7646,6 +7669,8 @@ async function anlLoad() {
 
   // Fetch all platforms in parallel
   const results = await Promise.all(platforms.map(p => anlFetch(p, days)));
+  clearTimeout(anlTimeoutId);
+  if (timedOut) return; // timeout already showed fallback
   results.forEach((data, i) => { if (data) anlMetrics[platforms[i]] = data; });
 
   anlRender(platforms, days, connected);
@@ -8250,12 +8275,16 @@ async function intgDisconnect(id, platformName, clientName) {
 // ══════════════════════════════════════════════════════════════════════════════
 let pacCurrentClient = '';
 
+function generateAccessCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
 function pacOpen(clientName) {
   pacCurrentClient = clientName;
   document.getElementById('pacClient').value = clientName;
   document.getElementById('pacEmail').value  = '';
-  document.getElementById('pacResult').style.display = 'none';
-  document.getElementById('pacCode').textContent = '——————';
+  document.getElementById('pacCode').textContent = generateAccessCode();
+  document.getElementById('pacResult').style.display = 'block';
   document.getElementById('pacSendEmail').checked = false;
   const btn = document.getElementById('pacGenerateBtn');
   btn.disabled = false; btn.textContent = '✦ Generate Access';
@@ -8480,10 +8509,16 @@ function ntfUpdateStatus() {
   const email  = document.getElementById('ntfEmail').value.trim();
   const slackEl = document.getElementById('ntfSlackStatus');
   const emailEl = document.getElementById('ntfEmailStatus');
-  slackEl.textContent = slack  ? 'Configured' : 'Not configured';
-  slackEl.className   = 'ntf-channel-status ' + (slack  ? 'ntf-status-on' : 'ntf-status-off');
-  emailEl.textContent = (resend && email) ? 'Configured' : 'Not configured';
-  emailEl.className   = 'ntf-channel-status ' + ((resend && email) ? 'ntf-status-on' : 'ntf-status-off');
+  const slackConfigured = !!slack;
+  const emailConfigured = !!(resend && email);
+  slackEl.innerHTML = slackConfigured
+    ? 'Configured'
+    : 'Not configured&nbsp;<a href="#" onclick="document.getElementById(\'ntfSlackUrl\').focus();return false;" style="font-size:10px;font-weight:700;color:#1C3A2E;text-decoration:underline;white-space:nowrap;">Set up →</a>';
+  slackEl.className   = 'ntf-channel-status ' + (slackConfigured ? 'ntf-status-on' : 'ntf-status-off');
+  emailEl.innerHTML = emailConfigured
+    ? 'Configured'
+    : 'Not configured&nbsp;<a href="#" onclick="document.getElementById(\'ntfResendKey\').focus();return false;" style="font-size:10px;font-weight:700;color:#1C3A2E;text-decoration:underline;white-space:nowrap;">Set up →</a>';
+  emailEl.className   = 'ntf-channel-status ' + (emailConfigured ? 'ntf-status-on' : 'ntf-status-off');
 }
 
 async function ntfTest(channel) {
@@ -8952,7 +8987,7 @@ function rptMd(text) {
       <label>Contact Email</label>
       <input type="email" id="pacEmail" placeholder="client@company.com">
     </div>
-    <div class="pac-result" id="pacResult">
+    <div class="pac-result" id="pacResult" style="display:none;">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#999;margin-bottom:6px;">Access Code</div>
       <div class="pac-result-code" id="pacCode">——————</div>
       <div class="pac-result-hint">Share this code with your contact. They'll use it with their email on the portal login page.</div>

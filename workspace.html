@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ClickPoint — Workspace</title>
+<!-- BUG-25: title updated after session loads in wsInitApp -->
 <link rel="icon" type="image/png" href="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/cropped-clickpoint-logo-header-2x.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -616,18 +617,18 @@
       <label class="login-label">Email</label>
       <input class="login-input" id="wsEmailInput" type="email" placeholder="you@company.com" />
       <label class="login-label">Access Code</label>
-      <input class="login-input" id="wsCodeInput" type="text" placeholder="6-digit code" maxlength="6" style="letter-spacing:0.3em;font-size:20px;" />
+      <input class="login-input" id="wsCodeInput" type="text" placeholder="Enter 6-digit code" maxlength="6" style="letter-spacing:0.3em;font-size:20px;" />
       <button class="login-btn" onclick="wsLogin()">Sign In →</button>
-      <div class="login-err" id="wsLoginErr">Invalid workspace ID or access code. Please try again.</div>
+      <div class="login-err" id="wsLoginErr" style="display:none;">Invalid workspace ID or access code. Please try again.</div>
       <div style="text-align:center;margin-top:14px;">
-        <span class="ws-resend-link" onclick="wsShowResend()">Forgot your access code?</span>
+        <button class="ws-resend-link" onclick="wsShowResend()" style="background:none;border:none;cursor:pointer;font-family:inherit;padding:0;">Forgot your access code?</button>
       </div>
       <div class="ws-resend-panel" id="wsResendPanel">
         <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;">Resend access code</div>
         <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Enter the email you registered with and we'll resend your code.</div>
         <input class="login-input" id="wsResendEmail" type="email" placeholder="you@company.com" style="margin-bottom:8px;" onkeydown="if(event.key==='Enter')wsResendCode()" />
         <button class="login-btn" onclick="wsResendCode()">Send my access code →</button>
-        <div class="ws-resend-ok" id="wsResendOk">✓ If that email is registered, your access code is on its way.</div>
+        <div class="ws-resend-ok" id="wsResendOk" style="display:none;">✓ If that email is registered, your access code is on its way.</div>
       </div>
     </div>
 
@@ -643,8 +644,8 @@
         <label class="login-label">Your Name</label>
         <input class="login-input" id="suName" type="text" placeholder="First and last name" />
         <button class="login-btn" id="suBtn" onclick="wsSignup()">Create my workspace →</button>
-        <div class="login-err" id="wsSignupErr">Something went wrong. Please try again.</div>
-        <div style="margin-top:16px;font-size:11px;color:var(--muted);text-align:center;line-height:1.6;">By creating a workspace you agree to ClickPoint's<br><a href="https://clickpointconsulting.com.au" style="color:var(--teal);">Terms of Service</a> and <a href="https://clickpointconsulting.com.au" style="color:var(--teal);">Privacy Policy</a>.</div>
+        <div class="login-err" id="wsSignupErr" style="display:none;">Something went wrong. Please try again.</div>
+        <div style="margin-top:16px;font-size:11px;color:var(--muted);text-align:center;line-height:1.6;">By creating a workspace you agree to ClickPoint's<br><a href="https://clickpointconsulting.com.au/terms" style="color:var(--teal);">Terms of Service</a> and <a href="https://clickpointconsulting.com.au/privacy" style="color:var(--teal);">Privacy Policy</a>.</div>
       </div>
 
       <!-- Success State -->
@@ -788,14 +789,14 @@
         👁 You are viewing this workspace as admin — clients cannot see this banner.
         <a href="org-chart.html" target="_blank">← Back to HQ</a>
       </div>
-      <div id="wsTrialBanner" style="display:none;background:linear-gradient(90deg,rgba(212,98,42,0.10),rgba(212,98,42,0.05));border:1.5px solid rgba(212,98,42,0.22);border-radius:12px;padding:14px 28px;margin:0 0 24px;display:flex;align-items:center;gap:12px;font-size:13px;color:var(--orange);font-weight:600;box-sizing:border-box;">
+      <div id="wsTrialBanner" style="display:none;background:linear-gradient(90deg,rgba(212,98,42,0.10),rgba(212,98,42,0.05));border:1.5px solid rgba(212,98,42,0.22);border-radius:12px;padding:14px 28px;margin:0 0 24px;align-items:center;gap:12px;font-size:13px;color:var(--orange);font-weight:600;box-sizing:border-box;">
         <span id="wsTrialBannerText"></span>
         <button onclick="wsShowUpgrade()" style="margin-left:auto;padding:6px 16px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">Choose a plan →</button>
       </div>
 
       <!-- ── Dashboard View ── -->
       <div class="ws-view active" id="view-dashboard">
-        <div class="ws-page-title" id="wsDashTitle">Good morning</div>
+        <div class="ws-page-title" id="wsDashTitle"></div>
         <div class="ws-page-sub" id="wsDashSub">Here's what's happening with your marketing this week.</div>
 
         <!-- KPIs -->
@@ -972,13 +973,13 @@
       <!-- ── AI View ── -->
       <div class="ws-view" id="view-ai">
         <div class="ws-page-title">Your CMO</div>
-        <div class="ws-page-sub">Direct line to Sarah Lin, your Chief Marketing Officer at ClickPoint.</div>
+        <div class="ws-page-sub">Direct line to Sarah Lin, your AI-powered Chief Marketing Officer at ClickPoint. <span style="display:inline-block;background:rgba(10,132,255,0.10);color:#0055CC;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;padding:2px 8px;border-radius:20px;vertical-align:middle;">AI Assistant</span></div>
         <div class="ws-chat-wrap">
           <div class="ws-chat-agent-bar" style="background:linear-gradient(135deg,#1C3A2E 0%,#2A5240 100%);">
             <div class="ws-chat-avatar" style="background:#D4622A;font-size:15px;font-weight:900;letter-spacing:-0.5px;">SL</div>
             <div style="flex:1;">
               <div class="ws-chat-agent-name" style="color:#fff;">Sarah Lin</div>
-              <div class="ws-chat-agent-role" style="color:rgba(255,255,255,0.6);">Chief Marketing Officer · ClickPoint</div>
+              <div class="ws-chat-agent-role" style="color:rgba(255,255,255,0.6);">Chief Marketing Officer · ClickPoint &nbsp;<span style="background:rgba(10,132,255,0.25);color:#90C8FF;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:1px 6px;border-radius:10px;">AI Assistant</span></div>
             </div>
             <div style="display:flex;align-items:center;gap:6px;">
               <div style="width:8px;height:8px;border-radius:50%;background:#30D158;box-shadow:0 0 6px rgba(48,209,88,0.6);"></div>
@@ -1047,7 +1048,7 @@
             </div>
             <div class="ws-settings-row">
               <div class="ws-settings-label">Last Synced</div>
-              <div class="ws-settings-val" id="wsSettingsSync">Just now</div>
+              <div class="ws-settings-val" id="wsSettingsSync">Never synced</div>
             </div>
           </div>
           <div class="ws-settings-section">
@@ -1077,7 +1078,7 @@
             <div class="ws-settings-title">Subscription</div>
             <div class="ws-settings-row">
               <div class="ws-settings-label">Current plan</div>
-              <span id="wsBillingPlanBadge" class="ws-badge-plan starter">Starter</span>
+              <span id="wsBillingPlanBadge" class="ws-badge-plan starter">Free Trial</span>
             </div>
             <div class="ws-settings-row" id="wsBillingAmountRow" style="display:none;">
               <div class="ws-settings-label">Billed monthly</div>
@@ -1176,7 +1177,7 @@
             <div class="ws-page-sub">Your complete brand guidelines — used by the team across every campaign, ad, and piece of content.</div>
           </div>
           <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;margin-top:4px;">
-            <span class="ws-brand-saved-toast" id="bSavedToast">✓ Saved</span>
+            <span class="ws-brand-saved-toast" id="bSavedToast" style="display:none;">✓ Saved</span>
             <button class="ws-brand-save" onclick="wsSaveBrandHub()">Save Guidelines</button>
           </div>
         </div>
@@ -1612,6 +1613,14 @@
 </div>
 
 <script>
+// ── BUG-01: Enforce auth gate via JS on DOMContentLoaded ─────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  // Always hide the app shell immediately — only reveal after session confirmed
+  var shell = document.getElementById('appShell');
+  if (shell) shell.style.display = 'none';
+  // loginScreen is shown by default; no action needed
+});
+
 // ── Config ──────────────────────────────────────────────────────────────────
 const WS_API = 'https://web-production-c959ce.up.railway.app';
 
@@ -1739,7 +1748,7 @@ function wsLogin() {
   const err   = document.getElementById('wsLoginErr');
   err.style.display = 'none';
 
-  if (!id || !email) { err.textContent = 'Please enter your workspace ID and email.'; err.style.display='block'; return; }
+  if (!id || !email || !code) { err.textContent = 'Please enter your workspace ID, email, and access code.'; err.style.display='block'; return; }
 
   // Check admin bypass first
   const isAdmin = (code === 'ADMIN' || code === 'admin') && localStorage.getItem('cp_admin_mode') === 'true';
@@ -1869,6 +1878,39 @@ function wsInitApp() {
   document.getElementById('wsSettingsId').textContent   = s.workspaceId;
   document.getElementById('wsSettingsName').textContent = s.companyName;
   document.getElementById('wsSettingsEmail').textContent = s.email;
+
+  // BUG-11: Last Synced — read from localStorage or show "Never synced"
+  (function() {
+    var syncEl = document.getElementById('wsSettingsSync');
+    if (!syncEl) return;
+    var lastSync = localStorage.getItem('cp_last_sync_' + s.workspaceId);
+    syncEl.textContent = lastSync ? lastSync : 'Never synced';
+  })();
+
+  // BUG-20: Show workspaceId next to Workspace ID label with copy button
+  (function() {
+    var idEl = document.getElementById('wsSettingsId');
+    if (idEl) {
+      idEl.textContent = s.workspaceId;
+      var copyIdBtn = document.getElementById('wsSettingsCopyId');
+      if (!copyIdBtn) {
+        var btn = document.createElement('button');
+        btn.id = 'wsSettingsCopyId';
+        btn.className = 'ws-copy-btn';
+        btn.textContent = 'Copy ID';
+        btn.style.marginLeft = '8px';
+        btn.onclick = function() {
+          navigator.clipboard.writeText(s.workspaceId).then(function() {
+            btn.textContent = 'Copied!';
+            setTimeout(function() { btn.textContent = 'Copy ID'; }, 1500);
+          });
+        };
+        idEl.parentNode.insertBefore(btn, idEl.nextSibling);
+      }
+    }
+  })();
+
+  // BUG-25: Browser tab title already set from wsSession above using s.companyName
 
   // AI welcome — from Sarah, personalised to agency if white-labelled
   document.getElementById('wsAiWelcome').textContent =
@@ -2022,7 +2064,7 @@ async function wsLoadDashboard() {
           <div class="ws-campaign-status" style="color:#D4622A;">Pending</div>
         </div>
       `).join('')
-    : `<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">No active campaigns yet — <span style="color:var(--teal);cursor:pointer;" onclick="wsSetView('campaigns')">request one →</span></div>`;
+    : `<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">No active campaigns yet — request your first one below ↓</div>`;
 
   // Campaign badge — only show when there are pending campaigns
   const badge = document.getElementById('wsNavCampaignBadge');
@@ -2035,7 +2077,7 @@ async function wsLoadDashboard() {
 
   // Activity — empty until agency posts real updates
   document.getElementById('wsDashActivity').innerHTML =
-    `<div style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Activity from your agency team will appear here.</div>`;
+    `<div style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Your agency team's activity will appear here.</div>`;
 
   // Try loading real report health from Supabase
   wsLoadReportHealth();
@@ -2790,6 +2832,12 @@ function wsLogActivity(type, detail) {
   fetch(`${WS_API}/api/workspace/activity`, {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ workspaceId: wsSession.workspaceId, companyName: wsSession.companyName, type, detail, timestamp: new Date().toISOString() })
+  }).then(function() {
+    // BUG-11: Update Last Synced timestamp on successful activity log
+    var ts = new Date().toLocaleString();
+    localStorage.setItem('cp_last_sync_' + wsSession.workspaceId, ts);
+    var syncEl = document.getElementById('wsSettingsSync');
+    if (syncEl) syncEl.textContent = ts;
   }).catch(() => {}); // Silent fail
 }
 
@@ -2935,7 +2983,7 @@ function wsLoadLibrary(filter = 'all') {
   if (!filtered.length) {
     el.innerHTML = `<div class="ws-lib-empty">
       <div class="ws-lib-empty-icon">📁</div>
-      <div class="ws-lib-empty-text">${filter === 'all' ? 'No deliverables yet.<br>Submit a campaign and your agency team will produce work here automatically.' : 'No ' + filter + ' deliverables yet.'}</div>
+      <div class="ws-lib-empty-text">${filter === 'all' ? 'Your agency team will post deliverables here for your review.' : 'No ' + filter + ' deliverables yet.'}</div>
     </div>`;
     return;
   }
@@ -3271,7 +3319,8 @@ function wsLoadBilling() {
 
   if (badge) {
     badge.className = `ws-badge-plan ${plan}`;
-    badge.textContent = { starter:'Starter — Free', growth:'Growth — $299/mo', pro:'Pro — $599/mo', agency:'Agency Managed' }[plan] || plan;
+    // BUG-02/17: Use wsSession.plan as single source of truth; "starter" maps to "Free Trial"
+    badge.textContent = { starter:'Free Trial', growth:'Growth — $299/mo', pro:'Pro — $599/mo', agency:'Agency Managed' }[plan] || plan;
   }
 
   if (plan === 'agency') {
@@ -3403,14 +3452,22 @@ async function wsLoadIntegrations() {
   if (!el) return;
   el.innerHTML = '<div style="text-align:center;padding:16px;color:var(--muted);font-size:13px;">Loading…</div>';
 
+  // BUG-03: 5-second timeout — if data hasn't loaded, show empty state
   let connected = [];
   try {
     const wid = wsSession && wsSession.workspaceId ? wsSession.workspaceId : '';
-    const r = await fetch(`/api/integrations/list?workspaceId=${encodeURIComponent(wid)}`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const r = await fetch(`/api/integrations/list?workspaceId=${encodeURIComponent(wid)}`, { signal: controller.signal });
+    clearTimeout(timeoutId);
     const d = await r.json();
     connected = d.integrations || [];
   } catch(e) {
+    if (e.name === 'AbortError') {
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">No accounts connected yet. Connect an integration below.</div>';
+    }
     console.warn('integrations load:', e);
+    if (e.name === 'AbortError') return;
   }
 
   // Build a map: platformId → integration row

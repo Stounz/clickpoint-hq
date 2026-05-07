@@ -737,7 +737,7 @@ def _send_slack(text: str, webhook: str = '') -> bool:
         return False
 
 def _send_email(to: str, subject: str, html: str) -> bool:
-    """Send email — prefers cPanel SMTP when configured, falls back to Resend."""
+    """Send email — prefers Resend (cloud-native), falls back to cPanel SMTP."""
     import smtplib, ssl as _ssl
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
@@ -746,7 +746,30 @@ def _send_email(to: str, subject: str, html: str) -> bool:
         print('  ⚠️  _send_email: no recipient — skipped')
         return False
 
-    # ── SMTP path (cPanel or any SMTP) ───────────────────────────────────────
+    # ── Resend (primary — reliable from Railway/cloud) ────────────────────────
+    api_key   = os.getenv('RESEND_API_KEY', '') or RESEND_API_KEY
+    from_addr = os.getenv('RESEND_FROM', '') or RESEND_FROM
+    if api_key:
+        print(f'  📧 Resend → {to} | from={from_addr} | subject={subject[:60]}')
+        try:
+            payload = json.dumps({'from': from_addr, 'to': [to], 'subject': subject, 'html': html}).encode()
+            req = urllib.request.Request(
+                'https://api.resend.com/emails', data=payload,
+                headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+            )
+            with urllib.request.urlopen(req, timeout=15) as r:
+                resp_body = r.read().decode()
+                print(f'  ✅ Email sent via Resend → {to} (status={r.status}) {resp_body[:120]}')
+                return r.status in (200, 201)
+        except urllib.error.HTTPError as e:
+            err_body = ''
+            try: err_body = e.read().decode()
+            except Exception: pass
+            print(f'  ⚠️  Resend HTTP {e.code} → {to}: {err_body[:200]} — trying SMTP fallback')
+        except Exception as e:
+            print(f'  ⚠️  Resend error → {to}: {e} — trying SMTP fallback')
+
+    # ── SMTP fallback (cPanel) ────────────────────────────────────────────────
     smtp_host = os.getenv('SMTP_HOST', '') or SMTP_HOST
     smtp_user = os.getenv('SMTP_USER', '') or SMTP_USER
     smtp_pass = os.getenv('SMTP_PASS', '') or SMTP_PASS
@@ -754,60 +777,32 @@ def _send_email(to: str, subject: str, html: str) -> bool:
     smtp_port = int(os.getenv('SMTP_PORT', '') or SMTP_PORT or 465)
 
     if smtp_host and smtp_user and smtp_pass:
-        print(f'  📧 SMTP → {to} via {smtp_host}:{smtp_port} | from={smtp_from} | subject={subject[:60]}')
+        print(f'  📧 SMTP fallback → {to} via {smtp_host}:{smtp_port}')
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
         msg['From']    = smtp_from
         msg['To']      = to
         msg.attach(MIMEText(html, 'html'))
         ctx = _ssl.create_default_context()
-        # Try SMTP_SSL (port 465) first, fall back to STARTTLS (port 587)
         try:
-            with smtplib.SMTP_SSL(smtp_host, smtp_port, context=ctx, timeout=15) as server:
+            with smtplib.SMTP_SSL(smtp_host, smtp_port, context=ctx, timeout=8) as server:
                 server.login(smtp_user, smtp_pass)
                 server.sendmail(smtp_from, [to], msg.as_string())
             print(f'  ✅ Email sent via SMTP_SSL → {to}')
             return True
         except Exception as e1:
-            print(f'  ⚠️  SMTP_SSL failed ({e1}) — trying STARTTLS on port 587')
             try:
-                with smtplib.SMTP(smtp_host, 587, timeout=15) as server:
-                    server.ehlo()
-                    server.starttls(context=ctx)
+                with smtplib.SMTP(smtp_host, 587, timeout=8) as server:
+                    server.ehlo(); server.starttls(context=ctx)
                     server.login(smtp_user, smtp_pass)
                     server.sendmail(smtp_from, [to], msg.as_string())
                 print(f'  ✅ Email sent via STARTTLS → {to}')
                 return True
             except Exception as e2:
-                print(f'  ❌ SMTP STARTTLS also failed → {to}: {e2}')
-                # Fall through to Resend
+                print(f'  ❌ SMTP also failed → {to}: {e2}')
 
-    # ── Resend fallback ───────────────────────────────────────────────────────
-    api_key   = os.getenv('RESEND_API_KEY', '') or RESEND_API_KEY
-    from_addr = os.getenv('RESEND_FROM', '') or RESEND_FROM
-    if not api_key:
-        print(f'  ⚠️  _send_email: no SMTP or Resend configured — email to {to} skipped')
-        return False
-    print(f'  📧 Resend → {to} | from={from_addr} | subject={subject[:60]}')
-    try:
-        payload = json.dumps({'from': from_addr, 'to': [to], 'subject': subject, 'html': html}).encode()
-        req = urllib.request.Request(
-            'https://api.resend.com/emails', data=payload,
-            headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
-        )
-        with urllib.request.urlopen(req, timeout=15) as r:
-            resp_body = r.read().decode()
-            print(f'  ✅ Email sent via Resend → {to} (status={r.status}) {resp_body[:120]}')
-            return r.status in (200, 201)
-    except urllib.error.HTTPError as e:
-        err_body = ''
-        try: err_body = e.read().decode()
-        except Exception: pass
-        print(f'  ❌ Resend HTTP {e.code} → {to}: {err_body[:300]}')
-        return False
-    except Exception as e:
-        print(f'  ❌ Resend error → {to}: {e}')
-        return False
+    print(f'  ❌ _send_email: all methods failed for {to}')
+    return False
 
 def _push_to_hubspot(contact_props: dict, company_props: dict = None, note: str = '') -> bool:
     """Create or update a HubSpot contact + company and associate them."""

@@ -303,7 +303,7 @@
     <!-- Tabs -->
     <div class="pt-login-tabs">
       <div class="pt-login-tab active" id="ptTabSignIn" onclick="ptShowLoginTab('signin')">Sign In</div>
-      <div class="pt-login-tab" id="ptTabRegister" onclick="ptShowLoginTab('register')">Register as Partner</div>
+      <div class="pt-login-tab" id="ptTabRegister" onclick="ptShowLoginTab('register')">Apply for Access</div>
     </div>
 
     <!-- Sign In Panel -->
@@ -315,9 +315,9 @@
       <label class="pt-login-label">Password</label>
       <div class="pt-pass-wrap">
         <input class="pt-login-input" id="ptPass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')ptLogin()" />
-        <button type="button" class="pt-pass-eye" id="ptPassEye" onclick="ptTogglePass('ptPass','ptPassEye')"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button type="button" class="pt-pass-eye" id="ptPassEye" aria-label="Show password" onclick="ptTogglePass('ptPass','ptPassEye')"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
       </div>
-      <span class="pt-forgot-link" onclick="ptShowForgot()">Forgot password?</span>
+      <button class="pt-forgot-link" style="background:none;border:none;cursor:pointer;" onclick="ptShowForgot()">Forgot password?</button>
       <div class="pt-forgot-panel" id="ptForgotPanel">
         <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:6px;">Reset your password</div>
         <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Enter your email and we'll send you reset instructions.</div>
@@ -333,7 +333,7 @@
     <div class="pt-login-panel" id="ptPanelRegister">
       <!-- Form -->
       <div id="ptRegisterForm">
-        <div class="pt-login-title">Become a partner</div>
+        <div class="pt-login-title">Apply for partner access</div>
         <div class="pt-login-sub" style="margin-bottom:24px;">Join the ClickPoint partner network and earn 20% of every client's monthly recurring subscription — for as long as they stay.</div>
         <label class="pt-login-label">Agency name</label>
         <input class="pt-login-input" id="ptRegAgency" placeholder="e.g. Acme Digital Agency" />
@@ -346,8 +346,13 @@
         <label class="pt-login-label">Password</label>
         <div class="pt-pass-wrap">
           <input class="pt-login-input" id="ptRegPass" type="password" placeholder="Create a password" />
-          <button type="button" class="pt-pass-eye" id="ptRegPassEye" onclick="ptTogglePass('ptRegPass','ptRegPassEye')"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button type="button" class="pt-pass-eye" id="ptRegPassEye" aria-label="Show password" onclick="ptTogglePass('ptRegPass','ptRegPassEye')"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
         </div>
+        <div class="form-group">
+          <label class="pt-login-label">Confirm password</label>
+          <input class="pt-login-input" type="password" id="ptRegConfirm" placeholder="Confirm your password" />
+        </div>
+        <p class="legal-note" style="font-size:12px;color:#888;margin-top:8px;margin-bottom:14px;">By applying, you agree to ClickPoint's <a href="/terms" target="_blank" style="color:rgba(255,255,255,0.4);">Terms of Service</a> and <a href="/privacy" target="_blank" style="color:rgba(255,255,255,0.4);">Privacy Policy</a>.</p>
         <button class="pt-login-btn" id="ptRegBtn" onclick="ptRegister()">Apply for partner access →</button>
         <div class="pt-login-err" id="ptRegErr"></div>
       </div>
@@ -402,8 +407,8 @@
       <input class="pt-ob-input" id="ptObLogoUrl" placeholder="https://youragency.com/logo.png" />
       <label class="pt-ob-label">Primary colour</label>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-        <input type="color" id="ptObColor" value="#1C3A2E" style="width:36px;height:36px;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;" oninput="document.getElementById('ptObColorHex').value=this.value" />
-        <input class="pt-ob-input" id="ptObColorHex" placeholder="#1C3A2E" style="margin-bottom:0;" oninput="document.getElementById('ptObColor').value=this.value||'#1C3A2E'" />
+        <input type="color" id="ptObColor" value="#000000" style="width:36px;height:36px;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;" oninput="document.getElementById('ptObColorHex').value=this.value" />
+        <input class="pt-ob-input" id="ptObColorHex" placeholder="Enter your brand colour e.g. #3A7BD5" style="margin-bottom:0;" oninput="document.getElementById('ptObColor').value=this.value||'#000000'" />
       </div>
       <button class="pt-ob-btn" onclick="ptObComplete()">🚀 Take me to my portal</button>
     </div>
@@ -531,7 +536,7 @@
       <!-- ── Trial Banner ── -->
       <div id="ptTrialBanner" style="display:none;background:linear-gradient(90deg,rgba(212,98,42,0.10),rgba(212,98,42,0.05));border:1.5px solid rgba(212,98,42,0.22);border-radius:12px;padding:12px 18px;margin-bottom:20px;align-items:center;gap:12px;font-size:13px;color:#D4622A;font-weight:600;">
         <span id="ptTrialBannerText"></span>
-        <a href="mailto:hello@clickpointconsulting.com.au?subject=Partner%20Subscription" style="margin-left:auto;padding:6px 16px;background:#D4622A;color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;">Choose a plan →</a>
+        <a href="mailto:hello@clickpointconsulting.com.au?subject=Partner%20Subscription" title="Opens your email client to contact us about a plan" style="margin-left:auto;padding:6px 16px;background:#D4622A;color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;">Contact us to choose a plan →</a>
       </div>
 
       <!-- ── Dashboard View ── -->
@@ -620,7 +625,6 @@
             <option value="starter">Starter</option>
             <option value="growth">Growth</option>
             <option value="pro">Pro</option>
-            <option value="agency">Agency</option>
           </select>
           <div class="pt-clients-count" id="ptClientsCount"></div>
         </div>
@@ -671,7 +675,8 @@
             <div style="width:44px;height:44px;border-radius:50%;background:#D4622A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;flex-shrink:0;">SL</div>
             <div>
               <div style="font-weight:700;font-size:15px;color:var(--dark);">Sarah Lin</div>
-              <div style="font-size:12px;color:var(--muted);">Chief Marketing Strategist · ClickPoint</div>
+              <div style="font-size:12px;color:var(--muted);">Chief Marketing Officer · ClickPoint</div>
+              <div style="margin-top:3px;"><span class="ai-badge" style="background:#e8f5e9;color:#1C3A2E;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;">AI Assistant</span></div>
             </div>
             <div style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:#30D158;font-weight:600;"><div style="width:7px;height:7px;border-radius:50%;background:#30D158;"></div>Online</div>
           </div>
@@ -753,8 +758,8 @@
               <div class="pt-settings-row">
                 <div class="pt-settings-label">Primary colour <span class="pt-settings-label-sub">Accent colour in portal</span></div>
                 <div class="pt-color-wrap">
-                  <input type="color" class="pt-color-swatch" id="ptSetColor" value="#1C3A2E" oninput="document.getElementById('ptSetColorHex').value=this.value;ptUpdateWlLink();" />
-                  <input class="pt-settings-input" id="ptSetColorHex" placeholder="#1C3A2E" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('ptSetColor').value=this.value;ptUpdateWlLink();" />
+                  <input type="color" class="pt-color-swatch" id="ptSetColor" value="#000000" oninput="document.getElementById('ptSetColorHex').value=this.value;ptUpdateWlLink();" />
+                  <input class="pt-settings-input" id="ptSetColorHex" placeholder="#000000" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('ptSetColor').value=this.value;ptUpdateWlLink();" />
                 </div>
               </div>
             </div>
@@ -804,6 +809,7 @@ function ptTogglePass(inputId, btnId) {
   const show = inp.type === 'password';
   inp.type = show ? 'text' : 'password';
   btn.innerHTML = show ? EYE_OFF : EYE_OPEN;
+  btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
 }
 function ptShowForgot() {
   const panel = document.getElementById('ptForgotPanel');
@@ -909,13 +915,14 @@ function ptShowLoginTab(tab) {
 }
 
 async function ptRegister() {
-  const agency   = document.getElementById('ptRegAgency').value.trim();
-  const name     = document.getElementById('ptRegName').value.trim();
-  const email    = document.getElementById('ptRegEmail').value.trim().toLowerCase();
-  const website  = document.getElementById('ptRegWebsite').value.trim();
-  const password = document.getElementById('ptRegPass').value;
-  const err      = document.getElementById('ptRegErr');
-  const btn      = document.getElementById('ptRegBtn');
+  const agency          = document.getElementById('ptRegAgency').value.trim();
+  const name            = document.getElementById('ptRegName').value.trim();
+  const email           = document.getElementById('ptRegEmail').value.trim().toLowerCase();
+  const website         = document.getElementById('ptRegWebsite').value.trim();
+  const password        = document.getElementById('ptRegPass').value;
+  const confirmPassword = document.getElementById('ptRegConfirm').value;
+  const err             = document.getElementById('ptRegErr');
+  const btn             = document.getElementById('ptRegBtn');
   err.style.display = 'none';
 
   if (!agency || !name || !email || !password) {
@@ -924,6 +931,10 @@ async function ptRegister() {
   }
   if (password.length < 8) {
     err.textContent = 'Password must be at least 8 characters.';
+    err.style.display = 'block'; return;
+  }
+  if (password !== confirmPassword) {
+    err.textContent = 'Passwords do not match.';
     err.style.display = 'block'; return;
   }
 
@@ -1074,6 +1085,31 @@ async function ptAiSend() {
 }
 
 // ── Data ──────────────────────────────────────────────────────────────────────
+
+// P04: 5s timeout for Client Health Overview
+const _ptDashClientTimeout = setTimeout(function() {
+  const el = document.getElementById('ptDashClientList');
+  if (el && el.textContent.trim() === 'Loading clients…') {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px 0;">No clients yet — invite your first client below.</div>';
+  }
+}, 5000);
+
+// P05: 5s timeout for All Clients list
+const _ptClientsBodyTimeout = setTimeout(function() {
+  const el = document.getElementById('ptClientsBody');
+  if (el && el.textContent.trim() === 'Loading…') {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:32px;font-size:13px;">No clients yet. Use Invite Client to get started.</div>';
+  }
+}, 5000);
+
+// P06: 5s timeout for Revenue/Commission breakdown
+const _ptRevBreakdownTimeout = setTimeout(function() {
+  const el = document.getElementById('ptRevBreakdown');
+  if (el && el.textContent.trim() === 'Loading…') {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0;">No commission data yet. Commission will appear here once your clients are active.</div>';
+  }
+}, 5000);
+
 async function ptFetchData() {
   try {
     const res = await fetch(`${PT_API}/api/partner/clients`, {
@@ -1135,7 +1171,7 @@ function ptObComplete() {
     agencyName:  document.getElementById('ptObAgency').value || 'My Agency',
     wlName:      document.getElementById('ptObWlName').value || 'My Agency Marketing Team',
     logoUrl:     document.getElementById('ptObLogoUrl').value || '',
-    color:       document.getElementById('ptObColorHex').value || '#1C3A2E',
+    color:       document.getElementById('ptObColorHex').value || '#000000',
     contactName: document.getElementById('ptObContactName').value || '',
     website:     document.getElementById('ptObWebsite').value || '',
   };
@@ -1158,6 +1194,11 @@ function ptLoadSavedConfig() {
   if (config.wlName)     document.getElementById('ptSetWlName').value   = config.wlName;
   if (config.logoUrl)    document.getElementById('ptSetLogoUrl').value  = config.logoUrl;
   if (config.color)      { document.getElementById('ptSetColor').value = config.color; document.getElementById('ptSetColorHex').value = config.color; }
+  // P17: populate email and partner ID from session
+  if (ptSession) {
+    document.getElementById('ptSetEmail').textContent     = ptSession.email || '—';
+    document.getElementById('ptSetPartnerId').textContent = ptSession.partnerId || '—';
+  }
   ptUpdateWlLink();
 }
 
@@ -1248,7 +1289,7 @@ function ptRenderEscalations() {
     container.innerHTML = `
       <div class="pt-card" style="text-align:center;padding:48px 24px;">
         <div style="font-size:32px;margin-bottom:12px;">✅</div>
-        <div style="font-weight:700;color:var(--dark);margin-bottom:6px;">No escalations</div>
+        <div style="font-weight:700;color:var(--dark);margin-bottom:6px;">No open escalations — all client issues are resolved. ✅</div>
         <div style="font-size:13px;color:var(--muted);">Your clients haven't raised any issues${pFilter !== 'all' ? ' with this priority filter' : ''}.</div>
       </div>`;
     return;
@@ -1346,10 +1387,10 @@ function ptRenderDashboard() {
   const totalCamps   = ptClients.reduce((s,c) => s + (c.campaigns||0), 0);
   const atRisk       = healthClients.filter(c => c.health < 6).length;
 
-  document.getElementById('ptKpiClients').textContent   = ptClients.length;
+  document.getElementById('ptKpiClients').textContent   = ptClients.length > 0 ? ptClients.length : '—';
   document.getElementById('ptKpiMrr').textContent       = totalMrr > 0 ? '$' + commission.toLocaleString() : '—';
   document.getElementById('ptKpiHealth').textContent    = avgHealth;
-  document.getElementById('ptKpiCampaigns').textContent = totalCamps;
+  document.getElementById('ptKpiCampaigns').textContent = totalCamps > 0 ? totalCamps : '—';
   document.getElementById('ptKpiMrrD').textContent      = totalMrr > 0 ? `20% of $${totalMrr.toLocaleString()} MRR` : 'Awaiting billing data';
   document.getElementById('ptKpiHealthD').textContent   = healthClients.length === 0 ? 'Awaiting data' : atRisk > 0 ? `⚠ ${atRisk} account${atRisk>1?'s':''} need attention` : '↑ All accounts healthy';
   document.getElementById('ptKpiHealthD').style.color   = healthClients.length === 0 ? 'var(--muted)' : atRisk > 0 ? 'var(--amber)' : 'var(--green)';
@@ -1382,7 +1423,7 @@ function ptRenderDashboard() {
           </div>
         </div>
       `).join('')
-    : `<div style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Activity will appear here once you have active clients.</div>`;
+    : `<div style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No recent activity yet. Activity will appear here as your clients use their workspaces.</div>`;
 }
 
 // ── Clients ───────────────────────────────────────────────────────────────────
