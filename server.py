@@ -755,7 +755,11 @@ def _send_email(to: str, subject: str, html: str) -> bool:
             payload = json.dumps({'from': from_addr, 'to': [to], 'subject': subject, 'html': html}).encode()
             req = urllib.request.Request(
                 'https://api.resend.com/emails', data=payload,
-                headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+                headers={
+                    'Authorization': f'Bearer {api_key}',
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'ClickPoint-HQ/2.6 (marketing platform)',
+                },
             )
             with urllib.request.urlopen(req, timeout=15) as r:
                 resp_body = r.read().decode()
