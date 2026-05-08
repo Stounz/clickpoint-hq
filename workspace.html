@@ -354,6 +354,27 @@
   .ws-lib-status.approved { background:rgba(48,209,88,0.1); color:#1a8a3c; }
   .ws-lib-status.changes { background:rgba(212,98,42,0.1); color:var(--orange); }
   .ws-lib-status.pending { background:rgba(28,58,46,0.08); color:var(--teal); }
+
+  /* Social post preview modal */
+  .ws-social-overlay { position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,0.55);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:32px 16px; }
+  .ws-social-modal { background:#F0EFEA;border-radius:18px;width:100%;max-width:540px;padding:24px;position:relative;margin:auto; }
+  .ws-social-modal-hd { display:flex;align-items:center;justify-content:space-between;margin-bottom:20px; }
+  .ws-social-modal-hd h3 { font-size:15px;font-weight:700;color:var(--dark);margin:0; }
+  .ws-social-modal-close { width:30px;height:30px;border-radius:50%;border:none;background:#DDD;cursor:pointer;font-size:15px;line-height:30px;text-align:center;color:#555; }
+  .ws-social-week { font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin:16px 0 8px;padding:0 2px; }
+  .ws-post-card { background:#fff;border-radius:12px;border:1px solid #E0DFD9;padding:16px;margin-bottom:12px; }
+  .ws-post-card-hd { display:flex;align-items:center;gap:10px;margin-bottom:12px; }
+  .ws-post-card-avatar { width:44px;height:44px;border-radius:50%;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0; }
+  .ws-post-card-name { font-size:14px;font-weight:700;color:#000;line-height:1.3; }
+  .ws-post-card-sub { font-size:11px;color:#888;margin-top:1px; }
+  .ws-post-card-platform { margin-left:auto;font-size:22px; }
+  .ws-post-card-type { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);background:#F4F3EE;border:1px solid var(--border);padding:2px 8px;border-radius:10px;margin-bottom:10px;display:inline-block; }
+  .ws-post-card-body { font-size:13.5px;line-height:1.65;color:#1a1a1a;white-space:pre-wrap;margin-bottom:10px; }
+  .ws-post-card-carousel { background:#F4F3EE;border-radius:10px;padding:14px 16px;margin-bottom:10px;border:1.5px dashed var(--border);display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;font-weight:600; }
+  .ws-post-card-hashtags { font-size:12px;color:#0a66c2;line-height:1.7;margin-bottom:12px; }
+  .ws-post-card-ft { display:flex;gap:0;padding-top:10px;border-top:1px solid #E8E7E3; }
+  .ws-post-card-action { flex:1;display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:600;color:#666;padding:6px 0;border-radius:6px;cursor:default; }
+  .ws-post-card-action:hover { background:#F4F3EE; }
   .ws-save-btn { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; background:rgba(28,58,46,0.06); border:1px solid rgba(28,58,46,0.15); border-radius:8px; font-size:11px; font-weight:600; color:var(--teal); cursor:pointer; margin-top:8px; transition:all 0.15s; font-family:inherit; }
   .ws-save-btn:hover { background:rgba(28,58,46,0.12); }
   .ws-save-btn.saved { color:#aaa; border-color:#ddd; background:#fafafa; cursor:default; }
@@ -3030,6 +3051,7 @@ function wsLoadLibrary(filter = 'all') {
       <div class="ws-lib-item-preview${isExpanded ? ' expanded' : ''}">${wsMd(item.content)}</div>
       <div class="ws-lib-actions">
         ${actionBtns}
+        ${item.type === 'Content' ? `<button onclick="wsLibViewPosts('${item.id}')" style="padding:6px 14px;border-radius:8px;border:1.5px solid var(--teal);background:var(--teal);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📱 View Posts</button>` : ''}
         <button onclick="wsLibCopy('${item.id}')" style="padding:6px 14px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📋 Copy</button>
         <button onclick="wsLibDownload('${item.id}')" style="padding:6px 14px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">⬇ Download</button>
         <button onclick="wsLibToggleExpand('${item.id}')" style="padding:6px 14px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">${isExpanded ? '▲ Collapse' : '▼ Expand'}</button>
@@ -3050,6 +3072,101 @@ function wsLibDownload(id) {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+function wsExtractSocialPosts(content) {
+  const posts = [];
+  let currentWeek = '';
+  // Split into week blocks first
+  const weekBlocks = content.split(/(?=###\s*WEEK\s+\d+)/i);
+  for (const block of weekBlocks) {
+    const weekMatch = block.match(/###\s*(WEEK\s+\d+)/i);
+    if (weekMatch) currentWeek = weekMatch[1];
+    // Split each week block into day sections
+    const daySections = block.split(/(?=\*\*DAY\s+\d+)/);
+    for (const section of daySections) {
+      const dayMatch = section.match(/\*\*DAY\s+(\d+)\s*[—\-]\s*(\w+)\*\*/i);
+      if (!dayMatch) continue;
+      const dayLabel = `${currentWeek ? currentWeek + ' · ' : ''}Day ${dayMatch[1]} — ${dayMatch[2]}`;
+      const typeMatch = section.match(/\*\*Post Type:\*\*\s*([^\n]+)/i);
+      const captionMatch = section.match(/\*\*Caption:\*\*\s*\n([\s\S]+?)(?=\n\*\*Hashtags:|\n\*\*Best Time:|\n---|\n\*\*DAY|$)/i);
+      const hashtagMatch = section.match(/\*\*Hashtags:\*\*\s*([^\n]+)/i);
+      if (captionMatch) {
+        posts.push({
+          week: currentWeek,
+          dayLabel,
+          postType: (typeMatch ? typeMatch[1] : 'Text post').trim(),
+          text: captionMatch[1].trim(),
+          hashtags: hashtagMatch ? hashtagMatch[1].trim() : ''
+        });
+      }
+    }
+  }
+  // Fallback: no DAY markers found — treat whole content as one post
+  if (!posts.length && content.trim().length > 80) {
+    posts.push({ week:'', dayLabel:'Post 1', postType:'Content', text: content.trim().substring(0,600), hashtags:'' });
+  }
+  return posts;
+}
+
+function wsLibViewPosts(id) {
+  const items = wsGetLibrary();
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  const posts = wsExtractSocialPosts(item.content);
+  const isSocial = (item.campaignName || item.title || '').toLowerCase().includes('social') ||
+                   (item.campaignName || item.title || '').toLowerCase().includes('linkedin') ||
+                   (item.campaignName || item.title || '').toLowerCase().includes('instagram');
+  const platformIcon = isSocial ? (
+    (item.campaignName || '').toLowerCase().includes('instagram') ? '📷' : '🔵'
+  ) : '📱';
+  const platformName = (item.campaignName || '').toLowerCase().includes('instagram') ? 'Instagram' : 'LinkedIn';
+
+  let weekRendered = '';
+  const cards = posts.map((post, idx) => {
+    const isCarousel = /carousel|document|pdf/i.test(post.postType);
+    const weekHeader = post.week && post.week !== weekRendered
+      ? (() => { weekRendered = post.week; return `<div class="ws-social-week">${post.week}</div>`; })()
+      : '';
+    const carouselBlock = isCarousel
+      ? `<div class="ws-post-card-carousel">🎠 &nbsp;<span>Carousel / Document Post — ${post.postType}</span></div>`
+      : '';
+    const hashtagHtml = post.hashtags
+      ? `<div class="ws-post-card-hashtags">${post.hashtags}</div>` : '';
+    return `${weekHeader}<div class="ws-post-card">
+      <div class="ws-post-card-hd">
+        <div class="ws-post-card-avatar">CC</div>
+        <div>
+          <div class="ws-post-card-name">${wsSession.companyName || 'Clickpoint Consulting'}</div>
+          <div class="ws-post-card-sub">${post.dayLabel} · ${platformName}</div>
+        </div>
+        <div class="ws-post-card-platform">${platformIcon}</div>
+      </div>
+      <div class="ws-post-card-type">${post.postType}</div>
+      ${carouselBlock}
+      <div class="ws-post-card-body">${post.text.replace(/</g,'&lt;')}</div>
+      ${hashtagHtml}
+      <div class="ws-post-card-ft">
+        <div class="ws-post-card-action">👍 Like</div>
+        <div class="ws-post-card-action">💬 Comment</div>
+        <div class="ws-post-card-action">🔁 Repost</div>
+        <div class="ws-post-card-action">📤 Send</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'ws-social-overlay';
+  overlay.id = 'wsSocialOverlay';
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  overlay.innerHTML = `<div class="ws-social-modal">
+    <div class="ws-social-modal-hd">
+      <h3>${platformIcon} ${posts.length} Social Post${posts.length !== 1 ? 's' : ''}</h3>
+      <button class="ws-social-modal-close" onclick="document.getElementById('wsSocialOverlay').remove()">✕</button>
+    </div>
+    ${cards || '<p style="text-align:center;color:var(--muted);padding:32px 0;">No individual posts found in this deliverable.</p>'}
+  </div>`;
+  document.body.appendChild(overlay);
 }
 
 function wsLibApprove(id) {
