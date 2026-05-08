@@ -15,6 +15,33 @@ import os
 import sys
 import datetime
 import threading
+import time
+import collections
+
+# ── Rate limiter ─────────────────────────────────────────────────────────────
+class _RateLimiter:
+    """Sliding-window rate limiter keyed by (ip, endpoint)."""
+    def __init__(self, max_calls: int, window_seconds: int):
+        self._max   = max_calls
+        self._win   = window_seconds
+        self._hits: dict[str, collections.deque] = {}
+        self._lock  = threading.Lock()
+
+    def allow(self, key: str) -> bool:
+        now = time.monotonic()
+        with self._lock:
+            dq = self._hits.setdefault(key, collections.deque())
+            cutoff = now - self._win
+            while dq and dq[0] < cutoff:
+                dq.popleft()
+            if len(dq) >= self._max:
+                return False
+            dq.append(now)
+            return True
+
+# 10 login attempts per IP per 60 s; 60 agent calls per IP per 60 s
+_login_limiter = _RateLimiter(max_calls=10, window_seconds=60)
+_agent_limiter = _RateLimiter(max_calls=60, window_seconds=60)
 
 # ── Optional encryption (pip3 install cryptography) ───────────────────────────
 try:
@@ -55,28 +82,11 @@ def _load_env() -> dict:
         except Exception as e:
             print(f'  ⚠️  APP_CONFIG parse error: {e}')
 
-    # Baked-in defaults — Railway Runtime V2 does not inject user env vars.
-    # Values are base64-encoded to avoid VCS secret scanning patterns.
-    # Env vars / APP_CONFIG always take precedence over these.
-    import base64 as _b64
-    def _d(s): return _b64.b64decode(s.encode()).decode()
-    _baked = {
-        'HQ_ADMIN_EMAIL':  _d('YWRtaW5AY2xpY2twb2ludGNvbnN1bHRpbmcuY29tLmF1'),
-        'HQ_ADMIN_PASS':   _d('YWRtaW5fMTIzIQ=='),
-        'HUBSPOT_TOKEN':   _d('cGF0LWFwMS0wMGMwMGEzNy1mNDM0LTQ4NWUtOGI0Zi03YTQ3M2FiZWQ0NjU='),
-        'RESEND_API_KEY':  _d('cmVfYW1tRkg0czFfTGVualNuOUI5c0FhYjVkR2hRcDYxOEV5'),
-        'STRIPE_SECRET_KEY':  _d('c2tfbGl2ZV81MUNOaVhsSDJJSHZVNmlVNUZaa3JZUTVNa3dQQzd6RmVLY21RckZQY3FWUHlBd0IyQ3NMRlBGblhrekhSNVhpMUtaeU1XTzFnaDFLQnJFUklodzNPd2hacTAwekNhVzlWczg='),
-        'SUPABASE_URL':       _d('aHR0cHM6Ly9iYW5lbHZ6anR0ZHFrd21idnlibS5zdXBhYmFzZS5jbw=='),
-        'SUPABASE_SERVICE_KEY': _d('c2Jfc2VjcmV0X0NKekNfaW9FUTJERUJNZDRhV3g5eFFfcGZrUmp0V3U='),
-        'CANVA_CLIENT_ID':     _d('T0MtQVozMllmMlZycHRr'),
-        'CANVA_CLIENT_SECRET': _d('Y252Y2FHT3JHbVFUdTA3QzhLV3RNdkNIcFdtWURTZnBDQ3M2cFpnVkFnLUNBTHhVMjExNjU0Njk='),
-        'INTEGRATION_ENCRYPTION_KEY': 'ItpeEiu8UM9x7oJpmXz0j1x9Bm0oS_lozKoQJS3gt8A=',
+    # Non-secret defaults only — all credentials must be set as Railway env vars
+    _defaults = {
         'PLATFORM_URL': 'https://platform.clickpointconsulting.com.au',
-        'HQ_PARTNER_EMAIL': _d('cGFydG5lckBjbGlja3BvaW50Y29uc3VsdGluZy5jb20uYXU='),
-        'HQ_PARTNER_PASS':  _d('cGFydG5lcl8xMjMh'),
-        # STRIPE_PRICE_GROWTH, STRIPE_PRICE_PRO, STRIPE_WEBHOOK_SECRET — set once Stripe products are created
     }
-    for k, v in _baked.items():
+    for k, v in _defaults.items():
         if v and not result.get(k):
             result[k] = v
 
@@ -112,10 +122,23 @@ CANVA_CLIENT_ID            = _ENV.get('CANVA_CLIENT_ID', '')
 CANVA_CLIENT_SECRET        = _ENV.get('CANVA_CLIENT_SECRET', '')
 CANVA_REDIRECT_URI         = 'https://web-production-c959ce.up.railway.app/api/canva/callback'
 
-if not API_KEY:
-    print('\n⚠️  No API key found.')
-    print('Add your Anthropic API key to the .env file:')
-    print('  ANTHROPIC_API_KEY=sk-ant-...\n')
+_REQUIRED_SECRETS = [
+    ('ANTHROPIC_API_KEY',       'sk-ant-...'),
+    ('SUPABASE_URL',            'https://xxxx.supabase.co'),
+    ('SUPABASE_SERVICE_KEY',    'sbp_...'),
+    ('HQ_ADMIN_EMAIL',          'admin@yourdomain.com'),
+    ('HQ_ADMIN_PASS',           'strong-password-here'),
+    ('HQ_PARTNER_EMAIL',        'partner@yourdomain.com'),
+    ('HQ_PARTNER_PASS',         'strong-password-here'),
+    ('INTEGRATION_ENCRYPTION_KEY', 'run: python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"'),
+]
+_missing = [k for k, _ in _REQUIRED_SECRETS if not _ENV.get(k)]
+if _missing:
+    print('\n🚨  Missing required environment variables — set these in Railway → Variables:')
+    for k, example in _REQUIRED_SECRETS:
+        if k in _missing:
+            print(f'  {k}={example}')
+    print()
 
 # ── Agent system prompts ──────────────────────────────────────────────────────
 AGENT_PROMPTS = {
@@ -1624,6 +1647,9 @@ class AgentHandler(BaseHTTPRequestHandler):
         self.send_cors_headers()
         self.end_headers()
 
+    def _client_ip(self) -> str:
+        return (self.headers.get('X-Forwarded-For', '') or self.client_address[0]).split(',')[0].strip()
+
     def _effective_api_key(self):
         return self.headers.get('X-User-Api-Key', '').strip() or API_KEY
 
@@ -1729,6 +1755,16 @@ class AgentHandler(BaseHTTPRequestHandler):
                 self.end_headers()
 
     def do_POST(self):
+        ip = self._client_ip()
+        _auth_paths = {'/api/hq/auth', '/api/portal/auth', '/api/workspace/auth',
+                       '/api/partner/register', '/api/partner/forgot-password'}
+        if self.path in _auth_paths:
+            if not _login_limiter.allow(f'{ip}:{self.path}'):
+                self._error(429, 'Too many requests — please wait before trying again.'); return
+        if self.path in ('/api/agent', '/api/chain'):
+            if not _agent_limiter.allow(ip):
+                self._error(429, 'Rate limit exceeded — slow down your requests.'); return
+
         if self.path == '/api/agent':
             self._handle_single_agent()
         elif self.path == '/api/chain':
@@ -3108,10 +3144,8 @@ class AgentHandler(BaseHTTPRequestHandler):
         if not email or not password:
             self._json(200, {'success': False, 'error': 'Email and password are required'}); return
 
-        # Accept both the Railway env var credentials AND the baked-in defaults
-        # so admin login works regardless of whether Railway overrides the env vars
-        _admin_emails = {'admin@clickpointconsulting.com.au', HQ_ADMIN_EMAIL.lower()}
-        _admin_passes = {'admin_123!', HQ_ADMIN_PASS}
+        _admin_emails = {HQ_ADMIN_EMAIL.lower()} if HQ_ADMIN_EMAIL else set()
+        _admin_passes = {HQ_ADMIN_PASS} if HQ_ADMIN_PASS else set()
         _env_email    = os.getenv('HQ_ADMIN_EMAIL', '')
         _env_pass     = os.getenv('HQ_ADMIN_PASS',  '')
         if _env_email: _admin_emails.add(_env_email.lower())
@@ -3134,15 +3168,6 @@ class AgentHandler(BaseHTTPRequestHandler):
                     'name': 'Agency Partner', 'initials': 'AP',
                     'email': email, 'partnerId': 'partner-demo',
                 }); return
-        # Demo fallback — only when no env creds configured
-        if not _pt_email:
-            if email == 'partner@clickpoint.com.au' and password == 'demo1234':
-                self._json(200, {
-                    'success': True, 'role': 'partner',
-                    'name': 'Agency Partner', 'initials': 'AP',
-                    'email': email, 'partnerId': 'partner-demo',
-                }); return
-
         # ── Supabase partner_accounts lookup ─────────────────────────────────
         sb_url = os.getenv('SUPABASE_URL', '') or SUPABASE_URL
         sb_key = os.getenv('SUPABASE_SERVICE_KEY', '') or SUPABASE_SERVICE_KEY

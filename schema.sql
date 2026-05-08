@@ -148,15 +148,17 @@ alter table cmd_messages     enable row level security;
 alter table cmd_escalations  enable row level security;
 alter table campaigns        enable row level security;
 
--- Allow anon full access (you can tighten this later with auth)
-create policy "anon_all" on clients          for all using (true) with check (true);
-create policy "anon_all" on deliverables     for all using (true) with check (true);
-create policy "anon_all" on team_members     for all using (true) with check (true);
-create policy "anon_all" on schedule_events  for all using (true) with check (true);
-create policy "anon_all" on cmd_feed         for all using (true) with check (true);
-create policy "anon_all" on cmd_threads      for all using (true) with check (true);
-create policy "anon_all" on cmd_messages     for all using (true) with check (true);
-create policy "anon_all" on cmd_escalations  for all using (true) with check (true);
+-- Block all direct anon/public access. The server uses the service_role key
+-- which bypasses RLS entirely, so these policies have no effect on the server.
+-- They prevent anyone with the anon key from reading/writing data directly.
+create policy "deny_anon" on clients          for all using (false);
+create policy "deny_anon" on deliverables     for all using (false);
+create policy "deny_anon" on team_members     for all using (false);
+create policy "deny_anon" on schedule_events  for all using (false);
+create policy "deny_anon" on cmd_feed         for all using (false);
+create policy "deny_anon" on cmd_threads      for all using (false);
+create policy "deny_anon" on cmd_messages     for all using (false);
+create policy "deny_anon" on cmd_escalations  for all using (false);
 
 -- ── Seed: Clients ─────────────────────────────────────────────────────────────
 
@@ -251,3 +253,20 @@ create table if not exists workspace_activity (
   detail       text default '',
   timestamp    timestamptz default now()
 );
+
+-- ── RLS migration: drop open anon policies and replace with deny ──────────────
+-- Run this block in Supabase SQL Editor on existing databases.
+do $$
+declare
+  t text;
+begin
+  foreach t in array array['clients','deliverables','team_members','schedule_events',
+                            'cmd_feed','cmd_threads','cmd_messages','cmd_escalations',
+                            'campaigns','client_integrations','client_metrics',
+                            'agents','workspace_activity'] loop
+    execute format('drop policy if exists "anon_all" on %I', t);
+    execute format('drop policy if exists "deny_anon" on %I', t);
+    execute format('create policy "deny_anon" on %I for all using (false)', t);
+    execute format('alter table %I enable row level security', t);
+  end loop;
+end $$;
