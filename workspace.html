@@ -3203,102 +3203,100 @@ function wsDownloadPostImage(idx, companyName) {
   const post = wsSocialPosts[idx];
   if (!post) return;
 
-  const W = 1080, H = 1080, pad = 64;
+  const W = 1080, H = 1080, pad = 72;
   const canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  // Background
+  const TEAL = '#1C3A2E', ORANGE = '#D4622A', CREAM = '#F7F6F2';
+  const splitY = 610;
+
+  // ── TEAL TOP ZONE ─────────────────────────────────────────────
+  ctx.fillStyle = TEAL;
+  ctx.fillRect(0, 0, W, splitY);
+
+  // Decorative circles (depth / texture)
+  ctx.globalAlpha = 0.07;
   ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, W, H);
+  ctx.beginPath(); ctx.arc(W + 20, -60, 340, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-60, splitY + 40, 220, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = 1;
 
-  // Top teal bar
-  ctx.fillStyle = '#1C3A2E';
-  ctx.fillRect(0, 0, W, 10);
-
-  // Avatar circle
-  const aR = 46, aX = pad + aR, aY = 50 + aR;
-  ctx.fillStyle = '#1C3A2E';
+  // Small CC avatar + brand name (top-left)
+  const aR = 30, aX = pad + aR, aY = pad + aR;
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
   ctx.beginPath(); ctx.arc(aX, aY, aR, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 30px Arial, sans-serif';
+  ctx.font = 'bold 17px Arial, sans-serif';
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText('CC', aX, aY);
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.font = 'bold 22px Arial, sans-serif';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  ctx.fillText(companyName, aX + aR + 14, aY - 5);
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.font = '16px Arial, sans-serif';
+  ctx.fillText(post.dayLabel, aX + aR + 14, aY + 17);
 
-  // Company name
-  ctx.fillStyle = '#0a0a0a';
-  ctx.font = 'bold 34px Arial, sans-serif';
-  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-  ctx.fillText(companyName, aX + aR + 18, aY - 8);
-
-  // Subtitle
-  ctx.fillStyle = '#888';
-  ctx.font = '24px Arial, sans-serif';
-  ctx.fillText(post.dayLabel + ' · LinkedIn', aX + aR + 18, aY + 26);
-
-  // Separator
-  ctx.strokeStyle = '#E8E7E3'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(pad, 168); ctx.lineTo(W - pad, 168); ctx.stroke();
-
-  // Post type badge
-  ctx.font = 'bold 17px Arial, sans-serif';
-  ctx.textBaseline = 'middle';
-  const badgeText = post.postType.toUpperCase();
-  const badgeW = ctx.measureText(badgeText).width + 28;
-  wsDrawRoundRect(ctx, pad, 184, badgeW, 30, 15, '#F4F3EE');
-  ctx.strokeStyle = '#E2E1DB'; ctx.lineWidth = 1;
-  ctx.stroke();
-  ctx.fillStyle = '#888';
-  ctx.fillText(badgeText, pad + 14, 199);
-
-  // Post body text
-  ctx.fillStyle = '#1a1a1a';
-  ctx.font = '29px Arial, sans-serif';
+  // LARGE hook text — first paragraph, white, bold, big
+  const paras = post.text.split(/\n\n+/).filter(p => p.trim());
+  const hook = paras[0] || post.text;
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 62px Arial, sans-serif';
   ctx.textBaseline = 'alphabetic';
-  const bodyLines = wsWrapText(ctx, post.text, W - pad * 2);
-  const lineH = 46;
-  let y = 254;
-  const maxY = H - (post.hashtags ? 170 : 120);
-  for (let i = 0; i < bodyLines.length; i++) {
-    if (y + lineH > maxY) {
-      // truncate with ellipsis
-      const prev = bodyLines[i - 1] || '';
-      ctx.fillText(prev.substring(0, prev.length - 3) + '...', pad, y - lineH);
-      break;
-    }
-    ctx.fillText(bodyLines[i] || '', pad, y);
-    y += lineH;
-  }
-
-  // Hashtags
-  if (post.hashtags) {
-    ctx.fillStyle = '#0a66c2';
-    ctx.font = '24px Arial, sans-serif';
-    const htLines = wsWrapText(ctx, post.hashtags, W - pad * 2);
-    let hy = H - 118;
-    htLines.slice(0, 2).forEach(l => { ctx.fillText(l, pad, hy); hy += 34; });
-  }
-
-  // Footer separator
-  ctx.strokeStyle = '#E8E7E3'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(pad, H - 72); ctx.lineTo(W - pad, H - 72); ctx.stroke();
-
-  // Footer actions
-  ctx.fillStyle = '#666';
-  ctx.font = '24px Arial, sans-serif';
-  ctx.textBaseline = 'middle';
-  const actions = ['👍 Like', '💬 Comment', '🔁 Repost', '📤 Send'];
-  const colW = (W - pad * 2) / 4;
-  actions.forEach((a, i) => {
-    ctx.textAlign = 'center';
-    ctx.fillText(a, pad + colW * i + colW / 2, H - 36);
+  ctx.textAlign = 'left';
+  const hookLines = wsWrapText(ctx, hook, W - pad * 2);
+  const hookLineH = 80;
+  // Vertically centre hook in teal zone below branding row
+  const hookAreaTop = aY + aR + 40;
+  const hookAreaH = splitY - hookAreaTop - 40;
+  const hookH = Math.min(hookLines.length, 5) * hookLineH;
+  let hy = hookAreaTop + Math.max(0, (hookAreaH - hookH) / 2) + hookLineH;
+  hookLines.slice(0, 5).forEach(line => {
+    ctx.fillText(line, pad, hy);
+    hy += hookLineH;
   });
 
+  // ── ORANGE DIVIDER ─────────────────────────────────────────────
+  ctx.fillStyle = ORANGE;
+  ctx.fillRect(0, splitY, W, 7);
+
+  // ── CREAM BOTTOM ZONE ─────────────────────────────────────────
+  ctx.fillStyle = CREAM;
+  ctx.fillRect(0, splitY + 7, W, H - splitY - 7);
+
+  // Body text — next 1–2 paragraphs
+  const bodyText = paras.slice(1, 4).join('\n\n');
+  if (bodyText.trim()) {
+    ctx.fillStyle = '#2A2A2A';
+    ctx.font = '28px Arial, sans-serif';
+    ctx.textBaseline = 'alphabetic';
+    const bLines = wsWrapText(ctx, bodyText, W - pad * 2);
+    const bLineH = 44;
+    let by = splitY + 58;
+    const maxBy = post.hashtags ? H - 100 : H - 54;
+    for (const line of bLines) {
+      if (by + bLineH > maxBy) { ctx.fillText('...', pad, by); break; }
+      ctx.fillText(line || '', pad, by);
+      by += bLineH;
+    }
+  }
+
+  // Hashtags pinned to bottom
+  if (post.hashtags) {
+    ctx.fillStyle = '#0a66c2';
+    ctx.font = '22px Arial, sans-serif';
+    ctx.textBaseline = 'alphabetic';
+    const htLines = wsWrapText(ctx, post.hashtags, W - pad * 2 - 180);
+    let hty = H - 28;
+    [...htLines].slice(0, 2).reverse().forEach(l => { ctx.fillText(l, pad, hty); hty -= 30; });
+  }
+
   // Brand watermark bottom-right
-  ctx.fillStyle = '#C8C7C0';
+  ctx.fillStyle = '#B0AFA8';
   ctx.font = '18px Arial, sans-serif';
   ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
-  ctx.fillText('ClickPoint Marketing', W - pad, H - 14);
+  ctx.fillText('ClickPoint Marketing', W - pad, H - 22);
 
   canvas.toBlob(blob => {
     const a = document.createElement('a');
