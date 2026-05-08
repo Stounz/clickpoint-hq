@@ -2921,47 +2921,53 @@ function wsOnboardComplete() {
 }
 
 // ── Deliverables Library ──────────────────────────────────────────────────────
-function wsLibKey() { return 'cp_library_' + wsSession.workspaceId; }
-function wsGetLibrary() { return JSON.parse(localStorage.getItem(wsLibKey()) || '[]'); }
-function wsSaveLib(items) { localStorage.setItem(wsLibKey(), JSON.stringify(items)); }
+// In-memory library cache — populated from server campaigns on every load.
+// Only UI state (status, expand) is persisted to localStorage.
+let _wsLibCache = [];
+function _wsLibStateKey() { return 'cp_lib_state_' + (wsSession && wsSession.workspaceId || ''); }
+function wsGetLibrary() { return _wsLibCache; }
+function wsSaveLib(items) {
+  _wsLibCache = items;
+  // Persist only per-item UI state (approval status + expand) so content always re-fetches from server
+  const state = {};
+  items.forEach(i => { if (i.status !== 'pending' || i._expanded) state[i.id] = { status: i.status, _expanded: !!i._expanded }; });
+  try { localStorage.setItem(_wsLibStateKey(), JSON.stringify(state)); } catch(e) {}
+}
 
-// Merge server campaign deliverables into localStorage library (deduplicates by id)
+// Rebuild library cache from server campaign deliverables (called after each campaign fetch)
 function wsMergeDeliverablesToLibrary(campaigns) {
   if (!campaigns || !campaigns.length) return;
-  const items = wsGetLibrary();
-  const existingIds = new Set(items.map(i => i.id));
-  let added = 0;
+  // Load saved UI state (status overrides, expand) from localStorage
+  let savedState = {};
+  try { savedState = JSON.parse(localStorage.getItem(_wsLibStateKey()) || '{}'); } catch(e) {}
+  const seen = new Set();
+  const incoming = [];
   campaigns.forEach(c => {
     (c.deliverables || []).forEach(d => {
       if (!d || !d.content) return;
       const libId = 'srv_' + c.id + '_' + (d.agent || 'agent');
-      const newUrls = d.design_urls || [];
-      if (existingIds.has(libId)) {
-        // Update design_urls if server now has them and we don't
-        const existing = items.find(i => i.id === libId);
-        if (existing && newUrls.length && (!existing.design_urls || !existing.design_urls.length)) {
-          existing.design_urls = newUrls;
-          added++;
-        }
-        return;
-      }
-      items.unshift({
+      if (seen.has(libId)) return;
+      seen.add(libId);
+      const s = savedState[libId] || {};
+      incoming.push({
         id:          libId,
         type:        d.type || 'Strategy',
-        author:      (d.agentName || d.agent || 'Agency Team') + ' — ' + c.name,
+        author:      (d.agentName || d.agent || 'Agency Team') + ' · ' + c.name,
         content:     d.content,
-        design_urls: newUrls,
+        design_urls: d.design_urls || [],
         savedAt:     d.created_at || c.created_at || new Date().toISOString(),
-        status:      'pending',
+        status:      s.status || 'pending',
+        _expanded:   s._expanded || false,
         campaignId:  c.id,
         campaignName: c.name,
-        fromServer:  true,
+        title:       c.name,
       });
-      existingIds.add(libId);
-      added++;
     });
   });
-  if (added > 0) wsSaveLib(items);
+  // Sort newest first; merge with any manually-saved items already in cache
+  incoming.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+  const manualItems = _wsLibCache.filter(i => !i.campaignId);
+  _wsLibCache = [...incoming, ...manualItems];
 }
 
 function wsSaveToLibrary(type, author, content, msgId, btn) {
