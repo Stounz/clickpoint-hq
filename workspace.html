@@ -3109,18 +3109,18 @@ function wsExtractSocialPosts(content) {
   return posts;
 }
 
+let wsSocialPosts = [];
+
 function wsLibViewPosts(id) {
   const items = wsGetLibrary();
   const item = items.find(i => i.id === id);
   if (!item) return;
-  const posts = wsExtractSocialPosts(item.content);
-  const isSocial = (item.campaignName || item.title || '').toLowerCase().includes('social') ||
-                   (item.campaignName || item.title || '').toLowerCase().includes('linkedin') ||
-                   (item.campaignName || item.title || '').toLowerCase().includes('instagram');
-  const platformIcon = isSocial ? (
-    (item.campaignName || '').toLowerCase().includes('instagram') ? '📷' : '🔵'
-  ) : '📱';
-  const platformName = (item.campaignName || '').toLowerCase().includes('instagram') ? 'Instagram' : 'LinkedIn';
+  wsSocialPosts = wsExtractSocialPosts(item.content);
+  const posts = wsSocialPosts;
+  const isInsta = (item.campaignName || '').toLowerCase().includes('instagram');
+  const platformIcon = isInsta ? '📷' : '🔵';
+  const platformName = isInsta ? 'Instagram' : 'LinkedIn';
+  const companyName = wsSession.companyName || 'Clickpoint Consulting';
 
   let weekRendered = '';
   const cards = posts.map((post, idx) => {
@@ -3137,7 +3137,7 @@ function wsLibViewPosts(id) {
       <div class="ws-post-card-hd">
         <div class="ws-post-card-avatar">CC</div>
         <div>
-          <div class="ws-post-card-name">${wsSession.companyName || 'Clickpoint Consulting'}</div>
+          <div class="ws-post-card-name">${companyName}</div>
           <div class="ws-post-card-sub">${post.dayLabel} · ${platformName}</div>
         </div>
         <div class="ws-post-card-platform">${platformIcon}</div>
@@ -3151,6 +3151,9 @@ function wsLibViewPosts(id) {
         <div class="ws-post-card-action">💬 Comment</div>
         <div class="ws-post-card-action">🔁 Repost</div>
         <div class="ws-post-card-action">📤 Send</div>
+      </div>
+      <div style="padding:10px 0 2px;text-align:right;">
+        <button onclick="wsDownloadPostImage(${idx},'${companyName.replace(/'/g,"\\'")}')" style="padding:7px 16px;border-radius:8px;border:none;background:var(--teal);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">⬇ Download Image</button>
       </div>
     </div>`;
   }).join('');
@@ -3167,6 +3170,143 @@ function wsLibViewPosts(id) {
     ${cards || '<p style="text-align:center;color:var(--muted);padding:32px 0;">No individual posts found in this deliverable.</p>'}
   </div>`;
   document.body.appendChild(overlay);
+}
+
+function wsWrapText(ctx, text, maxWidth) {
+  const out = [];
+  for (const para of text.split('\n')) {
+    if (!para.trim()) { out.push(''); continue; }
+    const words = para.split(' ');
+    let line = '';
+    for (const word of words) {
+      const test = line ? line + ' ' + word : word;
+      if (ctx.measureText(test).width > maxWidth && line) { out.push(line); line = word; }
+      else line = test;
+    }
+    if (line) out.push(line);
+  }
+  return out;
+}
+
+function wsDrawRoundRect(ctx, x, y, w, h, r, fill) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+}
+
+function wsDownloadPostImage(idx, companyName) {
+  const post = wsSocialPosts[idx];
+  if (!post) return;
+
+  const W = 1080, H = 1080, pad = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, W, H);
+
+  // Top teal bar
+  ctx.fillStyle = '#1C3A2E';
+  ctx.fillRect(0, 0, W, 10);
+
+  // Avatar circle
+  const aR = 46, aX = pad + aR, aY = 50 + aR;
+  ctx.fillStyle = '#1C3A2E';
+  ctx.beginPath(); ctx.arc(aX, aY, aR, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 30px Arial, sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('CC', aX, aY);
+
+  // Company name
+  ctx.fillStyle = '#0a0a0a';
+  ctx.font = 'bold 34px Arial, sans-serif';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText(companyName, aX + aR + 18, aY - 8);
+
+  // Subtitle
+  ctx.fillStyle = '#888';
+  ctx.font = '24px Arial, sans-serif';
+  ctx.fillText(post.dayLabel + ' · LinkedIn', aX + aR + 18, aY + 26);
+
+  // Separator
+  ctx.strokeStyle = '#E8E7E3'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(pad, 168); ctx.lineTo(W - pad, 168); ctx.stroke();
+
+  // Post type badge
+  ctx.font = 'bold 17px Arial, sans-serif';
+  ctx.textBaseline = 'middle';
+  const badgeText = post.postType.toUpperCase();
+  const badgeW = ctx.measureText(badgeText).width + 28;
+  wsDrawRoundRect(ctx, pad, 184, badgeW, 30, 15, '#F4F3EE');
+  ctx.strokeStyle = '#E2E1DB'; ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.fillStyle = '#888';
+  ctx.fillText(badgeText, pad + 14, 199);
+
+  // Post body text
+  ctx.fillStyle = '#1a1a1a';
+  ctx.font = '29px Arial, sans-serif';
+  ctx.textBaseline = 'alphabetic';
+  const bodyLines = wsWrapText(ctx, post.text, W - pad * 2);
+  const lineH = 46;
+  let y = 254;
+  const maxY = H - (post.hashtags ? 170 : 120);
+  for (let i = 0; i < bodyLines.length; i++) {
+    if (y + lineH > maxY) {
+      // truncate with ellipsis
+      const prev = bodyLines[i - 1] || '';
+      ctx.fillText(prev.substring(0, prev.length - 3) + '...', pad, y - lineH);
+      break;
+    }
+    ctx.fillText(bodyLines[i] || '', pad, y);
+    y += lineH;
+  }
+
+  // Hashtags
+  if (post.hashtags) {
+    ctx.fillStyle = '#0a66c2';
+    ctx.font = '24px Arial, sans-serif';
+    const htLines = wsWrapText(ctx, post.hashtags, W - pad * 2);
+    let hy = H - 118;
+    htLines.slice(0, 2).forEach(l => { ctx.fillText(l, pad, hy); hy += 34; });
+  }
+
+  // Footer separator
+  ctx.strokeStyle = '#E8E7E3'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(pad, H - 72); ctx.lineTo(W - pad, H - 72); ctx.stroke();
+
+  // Footer actions
+  ctx.fillStyle = '#666';
+  ctx.font = '24px Arial, sans-serif';
+  ctx.textBaseline = 'middle';
+  const actions = ['👍 Like', '💬 Comment', '🔁 Repost', '📤 Send'];
+  const colW = (W - pad * 2) / 4;
+  actions.forEach((a, i) => {
+    ctx.textAlign = 'center';
+    ctx.fillText(a, pad + colW * i + colW / 2, H - 36);
+  });
+
+  // Brand watermark bottom-right
+  ctx.fillStyle = '#C8C7C0';
+  ctx.font = '18px Arial, sans-serif';
+  ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText('ClickPoint Marketing', W - pad, H - 14);
+
+  canvas.toBlob(blob => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `post-${idx + 1}-${post.dayLabel.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.png`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }, 'image/png');
 }
 
 function wsLibApprove(id) {
