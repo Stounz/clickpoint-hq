@@ -737,7 +737,7 @@ def _send_slack(text: str, webhook: str = '') -> bool:
         return False
 
 def _send_email(to: str, subject: str, html: str) -> bool:
-    """Send email — prefers Resend (cloud-native), falls back to cPanel SMTP."""
+    """Send email — prefers cPanel SMTP when configured, falls back to Resend."""
     import smtplib, ssl as _ssl
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
@@ -746,11 +746,44 @@ def _send_email(to: str, subject: str, html: str) -> bool:
         print('  ⚠️  _send_email: no recipient — skipped')
         return False
 
-    # ── Resend (primary — reliable from Railway/cloud) ────────────────────────
+    # ── SMTP (primary when credentials are set) ───────────────────────────────
+    smtp_host = os.getenv('SMTP_HOST', '') or SMTP_HOST
+    smtp_user = os.getenv('SMTP_USER', '') or SMTP_USER
+    smtp_pass = os.getenv('SMTP_PASS', '') or SMTP_PASS
+    smtp_from = os.getenv('SMTP_FROM', '') or SMTP_FROM or smtp_user
+    smtp_port = int(os.getenv('SMTP_PORT', '') or SMTP_PORT or 465)
+
+    if smtp_host and smtp_user and smtp_pass:
+        print(f'  📧 SMTP → {to} via {smtp_host}:{smtp_port}')
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From']    = smtp_from
+        msg['To']      = to
+        msg.attach(MIMEText(html, 'html'))
+        ctx = _ssl.create_default_context()
+        try:
+            with smtplib.SMTP_SSL(smtp_host, smtp_port, context=ctx, timeout=8) as server:
+                server.login(smtp_user, smtp_pass)
+                server.sendmail(smtp_from, [to], msg.as_string())
+            print(f'  ✅ Email sent via SMTP_SSL → {to}')
+            return True
+        except Exception as e1:
+            print(f'  ⚠️  SMTP_SSL failed → {to}: {e1} — trying STARTTLS')
+            try:
+                with smtplib.SMTP(smtp_host, 587, timeout=8) as server:
+                    server.ehlo(); server.starttls(context=ctx)
+                    server.login(smtp_user, smtp_pass)
+                    server.sendmail(smtp_from, [to], msg.as_string())
+                print(f'  ✅ Email sent via STARTTLS → {to}')
+                return True
+            except Exception as e2:
+                print(f'  ⚠️  SMTP also failed → {to}: {e2} — trying Resend fallback')
+
+    # ── Resend fallback ───────────────────────────────────────────────────────
     api_key   = os.getenv('RESEND_API_KEY', '') or RESEND_API_KEY
     from_addr = os.getenv('RESEND_FROM', '') or RESEND_FROM
     if api_key:
-        print(f'  📧 Resend → {to} | from={from_addr} | subject={subject[:60]}')
+        print(f'  📧 Resend fallback → {to} | from={from_addr} | subject={subject[:60]}')
         try:
             payload = json.dumps({'from': from_addr, 'to': [to], 'subject': subject, 'html': html}).encode()
             req = urllib.request.Request(
@@ -769,41 +802,9 @@ def _send_email(to: str, subject: str, html: str) -> bool:
             err_body = ''
             try: err_body = e.read().decode()
             except Exception: pass
-            print(f'  ⚠️  Resend HTTP {e.code} → {to}: {err_body[:200]} — trying SMTP fallback')
+            print(f'  ❌ Resend HTTP {e.code} → {to}: {err_body[:200]}')
         except Exception as e:
-            print(f'  ⚠️  Resend error → {to}: {e} — trying SMTP fallback')
-
-    # ── SMTP fallback (cPanel) ────────────────────────────────────────────────
-    smtp_host = os.getenv('SMTP_HOST', '') or SMTP_HOST
-    smtp_user = os.getenv('SMTP_USER', '') or SMTP_USER
-    smtp_pass = os.getenv('SMTP_PASS', '') or SMTP_PASS
-    smtp_from = os.getenv('SMTP_FROM', '') or SMTP_FROM or smtp_user
-    smtp_port = int(os.getenv('SMTP_PORT', '') or SMTP_PORT or 465)
-
-    if smtp_host and smtp_user and smtp_pass:
-        print(f'  📧 SMTP fallback → {to} via {smtp_host}:{smtp_port}')
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = subject
-        msg['From']    = smtp_from
-        msg['To']      = to
-        msg.attach(MIMEText(html, 'html'))
-        ctx = _ssl.create_default_context()
-        try:
-            with smtplib.SMTP_SSL(smtp_host, smtp_port, context=ctx, timeout=8) as server:
-                server.login(smtp_user, smtp_pass)
-                server.sendmail(smtp_from, [to], msg.as_string())
-            print(f'  ✅ Email sent via SMTP_SSL → {to}')
-            return True
-        except Exception as e1:
-            try:
-                with smtplib.SMTP(smtp_host, 587, timeout=8) as server:
-                    server.ehlo(); server.starttls(context=ctx)
-                    server.login(smtp_user, smtp_pass)
-                    server.sendmail(smtp_from, [to], msg.as_string())
-                print(f'  ✅ Email sent via STARTTLS → {to}')
-                return True
-            except Exception as e2:
-                print(f'  ❌ SMTP also failed → {to}: {e2}')
+            print(f'  ❌ Resend error → {to}: {e}')
 
     print(f'  ❌ _send_email: all methods failed for {to}')
     return False
@@ -1683,8 +1684,6 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_partner_clients()
         elif self.path.startswith('/api/partner/summary'):
             self._handle_partner_summary()
-        elif self.path.startswith('/api/partner/verify-reset'):
-            self._handle_partner_verify_reset()
         elif self.path.startswith('/api/partner/escalations'):
             self._handle_partner_escalations_get()
         elif self.path.startswith('/api/escalation'):
@@ -1778,8 +1777,6 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_partner_register()
         elif self.path == '/api/partner/forgot-password':
             self._handle_partner_forgot_password()
-        elif self.path == '/api/partner/reset-password':
-            self._handle_partner_reset_password()
         elif self.path == '/api/workspace/resend-code':
             self._handle_workspace_resend_code()
         elif self.path == '/api/campaign/request':
@@ -2990,50 +2987,17 @@ class AgentHandler(BaseHTTPRequestHandler):
         })
 
     def _handle_partner_forgot_password(self):
-        """Generate a self-service password reset token and email it to the partner."""
+        """Send password reset instructions to a partner email."""
         try:
             body = self._read_body()
         except Exception:
             self._error(400, 'Invalid JSON'); return
 
-        import secrets, time as _time
         email = body.get('email', '').strip().lower()
         if not email:
             self._json(200, {'ok': True}); return  # Silent — don't reveal anything
 
-        # Check partner account exists (silently succeed either way to avoid enumeration)
-        account_exists = False
-        if SUPABASE_URL and SUPABASE_SERVICE_KEY:
-            try:
-                import urllib.parse as _up
-                sb_url  = SUPABASE_URL.rstrip('/')
-                sb_key  = SUPABASE_SERVICE_KEY
-                qurl = f"{sb_url}/rest/v1/partner_accounts?email=eq.{_up.quote(email)}&select=email&limit=1"
-                req = urllib.request.Request(qurl, headers={
-                    'apikey': sb_key, 'Authorization': f'Bearer {sb_key}'
-                })
-                rows = json.loads(urllib.request.urlopen(req, timeout=8).read())
-                account_exists = bool(rows)
-            except Exception:
-                account_exists = True  # Assume exists on error to avoid blocking
-
-        if account_exists:
-            # Generate token valid for 1 hour
-            token     = secrets.token_urlsafe(32)
-            expiry    = int(_time.time()) + 3600
-            token_key = f'pwd_reset_{token}'
-            token_val = f'{email}|{expiry}'
-            # Store in platform_settings
-            if SUPABASE_URL and SUPABASE_SERVICE_KEY:
-                try:
-                    _supabase_req('POST', 'platform_settings',
-                        {'key': token_key, 'value': token_val},
-                        service_role=True, prefer='resolution=merge-duplicates')
-                except Exception as e:
-                    print(f'  ⚠️  Reset token store error: {e}')
-
-            reset_url = f"https://platform.clickpointconsulting.com.au/partner.html?action=reset&token={token}"
-            reset_html = f"""<!DOCTYPE html>
+        reset_html = f"""<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#F5F4EF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F4EF;padding:40px 20px;">
@@ -3041,24 +3005,22 @@ class AgentHandler(BaseHTTPRequestHandler):
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
   <tr><td style="background:#1C3A2E;padding:28px 36px;">
     <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:8px;">ClickPoint Partner Network</div>
-    <div style="font-size:22px;font-weight:800;color:#ffffff;margin-bottom:6px;">Reset your password</div>
-    <div style="font-size:14px;color:rgba(255,255,255,0.6);">Link expires in 1 hour</div>
+    <div style="font-size:22px;font-weight:800;color:#ffffff;margin-bottom:6px;">Password Reset Request</div>
   </td></tr>
   <tr><td style="padding:32px 36px;">
     <p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 20px;">Hi,</p>
     <p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 24px;">
-      We received a password reset request for <strong>{email}</strong>. Click the button below to set a new password.
-      This link will expire in <strong>1 hour</strong>.
+      We received a password reset request for the partner account associated with <strong>{email}</strong>.
+      A member of our team will be in touch shortly to verify your identity and reset your access.
+    </p>
+    <p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 24px;">
+      If you didn't request this, you can safely ignore this email — your account remains secure.
     </p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
       <tr><td align="center">
-        <a href="{reset_url}" style="display:inline-block;background:#D4622A;color:#ffffff;text-decoration:none;padding:15px 36px;border-radius:12px;font-weight:700;font-size:15px;">Reset my password →</a>
+        <a href="https://platform.clickpointconsulting.com.au/partner.html" style="display:inline-block;background:#D4622A;color:#ffffff;text-decoration:none;padding:15px 36px;border-radius:12px;font-weight:700;font-size:15px;">Go to Partner Portal →</a>
       </td></tr>
     </table>
-    <p style="font-size:13px;color:#aaa;line-height:1.6;">
-      If you didn't request this, you can safely ignore this email — your account remains secure.<br>
-      Or copy this link: <span style="color:#1C3A2E;word-break:break-all;">{reset_url}</span>
-    </p>
   </td></tr>
   <tr><td style="background:#F5F4EF;padding:20px 36px;border-top:1px solid #E2E1DB;">
     <div style="font-size:11px;color:#bbb;text-align:center;">ClickPoint Consulting · Partner Network</div>
@@ -3067,84 +3029,16 @@ class AgentHandler(BaseHTTPRequestHandler):
 </td></tr>
 </table>
 </body></html>"""
-            _send_email(email, 'ClickPoint — Reset your partner password', reset_html)
 
-        print(f'  🔑 Partner forgot-password: {email} (account_exists={account_exists})')
-        self._json(200, {'ok': True, 'sent': True})
+        _send_email(email, 'ClickPoint — Password reset request received', reset_html)
+        # Notify HQ so team can action manually
+        notify_email = _ENV.get('NOTIFY_EMAIL', '')
+        if notify_email:
+            _send_email(notify_email, f'[ClickPoint] Partner password reset request — {email}',
+                        f'<p>Password reset requested for partner account: <strong>{email}</strong></p><p>Please verify and reset their access via the partner portal.</p>')
 
-    def _handle_partner_verify_reset(self):
-        """GET /api/partner/verify-reset?token=XXX — check token validity."""
-        import urllib.parse as _up, time as _time
-        qs    = _up.parse_qs(_up.urlparse(self.path).query)
-        token = qs.get('token', [''])[0].strip()
-        if not token:
-            self._json(200, {'valid': False, 'error': 'Missing token'}); return
-
-        token_key = f'pwd_reset_{token}'
-        try:
-            row = _supabase_req('GET', f'platform_settings?key=eq.{_up.quote(token_key)}&select=value&limit=1',
-                                service_role=True)
-            rows = json.loads(row.read()) if hasattr(row, 'read') else row
-            if not rows:
-                self._json(200, {'valid': False, 'error': 'Invalid or expired token'}); return
-            email, expiry = rows[0]['value'].split('|', 1)
-            if int(_time.time()) > int(expiry):
-                self._json(200, {'valid': False, 'error': 'Token has expired — request a new one'}); return
-            self._json(200, {'valid': True, 'email': email})
-        except Exception as e:
-            print(f'  ⚠️  verify-reset error: {e}')
-            self._json(200, {'valid': False, 'error': 'Could not verify token'})
-
-    def _handle_partner_reset_password(self):
-        """POST /api/partner/reset-password — validate token and set new password."""
-        import urllib.parse as _up, time as _time
-        try:
-            body = self._read_body()
-        except Exception:
-            self._error(400, 'Invalid JSON'); return
-
-        token    = body.get('token', '').strip()
-        password = body.get('password', '').strip()
-        if not token or not password:
-            self._json(200, {'ok': False, 'error': 'token and password are required'}); return
-        if len(password) < 8:
-            self._json(200, {'ok': False, 'error': 'Password must be at least 8 characters'}); return
-
-        token_key = f'pwd_reset_{token}'
-        try:
-            row = _supabase_req('GET', f'platform_settings?key=eq.{_up.quote(token_key)}&select=value&limit=1',
-                                service_role=True)
-            rows = json.loads(row.read()) if hasattr(row, 'read') else row
-            if not rows:
-                self._json(200, {'ok': False, 'error': 'Invalid or expired link — request a new one'}); return
-            email, expiry = rows[0]['value'].split('|', 1)
-            if int(_time.time()) > int(expiry):
-                self._json(200, {'ok': False, 'error': 'Link has expired — request a new one'}); return
-
-            # Update password in partner_accounts
-            new_hash = _hash_password(password, email)
-            sb_url   = SUPABASE_URL.rstrip('/')
-            sb_key   = SUPABASE_SERVICE_KEY
-            patch_req = urllib.request.Request(
-                f"{sb_url}/rest/v1/partner_accounts?email=eq.{_up.quote(email)}",
-                data=json.dumps({'password_hash': new_hash}).encode(),
-                headers={
-                    'apikey': sb_key, 'Authorization': f'Bearer {sb_key}',
-                    'Content-Type': 'application/json', 'Prefer': 'return=minimal'
-                },
-                method='PATCH'
-            )
-            urllib.request.urlopen(patch_req, timeout=8)
-
-            # Invalidate token immediately
-            _supabase_req('DELETE', f'platform_settings?key=eq.{_up.quote(token_key)}',
-                          service_role=True)
-
-            print(f'  ✅ Partner password reset: {email}')
-            self._json(200, {'ok': True, 'email': email})
-        except Exception as e:
-            print(f'  ❌ reset-password error: {e}')
-            self._json(200, {'ok': False, 'error': 'Reset failed — please try again'})
+        print(f'  🔑 Partner forgot-password: {email}')
+        self._json(200, {'ok': True})
 
     def _handle_workspace_resend_code(self):
         """Resend a client's access code to their registered email."""
