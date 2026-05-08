@@ -90,7 +90,7 @@ SUPABASE_SERVICE_KEY       = _ENV.get('SUPABASE_SERVICE_KEY', '')
 INTEGRATION_ENCRYPTION_KEY = _ENV.get('INTEGRATION_ENCRYPTION_KEY', '')
 SLACK_WEBHOOK_URL          = _ENV.get('SLACK_WEBHOOK_URL', '')
 RESEND_API_KEY             = _ENV.get('RESEND_API_KEY', '')
-RESEND_FROM                = _ENV.get('RESEND_FROM', 'ClickPoint <onboarding@resend.dev>')
+RESEND_FROM                = _ENV.get('RESEND_FROM', 'ClickPoint <noreply@clickpointconsulting.com.au>')
 # ── SMTP (cPanel / any SMTP) — takes priority over Resend when configured ──
 SMTP_HOST                  = _ENV.get('SMTP_HOST', '')
 SMTP_PORT                  = int(_ENV.get('SMTP_PORT', '465'))

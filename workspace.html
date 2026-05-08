@@ -90,12 +90,13 @@
   /* Sidebar */
   .ws-sidebar {
     width:220px; flex-shrink:0; background:#fff; border-right:1px solid var(--border);
-    position:fixed; top:60px; bottom:0; left:0; overflow-y:auto; padding:16px 0;
+    position:fixed; top:60px; bottom:0; left:0; overflow-y:auto; padding:8px 0;
   }
+  .ws-sidebar-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); padding:8px 20px 4px; }
   .ws-nav-section { font-size:9px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); padding:12px 20px 4px; }
-  .ws-nav-item { display:flex; align-items:center; gap:10px; padding:9px 20px; font-size:13px; font-weight:500; color:var(--muted); cursor:pointer; transition:all 0.15s; border-left:3px solid transparent; }
+  .ws-nav-item { display:flex; align-items:center; gap:10px; padding:9px 12px; margin:2px 8px; font-size:13px; font-weight:500; color:#666; cursor:pointer; transition:all 0.15s; border-radius:8px; }
   .ws-nav-item:hover { color:var(--text); background:#F9F8F4; }
-  .ws-nav-item.active { color:var(--teal); background:rgba(28,58,46,0.06); border-left-color:var(--teal); font-weight:600; }
+  .ws-nav-item.active { color:#fff; background:var(--teal); font-weight:600; }
   .ws-nav-badge { background:var(--orange); color:#fff; font-size:10px; font-weight:700; padding:2px 6px; border-radius:10px; margin-left:auto; }
 
   /* Main content */
@@ -765,6 +766,7 @@
   <div class="ws-layout">
     <!-- Sidebar -->
     <div class="ws-sidebar">
+      <div class="ws-sidebar-label">Client Portal</div>
       <div class="ws-nav-section">Overview</div>
       <div class="ws-nav-item active" data-view="dashboard" onclick="wsSetView('dashboard')">📊 &nbsp;Dashboard</div>
       <div class="ws-nav-section">Marketing</div>
