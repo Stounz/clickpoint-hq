@@ -3031,11 +3031,25 @@ function wsLoadLibrary(filter = 'all') {
       <div class="ws-lib-actions">
         ${actionBtns}
         <button onclick="wsLibCopy('${item.id}')" style="padding:6px 14px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📋 Copy</button>
+        <button onclick="wsLibDownload('${item.id}')" style="padding:6px 14px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">⬇ Download</button>
         <button onclick="wsLibToggleExpand('${item.id}')" style="padding:6px 14px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">${isExpanded ? '▲ Collapse' : '▼ Expand'}</button>
         <span class="ws-lib-status ${statusClass}" style="margin-left:auto;">${statusLabel}</span>
       </div>
     </div>`;
   }).join('');
+}
+
+function wsLibDownload(id) {
+  const items = wsGetLibrary();
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  const filename = (item.title || item.type || 'deliverable').replace(/[^a-z0-9\s-]/gi,'').trim().replace(/\s+/g,'-').toLowerCase() + '.txt';
+  const blob = new Blob([item.content], {type: 'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 function wsLibApprove(id) {
