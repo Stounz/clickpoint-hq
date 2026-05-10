@@ -2,29 +2,31 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..900;1,9..40,400&display=swap" rel="stylesheet">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ClickPoint — Client Portal</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --teal:    #1C3A2E;
-    --teal-md: #2A5240;
-    --orange:  #D4622A;
-    --bg:      #F4F3EE;
-    --card:    #FFFFFF;
-    --border:  #E2E1DB;
-    --text:    #1A1A1A;
-    --muted:   #999990;
-    --green:   #30D158;
-    --amber:   #FF9F0A;
-    --red:     #FF453A;
-    --blue:    #4285F4;
-    --radius:  14px;
-    --shadow:  0 2px 16px rgba(0,0,0,0.07);
-    --shadow-lg: 0 12px 48px rgba(0,0,0,0.14);
+    --teal:       #1C3A2E;
+    --teal-md:    #2A5240;
+    --orange:     #D4622A;
+    --orange-dark:#B8521F;
+    --bg:         #F4F3EE;
+    --card:       #FFFFFF;
+    --border:     #E2E1DB;
+    --text:       #1A1A1A;
+    --muted:      #8C8C82;
+    --green:      #30D158;
+    --amber:      #FF9F0A;
+    --red:        #FF453A;
+    --blue:       #0A84FF;
+    --radius:     14px;
+    --shadow:     0 2px 16px rgba(0,0,0,0.07);
+    --shadow-lg:  0 12px 48px rgba(0,0,0,0.14);
   }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
   /* ── Login ──────────────────────────────────────────────────────────────── */
   #loginScreen {
@@ -310,7 +312,7 @@ let portalClient  = null;
 let portalMetrics = {};
 
 const PLAT_DEFS = {
-  google_ads:     { name:'Google Ads',         color:'#4285F4', abbr:'GA' },
+  google_ads:     { name:'Google Ads',         color:'var(--blue)', abbr:'GA' },
   meta_ads:       { name:'Meta Ads',           color:'#1877F2', abbr:'M'  },
   ga4:            { name:'Google Analytics 4', color:'#E37400', abbr:'G4' },
   search_console: { name:'Search Console',     color:'#34A853', abbr:'SC' },

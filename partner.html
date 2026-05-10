@@ -5,18 +5,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Partner Portal — ClickPoint</title>
 <link rel="icon" type="image/png" href="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/cropped-clickpoint-logo-header-2x.png">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..900;1,9..40,400&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
   :root {
-    --teal:#1C3A2E; --teal-md:#2A5240; --orange:#D4622A;
-    --dark:#1A1A1A; --muted:#888; --border:#E2E1DB; --bg:#F5F4EF;
-    --green:#30D158; --red:#FF453A; --amber:#FF9500; --blue:#0A84FF;
+    /* Brand */
+    --teal:       #1C3A2E;
+    --teal-md:    #2A5240;
+    --orange:     #D4622A;
+    --orange-dark:#B8521F;
+
+    /* Backgrounds */
+    --bg:     #F4F3EE;
+    --card:   #FFFFFF;
+
+    /* Typography */
+    --text:   #1A1A1A;
+    --muted:  #8C8C82;
+
+    /* Borders & elevation */
+    --border: #E2E1DB;
+    --radius: 14px;
+    --shadow: 0 2px 16px rgba(0,0,0,0.07);
+    --shadow-lg: 0 12px 48px rgba(0,0,0,0.14);
+
+    /* Status */
+    --green:  #30D158;
+    --amber:  #FF9F0A;
+    --red:    #FF453A;
+    --blue:   #0A84FF;
   }
-  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--dark); min-height:100vh; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 
   /* ── Login ── */
-  .pt-login { position:fixed; inset:0; background:#0E1F17; display:flex; align-items:flex-start; justify-content:center; z-index:9999; overflow-y:auto; }
+  .pt-login { position:fixed; inset:0; background:linear-gradient(160deg, #1C3A2E 0%, #2A5240 60%, #1C3A2E 100%); display:flex; align-items:flex-start; justify-content:center; z-index:9999; overflow-y:auto; }
   .pt-login-card { width:100%; max-width:400px; padding:48px 40px; margin:auto; }
   .pt-login-logo { margin-bottom:28px; }
   .pt-login-logo img { height:30px; width:auto; }
@@ -27,8 +51,8 @@
   .pt-login-input { width:100%; padding:13px 16px; background:rgba(255,255,255,0.06); border:1.5px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; font-size:14px; font-family:inherit; outline:none; box-sizing:border-box; margin-bottom:16px; transition:border 0.15s; }
   .pt-login-input:focus { border-color:rgba(212,98,42,0.6); }
   .pt-login-input::placeholder { color:rgba(255,255,255,0.2); }
-  .pt-login-btn { width:100%; padding:14px; background:var(--orange); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
-  .pt-login-btn:hover { background:#C0541E; }
+  .pt-login-btn { width:100%; padding:14px; background:var(--teal); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+  .pt-login-btn:hover { background:var(--teal-md); }
   .pt-login-btn:disabled { opacity:0.5; cursor:not-allowed; }
   .pt-login-err { color:var(--red); font-size:13px; margin-top:12px; display:none; }
   .pt-login-foot { margin-top:24px; font-size:12px; color:rgba(255,255,255,0.25); text-align:center; }
@@ -58,14 +82,14 @@
   .pt-ob-step { height:4px; flex:1; border-radius:2px; background:#E2E1DB; transition:background 0.3s; }
   .pt-ob-step.done { background:var(--orange); }
   .pt-ob-icon { font-size:28px; margin-bottom:12px; }
-  .pt-ob-title { font-size:20px; font-weight:800; color:var(--dark); margin-bottom:6px; }
+  .pt-ob-title { font-size:20px; font-weight:800; color:var(--text); margin-bottom:6px; }
   .pt-ob-sub { font-size:13px; color:var(--muted); margin-bottom:24px; line-height:1.5; }
-  .pt-ob-label { font-size:12px; font-weight:700; color:var(--dark); margin-bottom:6px; display:block; }
+  .pt-ob-label { font-size:12px; font-weight:700; color:var(--text); margin-bottom:6px; display:block; }
   .pt-ob-input { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:10px; font-size:14px; font-family:inherit; outline:none; box-sizing:border-box; margin-bottom:14px; transition:border 0.15s; }
   .pt-ob-input:focus { border-color:var(--orange); }
   .pt-ob-select { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:10px; font-size:14px; font-family:inherit; outline:none; background:#fff; box-sizing:border-box; margin-bottom:14px; }
-  .pt-ob-btn { width:100%; padding:13px; background:var(--orange); color:#fff; border:none; border-radius:11px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; margin-top:8px; transition:background 0.15s; }
-  .pt-ob-btn:hover { background:#C0541E; }
+  .pt-ob-btn { width:100%; padding:13px; background:var(--teal); color:#fff; border:none; border-radius:11px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; margin-top:8px; transition:background 0.15s; }
+  .pt-ob-btn:hover { background:var(--teal-md); }
 
   /* ── Guided Tour ── */
   .pt-tour-overlay { position:fixed; inset:0; background:rgba(10,18,14,0.72); z-index:9000; pointer-events:none; opacity:0; transition:opacity 0.3s; }
@@ -73,16 +97,16 @@
   .pt-tour-tooltip { position:fixed; background:#fff; border-radius:16px; padding:24px 24px 20px; width:300px; box-shadow:0 20px 60px rgba(0,0,0,0.28); z-index:9002; pointer-events:all; opacity:0; transition:opacity 0.25s, top 0.25s, left 0.25s; }
   .pt-tour-tooltip.visible { opacity:1; }
   .pt-tour-step-label { font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--orange); margin-bottom:8px; }
-  .pt-tour-title { font-size:15px; font-weight:800; color:var(--dark); margin-bottom:6px; }
+  .pt-tour-title { font-size:15px; font-weight:800; color:var(--text); margin-bottom:6px; }
   .pt-tour-body { font-size:13px; color:var(--muted); line-height:1.55; margin-bottom:20px; }
   .pt-tour-foot { display:flex; align-items:center; gap:8px; }
   .pt-tour-dots { display:flex; gap:5px; flex:1; }
   .pt-tour-dot { width:6px; height:6px; border-radius:50%; background:#E2E1DB; transition:background 0.2s; }
   .pt-tour-dot.active { background:var(--orange); width:16px; border-radius:3px; }
   .pt-tour-skip { font-size:12px; color:var(--muted); background:none; border:none; cursor:pointer; font-family:inherit; padding:4px 6px; white-space:nowrap; }
-  .pt-tour-skip:hover { color:var(--dark); }
-  .pt-tour-next { padding:9px 18px; background:var(--orange); color:#fff; border:none; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
-  .pt-tour-next:hover { background:#C0541E; }
+  .pt-tour-skip:hover { color:var(--text); }
+  .pt-tour-next { padding:9px 18px; background:var(--teal); color:#fff; border:none; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+  .pt-tour-next:hover { background:var(--teal-md); }
   .pt-tour-highlight { position:relative !important; z-index:9001 !important; box-shadow:0 0 0 4px rgba(212,98,42,0.6), 0 0 0 10px rgba(212,98,42,0.15) !important; border-radius:12px; transition:box-shadow 0.3s; }
 
   /* ── Invite Client Modal ── */
@@ -90,16 +114,16 @@
   .pt-modal-overlay.open { display:flex; }
   .pt-modal { background:#fff; border-radius:20px; padding:36px; max-width:520px; width:calc(100% - 40px); box-shadow:0 24px 80px rgba(0,0,0,0.2); }
   .pt-modal-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; }
-  .pt-modal-title { font-size:18px; font-weight:800; color:var(--dark); }
+  .pt-modal-title { font-size:18px; font-weight:800; color:var(--text); }
   .pt-modal-sub { font-size:13px; color:var(--muted); margin-top:4px; line-height:1.4; }
-  .pt-modal-close { width:30px; height:30px; border-radius:8px; background:#F5F4EF; border:none; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; color:var(--muted); flex-shrink:0; }
+  .pt-modal-close { width:30px; height:30px; border-radius:8px; background:var(--bg); border:none; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; color:var(--muted); flex-shrink:0; }
   .pt-modal-close:hover { background:#E2E1DB; }
-  .pt-modal-label { font-size:12px; font-weight:700; color:var(--dark); margin-bottom:6px; display:block; }
+  .pt-modal-label { font-size:12px; font-weight:700; color:var(--text); margin-bottom:6px; display:block; }
   .pt-modal-input { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:10px; font-size:14px; font-family:inherit; outline:none; box-sizing:border-box; margin-bottom:14px; transition:border 0.15s; }
   .pt-modal-input:focus { border-color:var(--orange); }
   .pt-modal-select { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:10px; font-size:14px; font-family:inherit; outline:none; background:#fff; box-sizing:border-box; margin-bottom:14px; }
-  .pt-modal-btn { width:100%; padding:13px; background:var(--orange); color:#fff; border:none; border-radius:11px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
-  .pt-modal-btn:hover { background:#C0541E; }
+  .pt-modal-btn { width:100%; padding:13px; background:var(--teal); color:#fff; border:none; border-radius:11px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+  .pt-modal-btn:hover { background:var(--teal-md); }
   .pt-modal-btn:disabled { opacity:0.5; cursor:not-allowed; }
   .pt-invite-result { display:none; }
   .pt-invite-cred-box { background:#0E1F17; border-radius:12px; padding:20px; margin-bottom:16px; }
@@ -107,9 +131,9 @@
   .pt-invite-cred-row:last-child { margin-bottom:0; }
   .pt-invite-cred-label { font-size:11px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:rgba(255,255,255,0.4); }
   .pt-invite-cred-val { font-size:13px; font-weight:700; color:#fff; font-family:monospace; }
-  .pt-invite-link-box { background:#F5F4EF; border:1.5px solid var(--border); border-radius:10px; padding:12px 14px; font-size:11px; font-family:monospace; color:var(--dark); word-break:break-all; margin-bottom:14px; line-height:1.5; }
-  .pt-modal-btn-outline { width:100%; padding:11px; background:#fff; color:var(--dark); border:1.5px solid var(--border); border-radius:11px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; margin-top:8px; }
-  .pt-modal-btn-outline:hover { border-color:var(--dark); }
+  .pt-invite-link-box { background:var(--bg); border:1.5px solid var(--border); border-radius:10px; padding:12px 14px; font-size:11px; font-family:monospace; color:var(--text); word-break:break-all; margin-bottom:14px; line-height:1.5; }
+  .pt-modal-btn-outline { width:100%; padding:11px; background:#fff; color:var(--text); border:1.5px solid var(--border); border-radius:11px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; margin-top:8px; }
+  .pt-modal-btn-outline:hover { border-color:var(--text); }
 
   /* ── App Shell ── */
   .pt-shell { display:flex; height:100vh; overflow:hidden; }
@@ -122,40 +146,40 @@
   .pt-nav { flex:1; overflow-y:auto; padding:8px 0; }
   .pt-nav-section { font-size:9px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); padding:12px 20px 4px; }
   .pt-nav-item { display:flex; align-items:center; gap:10px; padding:9px 12px; margin:2px 8px; font-size:13px; font-weight:500; color:#666; cursor:pointer; transition:all 0.15s; border-radius:8px; }
-  .pt-nav-item:hover { color:var(--dark); background:#F9F8F4; }
+  .pt-nav-item:hover { color:var(--text); background:#F9F8F4; }
   .pt-nav-item.active { color:#fff; background:var(--teal); font-weight:600; }
   .pt-nav-badge { margin-left:auto; background:rgba(28,58,46,0.1); color:var(--teal); font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; }
   .pt-sidebar-foot { padding:14px 16px; border-top:1px solid var(--border); }
   .pt-user-row { display:flex; align-items:center; gap:9px; margin-bottom:10px; }
   .pt-user-av { width:30px; height:30px; border-radius:9px; background:var(--orange); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#fff; flex-shrink:0; }
-  .pt-user-name { font-size:12px; font-weight:600; color:var(--dark); }
+  .pt-user-name { font-size:12px; font-weight:600; color:var(--text); }
   .pt-user-role { font-size:10px; color:var(--muted); margin-top:1px; }
   .pt-signout { width:100%; padding:7px; background:#F9F8F4; border:1px solid var(--border); border-radius:8px; color:#666; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.15s; }
   .pt-signout:hover { background:rgba(255,59,48,0.15); border-color:rgba(255,59,48,0.3); color:var(--red); }
 
   /* ── Main ── */
   .pt-main { flex:1; display:flex; flex-direction:column; min-width:0; overflow-y:auto; }
-  .pt-topbar { padding:14px 32px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:#fff; position:sticky; top:0; z-index:10; }
-  .pt-topbar-title { font-size:16px; font-weight:700; color:var(--dark); }
-  .pt-topbar-sub { font-size:12px; color:var(--muted); margin-top:1px; }
+  .pt-topbar { padding:14px 32px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:space-between; background:var(--teal); position:sticky; top:0; z-index:10; }
+  .pt-topbar-title { font-size:16px; font-weight:700; color:#fff; }
+  .pt-topbar-sub { font-size:12px; color:rgba(255,255,255,0.55); margin-top:1px; }
   .pt-topbar-right { display:flex; align-items:center; gap:10px; }
   .pt-live-badge { display:flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px; background:rgba(48,209,88,0.1); border:1px solid rgba(48,209,88,0.25); font-size:11px; font-weight:700; color:var(--green); }
   .pt-live-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-  .pt-topbar-invite { padding:8px 18px; background:var(--orange); color:#fff; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
-  .pt-topbar-invite:hover { background:#C0541E; }
+  .pt-topbar-invite { padding:8px 18px; background:rgba(255,255,255,0.15); color:#fff; border:1px solid rgba(255,255,255,0.2); border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+  .pt-topbar-invite:hover { background:rgba(255,255,255,0.25); }
   .pt-content { padding:28px 32px; flex:1; }
 
   /* ── Views ── */
   .pt-view { display:none; }
   .pt-view.active { display:block; }
-  .pt-page-title { font-size:22px; font-weight:800; color:var(--dark); margin-bottom:4px; }
+  .pt-page-title { font-size:22px; font-weight:800; color:var(--text); margin-bottom:4px; }
   .pt-page-sub { font-size:13px; color:var(--muted); margin-bottom:24px; }
 
   /* ── KPI Grid ── */
   .pt-kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
   .pt-kpi { background:#fff; border-radius:14px; padding:20px; border:1px solid var(--border); }
-  .pt-kpi-val { font-size:26px; font-weight:800; color:var(--dark); margin-bottom:2px; }
+  .pt-kpi-val { font-size:26px; font-weight:800; color:var(--text); margin-bottom:2px; }
   .pt-kpi-val.green { color:var(--green); }
   .pt-kpi-val.orange { color:var(--orange); }
   .pt-kpi-label { font-size:12px; color:var(--muted); font-weight:500; }
@@ -163,7 +187,7 @@
 
   /* ── Cards ── */
   .pt-card { background:#fff; border-radius:14px; border:1px solid var(--border); padding:20px; margin-bottom:20px; }
-  .pt-card-title { font-size:13px; font-weight:700; color:var(--dark); margin-bottom:16px; }
+  .pt-card-title { font-size:13px; font-weight:700; color:var(--text); margin-bottom:16px; }
 
   /* ── Quick Actions ── */
   .pt-quick-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px; }
@@ -173,7 +197,7 @@
   .pt-quick-icon.orange { background:rgba(212,98,42,0.1); }
   .pt-quick-icon.teal { background:rgba(28,58,46,0.08); }
   .pt-quick-icon.blue { background:rgba(10,132,255,0.1); }
-  .pt-quick-label { font-size:13px; font-weight:700; color:var(--dark); }
+  .pt-quick-label { font-size:13px; font-weight:700; color:var(--text); }
   .pt-quick-sub { font-size:11px; color:var(--muted); margin-top:2px; }
 
   /* ── Client Cards (admin-style) ── */
@@ -185,14 +209,14 @@
   .pt-client-row { display:flex; align-items:center; gap:14px; background:#fff; border:1px solid var(--border); border-radius:13px; padding:14px 18px; cursor:pointer; transition:all 0.15s; }
   .pt-client-row:hover { background:#F9F8F4; border-color:#D0CFC9; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
   .pt-client-av { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:#fff; flex-shrink:0; }
-  .pt-client-name { font-size:14px; font-weight:700; color:var(--dark); margin-bottom:2px; }
+  .pt-client-name { font-size:14px; font-weight:700; color:var(--text); margin-bottom:2px; }
   .pt-client-meta { font-size:11px; color:var(--muted); }
-  .pt-client-mrr { font-size:13px; font-weight:700; color:var(--dark); text-align:right; margin-left:auto; flex-shrink:0; white-space:nowrap; }
+  .pt-client-mrr { font-size:13px; font-weight:700; color:var(--text); text-align:right; margin-left:auto; flex-shrink:0; white-space:nowrap; }
   .pt-client-mrr-sub { font-size:10px; color:var(--muted); margin-top:1px; }
   .pt-status-badge { padding:3px 10px; border-radius:20px; font-size:10px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; flex-shrink:0; }
   .pt-open-btn { padding:6px 14px; background:var(--teal); color:#fff; border:none; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; white-space:nowrap; flex-shrink:0; }
   .pt-open-btn:hover { background:var(--teal-md); }
-  .pt-copy-btn { padding:6px 12px; background:#fff; color:var(--dark); border:1px solid var(--border); border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.15s; flex-shrink:0; }
+  .pt-copy-btn { padding:6px 12px; background:#fff; color:var(--text); border:1px solid var(--border); border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.15s; flex-shrink:0; }
   .pt-copy-btn:hover { border-color:#aaa; }
   /* keep table styles for potential reuse */
   .pt-health-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
@@ -206,15 +230,15 @@
   .pt-plan-badge.agency { background:rgba(28,58,46,0.1); color:var(--teal); }
 
   /* ── Sidebar CTA button ── */
-  .pt-sidebar-cta { display:flex; align-items:center; gap:9px; width:calc(100% - 32px); margin:10px 16px 4px; padding:10px 14px; background:var(--orange); border:none; border-radius:11px; color:#fff; font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.18s; text-align:left; }
-  .pt-sidebar-cta:hover { background:#C0541E; transform:translateY(-1px); box-shadow:0 4px 16px rgba(212,98,42,0.35); }
+  .pt-sidebar-cta { display:flex; align-items:center; gap:9px; width:calc(100% - 32px); margin:10px 16px 4px; padding:10px 14px; background:var(--teal); border:none; border-radius:11px; color:#fff; font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.18s; text-align:left; }
+  .pt-sidebar-cta:hover { background:var(--teal-md); transform:translateY(-1px); box-shadow:0 4px 16px rgba(28,58,46,0.35); }
   .pt-sidebar-cta-icon { width:22px; height:22px; background:rgba(255,255,255,0.18); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
 
   /* ── Search bar ── */
   .pt-search-bar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
   .pt-search-input { flex:1; padding:9px 14px 9px 36px; border:1.5px solid var(--border); border-radius:10px; font-size:13px; font-family:inherit; outline:none; background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23aaa' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 12px center; transition:border 0.15s; max-width:300px; }
   .pt-search-input:focus { border-color:var(--orange); }
-  .pt-filter-select { padding:9px 12px; border:1.5px solid var(--border); border-radius:10px; font-size:12px; font-family:inherit; outline:none; background:#fff; color:var(--dark); transition:border 0.15s; }
+  .pt-filter-select { padding:9px 12px; border:1.5px solid var(--border); border-radius:10px; font-size:12px; font-family:inherit; outline:none; background:#fff; color:var(--text); transition:border 0.15s; }
   .pt-filter-select:focus { border-color:var(--orange); }
   .pt-clients-count { font-size:12px; color:var(--muted); margin-left:auto; }
 
@@ -226,22 +250,22 @@
   .pt-rev-card { background:#fff; border-radius:14px; border:1px solid var(--border); padding:20px; }
   .pt-rev-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:13px; }
   .pt-rev-row:last-child { border-bottom:none; }
-  .pt-rev-client { font-weight:600; color:var(--dark); }
-  .pt-rev-mrr { font-weight:700; color:var(--dark); }
+  .pt-rev-client { font-weight:600; color:var(--text); }
+  .pt-rev-mrr { font-weight:700; color:var(--text); }
   .pt-rev-commission { font-size:12px; color:var(--green); font-weight:700; }
 
   /* ── Settings / White-label ── */
   .pt-settings-section { margin-bottom:28px; }
-  .pt-settings-title { font-size:13px; font-weight:800; color:var(--dark); margin-bottom:16px; padding-bottom:10px; border-bottom:1.5px solid var(--border); }
+  .pt-settings-title { font-size:13px; font-weight:800; color:var(--text); margin-bottom:16px; padding-bottom:10px; border-bottom:1.5px solid var(--border); }
   .pt-settings-row { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
-  .pt-settings-label { font-size:12px; font-weight:700; color:var(--dark); width:160px; flex-shrink:0; }
+  .pt-settings-label { font-size:12px; font-weight:700; color:var(--text); width:160px; flex-shrink:0; }
   .pt-settings-label-sub { font-size:11px; color:var(--muted); font-weight:400; display:block; }
   .pt-settings-input { flex:1; padding:9px 12px; border:1.5px solid var(--border); border-radius:9px; font-size:13px; font-family:inherit; outline:none; transition:border 0.15s; }
   .pt-settings-input:focus { border-color:var(--orange); }
-  .pt-settings-save { padding:10px 24px; background:var(--orange); color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
-  .pt-settings-save:hover { background:#C0541E; }
+  .pt-settings-save { padding:10px 24px; background:var(--teal); color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+  .pt-settings-save:hover { background:var(--teal-md); }
   .pt-saved-toast { display:none; color:var(--green); font-size:13px; font-weight:600; margin-left:12px; }
-  .pt-link-box { background:#F5F4EF; border:1.5px solid var(--border); border-radius:10px; padding:12px 16px; font-size:12px; font-family:monospace; color:var(--dark); word-break:break-all; margin-bottom:12px; line-height:1.6; }
+  .pt-link-box { background:var(--bg); border:1.5px solid var(--border); border-radius:10px; padding:12px 16px; font-size:12px; font-family:monospace; color:var(--text); word-break:break-all; margin-bottom:12px; line-height:1.6; }
   .pt-link-note { font-size:12px; color:var(--muted); margin-bottom:16px; line-height:1.5; }
   .pt-color-wrap { display:flex; align-items:center; gap:8px; flex:1; }
   .pt-color-swatch { width:34px; height:34px; border-radius:8px; border:1.5px solid var(--border); cursor:pointer; flex-shrink:0; }
@@ -251,14 +275,14 @@
   .pt-activity-item { display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
   .pt-activity-item:last-child { border-bottom:none; }
   .pt-activity-av { width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#fff; flex-shrink:0; }
-  .pt-activity-text { font-size:13px; color:var(--dark); line-height:1.4; }
+  .pt-activity-text { font-size:13px; color:var(--text); line-height:1.4; }
   .pt-activity-meta { font-size:11px; color:var(--muted); margin-top:3px; }
 
   /* ── Reports ── */
   .pt-report-row { display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); }
   .pt-report-row:last-child { border-bottom:none; }
   .pt-report-icon { width:38px; height:38px; border-radius:10px; background:rgba(28,58,46,0.08); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
-  .pt-report-name { font-size:13px; font-weight:700; color:var(--dark); }
+  .pt-report-name { font-size:13px; font-weight:700; color:var(--text); }
   .pt-report-meta { font-size:11px; color:var(--muted); margin-top:2px; }
   .pt-report-badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
   .pt-report-badge.good { background:rgba(48,209,88,0.1); color:#1a8a3c; }
@@ -271,15 +295,15 @@
   .pt-pass-wrap { position:relative; }
   .pt-pass-wrap .pt-login-input { padding-right:44px; }
   .pt-pass-eye { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--muted); padding:4px; display:flex; align-items:center; transition:color 0.15s; }
-  .pt-pass-eye:hover { color:var(--dark); }
+  .pt-pass-eye:hover { color:var(--text); }
   .pt-forgot-link { font-size:12px; color:var(--muted); text-align:right; margin-top:-10px; margin-bottom:14px; cursor:pointer; display:block; }
   .pt-forgot-link:hover { color:var(--orange); }
-  .pt-forgot-panel { display:none; background:#F5F4EF; border-radius:12px; padding:16px; margin-bottom:14px; }
+  .pt-forgot-panel { display:none; background:var(--bg); border-radius:12px; padding:16px; margin-bottom:14px; }
   .pt-forgot-panel.active { display:block; }
   .pt-forgot-ok { font-size:13px; color:#30D158; font-weight:600; display:none; margin-top:8px; }
 
   /* ── Toast ── */
-  .pt-toast { position:fixed; bottom:28px; right:28px; background:var(--dark); color:#fff; padding:12px 20px; border-radius:12px; font-size:13px; font-weight:600; z-index:9999; opacity:0; transform:translateY(8px); transition:all 0.25s; pointer-events:none; }
+  .pt-toast { position:fixed; bottom:28px; right:28px; background:var(--text); color:#fff; padding:12px 20px; border-radius:12px; font-size:13px; font-weight:600; z-index:9999; opacity:0; transform:translateY(8px); transition:all 0.25s; pointer-events:none; }
   .pt-toast.show { opacity:1; transform:translateY(0); }
 
   @media (max-width:900px) {
@@ -320,7 +344,7 @@
       </div>
       <div id="ptResetSuccess" style="display:none;text-align:center;padding:12px 0;">
         <div style="font-size:28px;margin-bottom:8px;">✅</div>
-        <div style="font-weight:700;color:var(--dark);margin-bottom:6px;">Password updated!</div>
+        <div style="font-weight:700;color:var(--text);margin-bottom:6px;">Password updated!</div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:18px;">You can now sign in with your new password.</div>
         <button class="pt-login-btn" onclick="ptGoToSignIn()">Go to sign in →</button>
       </div>
@@ -345,7 +369,7 @@
       </div>
       <button class="pt-forgot-link" style="background:none;border:none;cursor:pointer;" onclick="ptShowForgot()">Forgot password?</button>
       <div class="pt-forgot-panel" id="ptForgotPanel">
-        <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:6px;">Reset your password</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;">Reset your password</div>
         <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Enter your email and we'll send you reset instructions.</div>
         <input class="pt-login-input" id="ptForgotEmail" type="email" placeholder="you@youragency.com" style="margin-bottom:8px;" onkeydown="if(event.key==='Enter')ptForgotPassword()" />
         <button class="pt-login-btn" onclick="ptForgotPassword()" style="padding:10px 16px;">Send reset email →</button>
@@ -470,7 +494,7 @@
     <!-- Result -->
     <div id="ptInviteResult" class="pt-invite-result">
       <div style="margin-bottom:16px;">
-        <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:4px;">✅ Workspace ready for <span id="ptInvResultName"></span></div>
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">✅ Workspace ready for <span id="ptInvResultName"></span></div>
         <div style="font-size:12px;color:var(--muted);margin-top:4px;">Credentials generated — now send the invite to your client.</div>
       </div>
       <div class="pt-invite-cred-box">
@@ -497,7 +521,7 @@
         <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px;">Opens your email client with a pre-filled message ready to send</div>
       </div>
       <div id="ptInvSendAuto" style="display:none;">
-        <div id="ptInvAutoStatus" style="font-size:12px;padding:10px 14px;background:#F5F4EF;border-radius:9px;margin-bottom:10px;color:var(--muted);">⏳ Sending invite email…</div>
+        <div id="ptInvAutoStatus" style="font-size:12px;padding:10px 14px;background:var(--bg);border-radius:9px;margin-bottom:10px;color:var(--muted);">⏳ Sending invite email…</div>
       </div>
       <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">White-label workspace link</div>
       <div class="pt-invite-link-box" id="ptInvResultLink"></div>
@@ -700,7 +724,7 @@
           <div style="display:flex;align-items:center;gap:14px;padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:16px;">
             <div style="width:44px;height:44px;border-radius:50%;background:#D4622A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;flex-shrink:0;">SL</div>
             <div>
-              <div style="font-weight:700;font-size:15px;color:var(--dark);">Sarah Lin</div>
+              <div style="font-weight:700;font-size:15px;color:var(--text);">Sarah Lin</div>
               <div style="font-size:12px;color:var(--muted);">Chief Marketing Officer · ClickPoint</div>
               <div style="margin-top:3px;"><span class="ai-badge" style="background:#e8f5e9;color:#1C3A2E;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;">AI Assistant</span></div>
             </div>
@@ -711,8 +735,8 @@
             <div style="display:flex;gap:12px;align-items:flex-start;">
               <div style="width:32px;height:32px;border-radius:50%;background:#D4622A;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;flex-shrink:0;">SL</div>
               <div style="flex:1;">
-                <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:4px;">Sarah Lin <span style="font-weight:400;color:var(--muted);">· Strategist</span></div>
-                <div style="background:#F5F4EF;border-radius:0 12px 12px 12px;padding:12px 16px;font-size:14px;color:var(--dark);line-height:1.6;" id="ptAiWelcome">Hi! I'm Sarah, your dedicated marketing strategist at ClickPoint. I can help you grow your agency, optimise your client portfolio, develop marketing strategies, and think through challenges. What would you like to work on?</div>
+                <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">Sarah Lin <span style="font-weight:400;color:var(--muted);">· Strategist</span></div>
+                <div style="background:var(--bg);border-radius:0 12px 12px 12px;padding:12px 16px;font-size:14px;color:var(--text);line-height:1.6;" id="ptAiWelcome">Hi! I'm Sarah, your dedicated marketing strategist at ClickPoint. I can help you grow your agency, optimise your client portfolio, develop marketing strategies, and think through challenges. What would you like to work on?</div>
               </div>
             </div>
           </div>
@@ -729,7 +753,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
           <div>
             <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Client Support</div>
-            <div style="font-size:22px;font-weight:800;color:var(--dark);">Escalations</div>
+            <div style="font-size:22px;font-weight:800;color:var(--text);">Escalations</div>
           </div>
           <div style="display:flex;gap:8px;">
             <select id="ptEscFilterStatus" onchange="ptLoadEscalations()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:12px;font-family:inherit;background:#fff;outline:none;">
@@ -751,11 +775,11 @@
       <div id="ptEscRespondOverlay" onclick="ptCloseEscRespond()" style="display:none;position:fixed;inset:0;background:rgba(10,18,14,0.7);z-index:3000;backdrop-filter:blur(4px);"></div>
       <div id="ptEscRespondModal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:20px;padding:32px;max-width:520px;width:calc(100% - 40px);box-shadow:0 24px 80px rgba(0,0,0,0.2);z-index:3001;">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
-          <div style="font-size:16px;font-weight:800;color:var(--dark);" id="ptEscRespondTitle">Respond to escalation</div>
-          <button onclick="ptCloseEscRespond()" style="width:28px;height:28px;border-radius:8px;background:#F5F4EF;border:none;cursor:pointer;font-size:15px;color:#888;">✕</button>
+          <div style="font-size:16px;font-weight:800;color:var(--text);" id="ptEscRespondTitle">Respond to escalation</div>
+          <button onclick="ptCloseEscRespond()" style="width:28px;height:28px;border-radius:8px;background:var(--bg);border:none;cursor:pointer;font-size:15px;color:#888;">✕</button>
         </div>
         <div id="ptEscRespondDetails" style="background:#F9F8F4;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:var(--muted);line-height:1.5;"></div>
-        <label style="font-size:12px;font-weight:700;color:var(--dark);display:block;margin-bottom:6px;">Your response</label>
+        <label style="font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;">Your response</label>
         <textarea id="ptEscRespondText" rows="4" placeholder="Type your response to the client…" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;resize:vertical;margin-bottom:14px;"></textarea>
         <div style="display:flex;gap:10px;">
           <button onclick="ptSubmitEscResponse(false)" style="flex:1;padding:12px;background:var(--orange);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;" id="ptEscRespBtn">Send response</button>
@@ -1159,7 +1183,7 @@ async function ptAiSend() {
   msgs.innerHTML += `
     <div id="${typingId}" style="display:flex;gap:12px;align-items:flex-start;">
       <div style="width:32px;height:32px;border-radius:50%;background:#D4622A;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;flex-shrink:0;">SL</div>
-      <div style="background:#F5F4EF;border-radius:0 12px 12px 12px;padding:12px 16px;font-size:14px;color:var(--muted);">Thinking…</div>
+      <div style="background:var(--bg);border-radius:0 12px 12px 12px;padding:12px 16px;font-size:14px;color:var(--muted);">Thinking…</div>
     </div>`;
   msgs.scrollTop = msgs.scrollHeight;
 
@@ -1186,8 +1210,8 @@ async function ptAiSend() {
     <div style="display:flex;gap:12px;align-items:flex-start;">
       <div style="width:32px;height:32px;border-radius:50%;background:#D4622A;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;flex-shrink:0;">SL</div>
       <div style="flex:1;">
-        <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:4px;">Sarah Lin <span style="font-weight:400;color:var(--muted);">· Strategist</span></div>
-        <div style="background:#F5F4EF;border-radius:0 12px 12px 12px;padding:12px 16px;font-size:14px;color:var(--dark);line-height:1.6;">${reply}</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">Sarah Lin <span style="font-weight:400;color:var(--muted);">· Strategist</span></div>
+        <div style="background:var(--bg);border-radius:0 12px 12px 12px;padding:12px 16px;font-size:14px;color:var(--text);line-height:1.6;">${reply}</div>
       </div>
     </div>`;
   msgs.scrollTop = msgs.scrollHeight;
@@ -1398,7 +1422,7 @@ function ptRenderEscalations() {
     container.innerHTML = `
       <div class="pt-card" style="text-align:center;padding:48px 24px;">
         <div style="font-size:32px;margin-bottom:12px;">✅</div>
-        <div style="font-weight:700;color:var(--dark);margin-bottom:6px;">No open escalations — all client issues are resolved. ✅</div>
+        <div style="font-weight:700;color:var(--text);margin-bottom:6px;">No open escalations — all client issues are resolved. ✅</div>
         <div style="font-size:13px;color:var(--muted);">Your clients haven't raised any issues${pFilter !== 'all' ? ' with this priority filter' : ''}.</div>
       </div>`;
     return;
@@ -1420,14 +1444,14 @@ function ptRenderEscalations() {
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
             ${priorityBadge(e.priority)}
             ${sourceBadge(e.source||'client')}
-            <span style="font-size:11px;font-weight:700;color:var(--dark);background:#F0F8F4;padding:2px 8px;border-radius:20px;">👤 ${e.client||'Unknown client'}</span>
-            ${e.campaign_name ? `<span style="font-size:11px;color:var(--muted);background:#F5F4EF;padding:2px 8px;border-radius:20px;">📁 ${e.campaign_name}</span>` : ''}
+            <span style="font-size:11px;font-weight:700;color:var(--text);background:#F0F8F4;padding:2px 8px;border-radius:20px;">👤 ${e.client||'Unknown client'}</span>
+            ${e.campaign_name ? `<span style="font-size:11px;color:var(--muted);background:var(--bg);padding:2px 8px;border-radius:20px;">📁 ${e.campaign_name}</span>` : ''}
             ${e.resolved ? `<span style="font-size:11px;color:#2D7A4F;background:#EEF9F1;padding:2px 8px;border-radius:20px;">✅ Resolved</span>` : ''}
           </div>
-          <div style="font-weight:700;font-size:14px;color:var(--dark);margin-bottom:4px;">${e.title}</div>
+          <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">${e.title}</div>
           ${e.body ? `<div style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:8px;">${e.body}</div>` : ''}
           ${e.suggestion ? `<div style="background:#FEF6F1;border-left:3px solid var(--orange);border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:#8B4513;margin-bottom:10px;"><strong>💡 Suggestion:</strong> ${e.suggestion}</div>` : ''}
-          ${e.response ? `<div style="background:#F0F8F4;border-left:3px solid #2D7A4F;border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:var(--dark);"><strong>Your response:</strong> ${e.response}</div>` : ''}
+          ${e.response ? `<div style="background:#F0F8F4;border-left:3px solid #2D7A4F;border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:var(--text);"><strong>Your response:</strong> ${e.response}</div>` : ''}
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;">
           <div style="font-size:11px;color:#bbb;">${e.raised_time || new Date(e.created_at).toLocaleDateString()}</div>
@@ -1570,7 +1594,7 @@ function ptRenderClients() {
   if (!ptClients.length) {
     body.innerHTML = `<div style="text-align:center;padding:60px 24px;">
       <div style="font-size:40px;margin-bottom:14px;">🎯</div>
-      <div style="font-weight:700;font-size:17px;color:var(--dark);margin-bottom:6px;">No clients yet</div>
+      <div style="font-weight:700;font-size:17px;color:var(--text);margin-bottom:6px;">No clients yet</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Invite your first client to get started.</div>
       <button class="pt-topbar-invite" onclick="ptOpenInvite()">+ Invite First Client</button>
     </div>`;

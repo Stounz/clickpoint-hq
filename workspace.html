@@ -13,20 +13,22 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --teal:    #1C3A2E;
-    --teal-md: #2A5240;
-    --orange:  #D4622A;
-    --bg:      #F4F3EE;
-    --card:    #FFFFFF;
-    --border:  #E2E1DB;
-    --text:    #1A1A1A;
-    --muted:   #999990;
-    --green:   #30D158;
-    --amber:   #FF9F0A;
-    --red:     #FF453A;
-    --blue:    #0A84FF;
-    --radius:  14px;
-    --shadow:  0 2px 16px rgba(0,0,0,0.07);
+    --teal:       #1C3A2E;
+    --teal-md:    #2A5240;
+    --orange:     #D4622A;
+    --orange-dark:#B8521F;
+    --bg:         #F4F3EE;
+    --card:       #FFFFFF;
+    --border:     #E2E1DB;
+    --text:       #1A1A1A;
+    --muted:      #8C8C82;
+    --green:      #30D158;
+    --amber:      #FF9F0A;
+    --red:        #FF453A;
+    --blue:       #0A84FF;
+    --radius:     14px;
+    --shadow:     0 2px 16px rgba(0,0,0,0.07);
+    --shadow-lg:  0 12px 48px rgba(0,0,0,0.14);
   }
   body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
@@ -139,13 +141,13 @@
   .ws-cmp-drawer-head { padding:24px 24px 20px; border-bottom:1px solid #F0EFE9; flex-shrink:0; }
   .ws-cmp-drawer-close { width:32px; height:32px; border-radius:8px; background:#F5F4EF; border:none; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; color:var(--muted); float:right; margin-top:-4px; }
   .ws-cmp-drawer-close:hover { background:#E8E7E1; }
-  .ws-cmp-drawer-title { font-size:17px; font-weight:800; color:var(--dark); margin-bottom:8px; padding-right:40px; }
+  .ws-cmp-drawer-title { font-size:17px; font-weight:800; color:var(--text); margin-bottom:8px; padding-right:40px; }
   .ws-cmp-drawer-body { flex:1; overflow-y:auto; padding:20px 24px; }
   .ws-cmp-drawer-section { margin-bottom:20px; }
   .ws-cmp-drawer-label { font-size:10px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
   .ws-cmp-drawer-meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
   .ws-cmp-drawer-meta-item { background:#F5F4EF; border-radius:10px; padding:12px 14px; }
-  .ws-cmp-drawer-meta-val { font-size:13px; font-weight:700; color:var(--dark); margin-top:2px; }
+  .ws-cmp-drawer-meta-val { font-size:13px; font-weight:700; color:var(--text); margin-top:2px; }
   .ws-cmp-drawer-text { font-size:13px; color:#444; line-height:1.6; background:#F5F4EF; border-radius:10px; padding:12px 14px; }
   .ws-cmp-update { padding:12px 0; border-bottom:1px solid #F0EFE9; }
   .ws-cmp-update:last-child { border-bottom:none; }
@@ -286,14 +288,14 @@
   .ws-tour-tooltip { position:fixed; background:#fff; border-radius:16px; padding:24px 24px 20px; width:300px; box-shadow:0 20px 60px rgba(0,0,0,0.28); z-index:9002; pointer-events:all; opacity:0; transition:opacity 0.25s, top 0.25s, left 0.25s; }
   .ws-tour-tooltip.visible { opacity:1; }
   .ws-tour-step-label { font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--teal); margin-bottom:8px; }
-  .ws-tour-title { font-size:15px; font-weight:800; color:var(--dark); margin-bottom:6px; }
+  .ws-tour-title { font-size:15px; font-weight:800; color:var(--text); margin-bottom:6px; }
   .ws-tour-body { font-size:13px; color:var(--muted); line-height:1.55; margin-bottom:20px; }
   .ws-tour-foot { display:flex; align-items:center; gap:8px; }
   .ws-tour-dots { display:flex; gap:5px; flex:1; }
   .ws-tour-dot { width:6px; height:6px; border-radius:50%; background:#E2E1DB; transition:background 0.2s; }
   .ws-tour-dot.active { background:var(--teal); width:16px; border-radius:3px; }
   .ws-tour-skip { font-size:12px; color:var(--muted); background:none; border:none; cursor:pointer; font-family:inherit; padding:4px 6px; white-space:nowrap; }
-  .ws-tour-skip:hover { color:var(--dark); }
+  .ws-tour-skip:hover { color:var(--text); }
   .ws-tour-next { padding:9px 18px; background:var(--teal); color:#fff; border:none; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
   .ws-tour-next:hover { background:var(--teal-md); }
   .ws-tour-highlight { position:relative !important; z-index:9001 !important; box-shadow:0 0 0 4px rgba(28,58,46,0.5), 0 0 0 10px rgba(28,58,46,0.12) !important; border-radius:12px; transition:box-shadow 0.3s; }
@@ -302,9 +304,9 @@
   .ws-onboard-overlay { position:fixed; inset:0; background:rgba(10,18,14,0.72); z-index:1000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
   .ws-onboard-modal { background:#fff; border-radius:20px; padding:40px; max-width:520px; width:calc(100% - 40px); box-shadow:0 24px 80px rgba(0,0,0,0.22); }
   .ws-onboard-logo { font-size:28px; margin-bottom:12px; }
-  .ws-onboard-title { font-size:22px; font-weight:800; color:var(--dark); margin-bottom:6px; }
+  .ws-onboard-title { font-size:22px; font-weight:800; color:var(--text); margin-bottom:6px; }
   .ws-onboard-sub { font-size:14px; color:var(--muted); margin-bottom:28px; line-height:1.5; }
-  .ws-onboard-label { font-size:12px; font-weight:700; color:var(--dark); margin-bottom:6px; display:block; }
+  .ws-onboard-label { font-size:12px; font-weight:700; color:var(--text); margin-bottom:6px; display:block; }
   .ws-onboard-input { width:100%; padding:11px 14px; border:1.5px solid #E2E1DB; border-radius:10px; font-size:14px; font-family:inherit; outline:none; box-sizing:border-box; margin-bottom:16px; transition:border 0.15s; }
   .ws-onboard-input:focus { border-color:var(--teal); }
   .ws-onboard-select { width:100%; padding:11px 40px 11px 14px; border:1.5px solid #E2E1DB; border-radius:10px; font-size:14px; font-family:inherit; outline:none; background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center; box-sizing:border-box; margin-bottom:16px; appearance:none; -webkit-appearance:none; cursor:pointer; color:#1A1A1A; transition:border 0.15s; }
@@ -323,7 +325,7 @@
   .ws-lib-item:hover { box-shadow:0 4px 16px rgba(0,0,0,0.06); }
   .ws-lib-item-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
   .ws-lib-type-badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; background:rgba(28,58,46,0.08); color:var(--teal); }
-  .ws-lib-item-title { font-size:14px; font-weight:700; color:var(--dark); flex:1; }
+  .ws-lib-item-title { font-size:14px; font-weight:700; color:var(--text); flex:1; }
   .ws-lib-item-date { font-size:11px; color:var(--muted); }
   .ws-lib-item-preview { font-size:13px; color:#444; line-height:1.7; margin-bottom:14px; max-height:90px; overflow:hidden; position:relative; }
   .ws-lib-item-preview::after { content:''; position:absolute; bottom:0; left:0; right:0; height:36px; background:linear-gradient(transparent,#fff); pointer-events:none; }
@@ -348,7 +350,7 @@
   .ws-lib-actions { display:flex; gap:8px; align-items:center; }
   .ws-lib-approve { padding:7px 16px; background:var(--teal); color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
   .ws-lib-approve:hover { background:#254d3a; }
-  .ws-lib-changes { padding:7px 16px; background:#fff; color:var(--dark); border:1.5px solid var(--border); border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+  .ws-lib-changes { padding:7px 16px; background:#fff; color:var(--text); border:1.5px solid var(--border); border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; }
   .ws-lib-changes:hover { border-color:#aaa; }
   .ws-lib-status { padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; margin-left:auto; }
   .ws-lib-status.approved { background:rgba(48,209,88,0.1); color:#1a8a3c; }
@@ -359,7 +361,7 @@
   .ws-social-overlay { position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,0.55);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:32px 16px; }
   .ws-social-modal { background:#F0EFEA;border-radius:18px;width:100%;max-width:540px;padding:24px;position:relative;margin:auto; }
   .ws-social-modal-hd { display:flex;align-items:center;justify-content:space-between;margin-bottom:20px; }
-  .ws-social-modal-hd h3 { font-size:15px;font-weight:700;color:var(--dark);margin:0; }
+  .ws-social-modal-hd h3 { font-size:15px;font-weight:700;color:var(--text);margin:0; }
   .ws-social-modal-close { width:30px;height:30px;border-radius:50%;border:none;background:#DDD;cursor:pointer;font-size:15px;line-height:30px;text-align:center;color:#555; }
   .ws-social-week { font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin:16px 0 8px;padding:0 2px; }
   .ws-post-card { background:#fff;border-radius:12px;border:1px solid #E0DFD9;padding:16px;margin-bottom:12px; }
@@ -407,7 +409,7 @@
 .ws-int-modal-label { font-size:12px; font-weight:700; color:var(--text); margin-bottom:5px; display:block; }
 
   /* ── Brand Hub ── */
-  .ws-brand-label { font-size:12px; font-weight:700; color:var(--dark); margin-bottom:6px; display:block; }
+  .ws-brand-label { font-size:12px; font-weight:700; color:var(--text); margin-bottom:6px; display:block; }
   .ws-brand-input { width:100%; padding:10px 13px; border:1.5px solid #E2E1DB; border-radius:10px; font-size:13px; font-family:inherit; outline:none; box-sizing:border-box; transition:border 0.15s; margin-bottom:0; }
   .ws-brand-input:focus { border-color:var(--teal); }
   .ws-brand-textarea { width:100%; padding:10px 13px; border:1.5px solid #E2E1DB; border-radius:10px; font-size:13px; font-family:inherit; outline:none; box-sizing:border-box; resize:vertical; min-height:80px; transition:border 0.15s; }
@@ -419,7 +421,7 @@
   .ws-bh-tabs { display:flex; gap:4px; margin-bottom:24px; background:#ECEAE3; border-radius:12px; padding:4px; }
   .ws-bh-tab { flex:1; padding:9px 8px; text-align:center; font-size:12px; font-weight:600; color:var(--muted); border-radius:9px; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
   .ws-bh-tab.active { background:#fff; color:var(--teal); box-shadow:0 1px 4px rgba(0,0,0,0.08); }
-  .ws-bh-tab:hover:not(.active) { color:var(--dark); }
+  .ws-bh-tab:hover:not(.active) { color:var(--text); }
   .ws-bh-panel { display:none; }
   .ws-bh-panel.active { display:block; }
   .ws-bh-section { margin-bottom:24px; }
@@ -436,7 +438,7 @@
   .ws-bh-swatch:hover::after { opacity:1; }
   .ws-bh-col-inputs { background:#F5F4EF; border:1.5px solid #E2E1DB; border-top:none; border-radius:0 0 10px 10px; padding:8px; display:flex; flex-direction:column; gap:5px; }
   .ws-bh-col-label { font-size:10px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--muted); }
-  .ws-bh-col-hex { font-size:12px; font-family:monospace; font-weight:700; color:var(--dark); border:none; background:none; outline:none; width:100%; padding:0; }
+  .ws-bh-col-hex { font-size:12px; font-family:monospace; font-weight:700; color:var(--text); border:none; background:none; outline:none; width:100%; padding:0; }
   /* Personality traits */
   .ws-bh-traits { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:4px; }
   .ws-bh-trait { padding:7px 14px; border-radius:20px; border:1.5px solid #E2E1DB; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; transition:all 0.15s; user-select:none; }
@@ -457,14 +459,14 @@
   /* ── Budget Pacing ── */
   .ws-pacing-wrap { margin-top:16px; }
   .ws-pacing-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-  .ws-pacing-label { font-size:12px; font-weight:700; color:var(--dark); }
+  .ws-pacing-label { font-size:12px; font-weight:700; color:var(--text); }
   .ws-pacing-vals { font-size:12px; color:var(--muted); }
   .ws-pacing-track { height:8px; background:#F0EFE9; border-radius:4px; overflow:hidden; position:relative; }
   .ws-pacing-bar { height:100%; border-radius:4px; transition:width 0.8s ease; }
   .ws-pacing-bar.green { background:#30D158; }
   .ws-pacing-bar.amber { background:#FF9500; }
   .ws-pacing-bar.red { background:#FF453A; }
-  .ws-pacing-marker { position:absolute; top:-3px; height:14px; width:2px; background:var(--dark); border-radius:1px; }
+  .ws-pacing-marker { position:absolute; top:-3px; height:14px; width:2px; background:var(--text); border-radius:1px; }
   .ws-pacing-legend { display:flex; gap:14px; margin-top:8px; }
   .ws-pacing-legend-item { font-size:10px; color:var(--muted); display:flex; align-items:center; gap:4px; }
   .ws-pacing-dot { width:8px; height:8px; border-radius:50%; }
@@ -472,18 +474,18 @@
   /* ── Rank Tracking ── */
   .ws-rank-table { width:100%; border-collapse:collapse; font-size:13px; }
   .ws-rank-table th { text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted); padding:8px 10px; border-bottom:1.5px solid var(--border); }
-  .ws-rank-table td { padding:11px 10px; border-bottom:1px solid var(--border); color:var(--dark); vertical-align:middle; }
+  .ws-rank-table td { padding:11px 10px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; }
   .ws-rank-table tr:last-child td { border-bottom:none; }
   .ws-rank-up { color:#30D158; font-weight:700; font-size:12px; }
   .ws-rank-down { color:#FF453A; font-weight:700; font-size:12px; }
   .ws-rank-same { color:var(--muted); font-size:12px; }
-  .ws-rank-pos { font-weight:800; font-size:15px; color:var(--dark); }
+  .ws-rank-pos { font-weight:800; font-size:15px; color:var(--text); }
   .ws-rank-pos.top3 { color:var(--teal); }
   .ws-rank-pos.top10 { color:#30D158; }
   .ws-gsc-connect { background:linear-gradient(135deg,#F0F8F4,#E8F5EE); border:1.5px solid #C8E6D4; border-radius:14px; padding:18px 20px; margin-bottom:20px; display:flex; align-items:center; gap:16px; }
   .ws-gsc-icon { width:40px; height:40px; background:#fff; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
   .ws-gsc-text { flex:1; }
-  .ws-gsc-title { font-size:13px; font-weight:700; color:var(--dark); margin-bottom:2px; }
+  .ws-gsc-title { font-size:13px; font-weight:700; color:var(--text); margin-bottom:2px; }
   .ws-gsc-sub { font-size:12px; color:var(--muted); }
   .ws-gsc-btn { padding:8px 16px; background:var(--teal); color:#fff; border:none; border-radius:9px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
 
@@ -1171,11 +1173,11 @@
         <div class="ws-page-sub">All work produced by your agency team — approve, request changes, or download.</div>
         <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
           <button onclick="wsLibFilter('all',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--teal);background:var(--teal);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn active-filter">All</button>
-          <button onclick="wsLibFilter('Content',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--dark);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">Content</button>
-          <button onclick="wsLibFilter('Strategy',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--dark);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">Strategy</button>
-          <button onclick="wsLibFilter('SEO',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--dark);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">SEO</button>
-          <button onclick="wsLibFilter('Ads',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--dark);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">Ads</button>
-          <button onclick="wsLibFilter('Design',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--dark);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">Design</button>
+          <button onclick="wsLibFilter('Content',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">Content</button>
+          <button onclick="wsLibFilter('Strategy',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">Strategy</button>
+          <button onclick="wsLibFilter('SEO',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">SEO</button>
+          <button onclick="wsLibFilter('Ads',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">Ads</button>
+          <button onclick="wsLibFilter('Design',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;" class="ws-lib-filter-btn">Design</button>
         </div>
         <div id="wsLibraryList"></div>
       </div>
@@ -1571,19 +1573,19 @@
 <div id="wsEscModal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:20px;padding:32px;max-width:500px;width:calc(100% - 40px);box-shadow:0 24px 80px rgba(0,0,0,0.2);z-index:3001;">
   <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;">
     <div>
-      <div style="font-size:17px;font-weight:800;color:var(--dark);">🚨 Raise an issue</div>
+      <div style="font-size:17px;font-weight:800;color:var(--text);">🚨 Raise an issue</div>
       <div style="font-size:12px;color:var(--muted);margin-top:3px;">Your agency team will be notified and respond within 24 hours.</div>
     </div>
     <button onclick="wsCloseEscalationModal()" style="width:28px;height:28px;border-radius:8px;background:#F5F4EF;border:none;cursor:pointer;font-size:15px;color:#888;">✕</button>
   </div>
   <div id="wsEscForm">
-    <label style="font-size:12px;font-weight:700;color:var(--dark);display:block;margin-bottom:6px;">What's the issue? <span style="color:#D4622A;">*</span></label>
+    <label style="font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;">What's the issue? <span style="color:#D4622A;">*</span></label>
     <input id="wsEscTitle" placeholder="e.g. Campaign hasn't started yet" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;margin-bottom:14px;" oninput="document.getElementById('wsEscTitle').style.borderColor='var(--border)'" />
-    <label style="font-size:12px;font-weight:700;color:var(--dark);display:block;margin-bottom:6px;">More details</label>
+    <label style="font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;">More details</label>
     <textarea id="wsEscBody" placeholder="Describe the issue so your team can help quickly…" rows="4" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;resize:vertical;margin-bottom:14px;"></textarea>
     <div style="display:flex;gap:10px;margin-bottom:20px;">
       <div style="flex:1;">
-        <label style="font-size:12px;font-weight:700;color:var(--dark);display:block;margin-bottom:6px;">Priority</label>
+        <label style="font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;">Priority</label>
         <select id="wsEscPriority" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;background:#fff;outline:none;">
           <option value="LOW">Low — general question</option>
           <option value="MEDIUM" selected>Medium — needs attention</option>
@@ -1591,7 +1593,7 @@
         </select>
       </div>
       <div style="flex:1;" id="wsEscCampaignWrap">
-        <label style="font-size:12px;font-weight:700;color:var(--dark);display:block;margin-bottom:6px;">Related campaign</label>
+        <label style="font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;">Related campaign</label>
         <select id="wsEscCampaign" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;background:#fff;outline:none;">
           <option value="">None / general</option>
         </select>
@@ -1601,7 +1603,7 @@
   </div>
   <div id="wsEscSuccess" style="display:none;text-align:center;padding:24px 0;">
     <div style="font-size:36px;margin-bottom:12px;">✅</div>
-    <div style="font-size:16px;font-weight:800;color:var(--dark);margin-bottom:8px;">Issue raised successfully</div>
+    <div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:8px;">Issue raised successfully</div>
     <div style="font-size:13px;color:var(--muted);">Your agency team has been notified and will respond within 24 hours.</div>
   </div>
 </div>
@@ -2345,7 +2347,7 @@ function wsLoadCampaigns() {
   const emptyState = `
     <div style="text-align:center;padding:48px 24px;">
       <div style="font-size:32px;margin-bottom:12px;">🚀</div>
-      <div style="font-weight:700;color:var(--dark);margin-bottom:6px;">No campaigns yet</div>
+      <div style="font-weight:700;color:var(--text);margin-bottom:6px;">No campaigns yet</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Request a new campaign and your CMO will review and launch it.</div>
     </div>
   `;
@@ -2374,7 +2376,7 @@ function wsRenderAnalytics(platform) {
   document.getElementById('wsAnalyticsContent').innerHTML = `
     <div style="text-align:center;padding:64px 24px;">
       <div style="font-size:40px;margin-bottom:16px;">📊</div>
-      <div style="font-weight:700;font-size:17px;color:var(--dark);margin-bottom:8px;">No analytics data yet</div>
+      <div style="font-weight:700;font-size:17px;color:var(--text);margin-bottom:8px;">No analytics data yet</div>
       <div style="font-size:13px;color:var(--muted);max-width:380px;margin:0 auto;">Your agency team will sync your campaign data here once your campaigns are live. Check back after your first active campaign.</div>
     </div>
   `;
@@ -2583,7 +2585,7 @@ async function wsLoadEscalations() {
     container.innerHTML = `
       <div class="ws-card" style="text-align:center;padding:48px 24px;">
         <div style="font-size:32px;margin-bottom:12px;">✅</div>
-        <div style="font-weight:700;color:var(--dark);margin-bottom:6px;">No open issues</div>
+        <div style="font-weight:700;color:var(--text);margin-bottom:6px;">No open issues</div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Everything looks good. If you need help, raise an issue and your team will respond within 24 hours.</div>
         <button onclick="wsOpenEscalationModal()" style="padding:10px 22px;background:var(--orange);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">+ Raise an issue</button>
       </div>`;
@@ -2605,9 +2607,9 @@ async function wsLoadEscalations() {
             ${e.campaign_name ? `<span style="font-size:11px;color:var(--muted);background:#F5F4EF;padding:2px 8px;border-radius:20px;">📁 ${e.campaign_name}</span>` : ''}
             ${e.resolved ? `<span style="font-size:11px;color:#2D7A4F;background:#EEF9F1;padding:2px 8px;border-radius:20px;">✅ Resolved</span>` : `<span style="font-size:11px;color:#C47A00;background:rgba(255,159,10,0.12);padding:2px 8px;border-radius:20px;">⏳ Open</span>`}
           </div>
-          <div style="font-weight:700;font-size:14px;color:var(--dark);margin-bottom:4px;">${e.title}</div>
+          <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">${e.title}</div>
           ${e.body ? `<div style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:8px;">${e.body}</div>` : ''}
-          ${e.response ? `<div style="background:#F0F8F4;border-left:3px solid #2D7A4F;border-radius:0 8px 8px 0;padding:10px 14px;margin-top:8px;font-size:13px;color:var(--dark);"><strong>Response from your team:</strong><br>${e.response}</div>` : ''}
+          ${e.response ? `<div style="background:#F0F8F4;border-left:3px solid #2D7A4F;border-radius:0 8px 8px 0;padding:10px 14px;margin-top:8px;font-size:13px;color:var(--text);"><strong>Response from your team:</strong><br>${e.response}</div>` : ''}
         </div>
         <div style="font-size:11px;color:#bbb;white-space:nowrap;">${e.raised_time || new Date(e.created_at).toLocaleDateString()}</div>
       </div>
@@ -2993,7 +2995,7 @@ let wsLibActiveFilter = 'all';
 function wsLibFilter(type, btn) {
   wsLibActiveFilter = type;
   document.querySelectorAll('.ws-lib-filter-btn').forEach(b => {
-    b.style.background = '#fff'; b.style.color = 'var(--dark)'; b.style.borderColor = 'var(--border)';
+    b.style.background = '#fff'; b.style.color = 'var(--text)'; b.style.borderColor = 'var(--border)';
   });
   btn.style.background = 'var(--teal)'; btn.style.color = '#fff'; btn.style.borderColor = 'var(--teal)';
   wsLoadLibrary(type);
