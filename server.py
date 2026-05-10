@@ -121,6 +121,12 @@ HUBSPOT_TOKEN              = _ENV.get('HUBSPOT_TOKEN', '')  # Set via Railway en
 CANVA_CLIENT_ID            = _ENV.get('CANVA_CLIENT_ID', '')
 CANVA_CLIENT_SECRET        = _ENV.get('CANVA_CLIENT_SECRET', '')
 CANVA_REDIRECT_URI         = 'https://web-production-c959ce.up.railway.app/api/canva/callback'
+META_APP_ID                = _ENV.get('META_APP_ID', '')
+META_APP_SECRET            = _ENV.get('META_APP_SECRET', '')
+LINKEDIN_CLIENT_ID         = _ENV.get('LINKEDIN_CLIENT_ID', '')
+LINKEDIN_CLIENT_SECRET     = _ENV.get('LINKEDIN_CLIENT_SECRET', '')
+TWITTER_CLIENT_ID          = _ENV.get('TWITTER_CLIENT_ID', '')
+TWITTER_CLIENT_SECRET      = _ENV.get('TWITTER_CLIENT_SECRET', '')
 
 _REQUIRED_SECRETS = [
     ('ANTHROPIC_API_KEY',       'sk-ant-...'),
@@ -1608,6 +1614,199 @@ def canva_auth_url(workspace_id: str = '') -> str:
     })
     return f'https://www.canva.com/api/oauth/authorize?{params}'
 
+# ── Social Publishing helpers ─────────────────────────────────────────────────
+
+def _social_publish_facebook(page_id: str, token: str, content: str, media_urls: list = None) -> str:
+    """POST to Facebook Graph API. Returns post_id string."""
+    params = {'message': content, 'access_token': token}
+    if media_urls:
+        params['link'] = media_urls[0]
+    url = f'https://graph.facebook.com/v19.0/{page_id}/feed'
+    data = urllib.parse.urlencode(params).encode()
+    req = urllib.request.Request(url, data=data, method='POST')
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        result = json.loads(resp.read())
+    return result.get('id', '')
+
+
+def _social_publish_instagram(page_id: str, token: str, content: str, media_url: str = None) -> str:
+    """Publish to Instagram via Graph API. Returns media_id string."""
+    if not media_url:
+        raise ValueError('Instagram requires an image URL')
+    # Step 1: create media container
+    container_url = (
+        f'https://graph.facebook.com/v19.0/{page_id}/media'
+        f'?image_url={urllib.parse.quote(media_url)}'
+        f'&caption={urllib.parse.quote(content)}'
+        f'&access_token={token}'
+    )
+    req = urllib.request.Request(container_url, data=b'', method='POST')
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        container = json.loads(resp.read())
+    creation_id = container.get('id', '')
+    if not creation_id:
+        raise ValueError(f'Instagram container creation failed: {container}')
+    # Step 2: publish
+    publish_url = (
+        f'https://graph.facebook.com/v19.0/{page_id}/media_publish'
+        f'?creation_id={creation_id}&access_token={token}'
+    )
+    req2 = urllib.request.Request(publish_url, data=b'', method='POST')
+    with urllib.request.urlopen(req2, timeout=20) as resp2:
+        result = json.loads(resp2.read())
+    return result.get('id', '')
+
+
+def _social_publish_linkedin(token: str, content: str) -> str:
+    """POST to LinkedIn UGC Posts API. Returns post URN string."""
+    # Get person ID
+    me_req = urllib.request.Request(
+        'https://api.linkedin.com/v2/me',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+    with urllib.request.urlopen(me_req, timeout=15) as resp:
+        me = json.loads(resp.read())
+    person_id = me.get('id', '')
+    if not person_id:
+        raise ValueError('Could not get LinkedIn person ID')
+    payload = json.dumps({
+        'author': f'urn:li:person:{person_id}',
+        'lifecycleState': 'PUBLISHED',
+        'specificContent': {
+            'com.linkedin.ugc.ShareContent': {
+                'shareCommentary': {'text': content},
+                'shareMediaCategory': 'NONE',
+            }
+        },
+        'visibility': {'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'},
+    }).encode()
+    post_req = urllib.request.Request(
+        'https://api.linkedin.com/v2/ugcPosts',
+        data=payload,
+        headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+        method='POST',
+    )
+    with urllib.request.urlopen(post_req, timeout=20) as resp:
+        result = json.loads(resp.read())
+    return result.get('id', '')
+
+
+def _social_publish_twitter(token: str, content: str) -> str:
+    """POST tweet via Twitter API v2. Returns tweet_id string."""
+    payload = json.dumps({'text': content[:280]}).encode()
+    req = urllib.request.Request(
+        'https://api.twitter.com/2/tweets',
+        data=payload,
+        headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+        method='POST',
+    )
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        result = json.loads(resp.read())
+    return result.get('data', {}).get('id', '')
+
+
+def _publish_post_to_platforms(post: dict, accounts: dict) -> tuple:
+    """
+    Publish a social post to all its platforms.
+    post: social_posts row dict
+    accounts: dict of {platform: account_row}
+    Returns (platform_ids: dict, failed: list)
+    """
+    platform_ids = {}
+    failed = []
+    for platform in (post.get('platforms') or []):
+        acct = accounts.get(platform)
+        if not acct:
+            failed.append({'platform': platform, 'error': 'No connected account'})
+            continue
+        raw_token = decrypt_token(acct.get('encrypted_token', ''))
+        if not raw_token:
+            failed.append({'platform': platform, 'error': 'Token missing or decrypt failed'})
+            continue
+        content = post.get('content', '')
+        media_urls = post.get('media_urls') or []
+        try:
+            if platform == 'facebook':
+                pid = _social_publish_facebook(acct.get('page_id', ''), raw_token, content, media_urls)
+                platform_ids['facebook'] = pid
+            elif platform == 'instagram':
+                pid = _social_publish_instagram(
+                    acct.get('page_id', ''), raw_token, content,
+                    media_urls[0] if media_urls else None
+                )
+                platform_ids['instagram'] = pid
+            elif platform == 'linkedin':
+                pid = _social_publish_linkedin(raw_token, content)
+                platform_ids['linkedin'] = pid
+            elif platform == 'twitter':
+                pid = _social_publish_twitter(raw_token, content)
+                platform_ids['twitter'] = pid
+            else:
+                failed.append({'platform': platform, 'error': f'Unsupported platform: {platform}'})
+        except Exception as e:
+            print(f'  [social] publish error {platform}: {e}')
+            failed.append({'platform': platform, 'error': str(e)})
+    return platform_ids, failed
+
+
+def _publish_due_social_posts():
+    """Query scheduled posts that are due and publish them."""
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        return
+    now_iso = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
+    try:
+        posts = _supabase_req(
+            'GET',
+            f'social_posts?status=eq.scheduled&scheduled_at=lte.{now_iso}&select=*'
+        )
+    except Exception as e:
+        print(f'  [social scheduler] query error: {e}')
+        return
+    for post in (posts or []):
+        post_id = post.get('id')
+        workspace_id = post.get('workspace_id', '')
+        try:
+            acct_rows = _supabase_req(
+                'GET',
+                f'social_accounts?workspace_id=eq.{urllib.parse.quote(workspace_id)}&status=eq.connected'
+            )
+            accounts = {r['platform']: r for r in (acct_rows or [])}
+            platform_ids, failed = _publish_post_to_platforms(post, accounts)
+            if platform_ids:
+                pub_iso = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+                _supabase_req('PATCH', f'social_posts?id=eq.{post_id}', {
+                    'status': 'published',
+                    'published_at': pub_iso,
+                    'platform_ids': platform_ids,
+                    'error': json.dumps(failed) if failed else None,
+                })
+                print(f'  [social scheduler] published post {post_id}: {list(platform_ids.keys())}')
+            else:
+                _supabase_req('PATCH', f'social_posts?id=eq.{post_id}', {
+                    'status': 'failed',
+                    'error': json.dumps(failed),
+                })
+                print(f'  [social scheduler] post {post_id} failed: {failed}')
+        except Exception as e:
+            print(f'  [social scheduler] post {post_id} error: {e}')
+            try:
+                _supabase_req('PATCH', f'social_posts?id=eq.{post_id}', {
+                    'status': 'failed', 'error': str(e)
+                })
+            except Exception:
+                pass
+
+
+def _social_scheduler_loop():
+    """Background daemon: publish due social posts every 60 seconds."""
+    while True:
+        time.sleep(60)
+        try:
+            _publish_due_social_posts()
+        except Exception as e:
+            print(f'  [social scheduler] error: {e}')
+
+
 # ── Anthropic API call ────────────────────────────────────────────────────────
 def call_anthropic(api_key, system_prompt, messages, max_tokens=2000):
     payload = json.dumps({
@@ -1639,7 +1838,7 @@ class AgentHandler(BaseHTTPRequestHandler):
 
     def send_cors_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type, X-User-Api-Key')
 
     def do_OPTIONS(self):
@@ -1724,6 +1923,22 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_canva_callback()
         elif self.path.startswith('/api/brand-hub'):
             self._handle_brand_hub_get()
+        elif self.path.startswith('/api/crm/contacts'):
+            self._handle_crm_contacts_get()
+        elif self.path.startswith('/api/crm/activities'):
+            self._handle_crm_activities_get()
+        elif self.path.startswith('/api/reputation'):
+            self._handle_reputation_get()
+        elif self.path.startswith('/api/local-seo'):
+            self._handle_local_seo_get()
+        elif self.path.startswith('/api/social/accounts'):
+            self._handle_social_accounts_get()
+        elif self.path.startswith('/api/social/posts'):
+            self._handle_social_posts_get()
+        elif self.path.startswith('/api/social/auth/'):
+            self._handle_social_auth_get()
+        elif self.path.startswith('/api/social/callback/'):
+            self._handle_social_callback_get()
         else:
             # Serve static files from working directory
             import os as _os
@@ -1825,6 +2040,28 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_escalation_update()
         elif self.path.startswith('/api/brand-hub'):
             self._handle_brand_hub_post()
+        elif self.path == '/api/crm/contacts':
+            self._handle_crm_contacts_post()
+        elif self.path == '/api/crm/activities':
+            self._handle_crm_activities_post()
+        elif self.path == '/api/crm/ai-score':
+            self._handle_crm_ai_score()
+        elif self.path == '/api/reputation/reviews':
+            self._handle_reputation_reviews_post()
+        elif self.path == '/api/reputation/respond':
+            self._handle_reputation_respond()
+        elif self.path == '/api/reputation/request':
+            self._handle_reputation_request()
+        elif self.path == '/api/local-seo/nap':
+            self._handle_local_seo_nap()
+        elif self.path == '/api/local-seo/audit':
+            self._handle_local_seo_audit()
+        elif self.path == '/api/social/draft':
+            self._handle_social_draft()
+        elif self.path == '/api/social/posts':
+            self._handle_social_posts_post()
+        elif self.path == '/api/social/publish':
+            self._handle_social_publish()
         else:
             self.send_response(404)
             self.end_headers()
@@ -1832,6 +2069,17 @@ class AgentHandler(BaseHTTPRequestHandler):
     def do_PATCH(self):
         if self.path.startswith('/api/escalation/'):
             self._handle_escalation_update()
+        elif self.path == '/api/local-seo/listing':
+            self._handle_local_seo_listing_patch()
+        elif self.path == '/api/social/posts':
+            self._handle_social_posts_patch()
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def do_DELETE(self):
+        if self.path == '/api/crm/contacts':
+            self._handle_crm_contacts_delete()
         else:
             self.send_response(404)
             self.end_headers()
@@ -4296,6 +4544,804 @@ class AgentHandler(BaseHTTPRequestHandler):
             print(f'  ⚠️  Canva callback error: {e}')
             self._html(500, self._canva_result_page('error', str(e)))
 
+    # ── CRM handlers ──────────────────────────────────────────────────────────
+
+    def _handle_crm_contacts_get(self):
+        """GET /api/crm/contacts?workspaceId=X"""
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        workspace_id = params.get('workspaceId', [''])[0].strip()
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        try:
+            rows = _supabase_req(
+                'GET',
+                f'crm_contacts?workspace_id=eq.{urllib.parse.quote(workspace_id)}'
+                f'&order=created_at.desc'
+            )
+            self._json(200, {'contacts': rows or []})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_crm_contacts_post(self):
+        """POST /api/crm/contacts — upsert contact"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        name = (body.get('name') or '').strip()
+        if not workspace_id or not name:
+            self._error(400, 'workspaceId and name required'); return
+        contact_id = body.get('id')
+        payload = {
+            'workspace_id': workspace_id,
+            'name': name,
+            'email': body.get('email') or None,
+            'phone': body.get('phone') or None,
+            'company': body.get('company') or None,
+            'title': body.get('title') or None,
+            'tags': body.get('tags') or None,
+            'notes': body.get('notes') or None,
+            'deal_stage': body.get('deal_stage') or 'prospect',
+            'deal_value': body.get('deal_value') or None,
+        }
+        try:
+            if contact_id:
+                rows = _supabase_req('PATCH', f'crm_contacts?id=eq.{contact_id}', payload)
+            else:
+                rows = _supabase_req('POST', 'crm_contacts', payload)
+            contact = rows[0] if rows else payload
+            self._json(200, {'ok': True, 'contact': contact})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_crm_contacts_delete(self):
+        """DELETE /api/crm/contacts — body: {id}"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        contact_id = body.get('id')
+        if not contact_id:
+            self._error(400, 'id required'); return
+        try:
+            _supabase_req('DELETE', f'crm_contacts?id=eq.{contact_id}')
+            self._json(200, {'ok': True})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_crm_activities_get(self):
+        """GET /api/crm/activities?workspaceId=X&contactId=Y"""
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        workspace_id = params.get('workspaceId', [''])[0].strip()
+        contact_id = params.get('contactId', [''])[0].strip()
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        path = (f'crm_activities?workspace_id=eq.{urllib.parse.quote(workspace_id)}'
+                f'&order=created_at.desc')
+        if contact_id:
+            path += f'&contact_id=eq.{contact_id}'
+        try:
+            rows = _supabase_req('GET', path)
+            self._json(200, {'activities': rows or []})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_crm_activities_post(self):
+        """POST /api/crm/activities — log activity"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        contact_id = body.get('contactId')
+        activity_type = (body.get('type') or '').strip()
+        summary = (body.get('summary') or '').strip()
+        if not workspace_id or not contact_id or not activity_type:
+            self._error(400, 'workspaceId, contactId, and type required'); return
+        try:
+            rows = _supabase_req('POST', 'crm_activities', {
+                'workspace_id': workspace_id,
+                'contact_id': contact_id,
+                'type': activity_type,
+                'summary': summary,
+            })
+            # Update last_contact timestamp on the contact
+            now_iso = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+            try:
+                _supabase_req('PATCH', f'crm_contacts?id=eq.{contact_id}',
+                              {'last_contact': now_iso})
+            except Exception:
+                pass
+            self._json(200, {'ok': True, 'activity': rows[0] if rows else {}})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_crm_ai_score(self):
+        """POST /api/crm/ai-score — score a deal with Claude"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        contact_id = body.get('contactId')
+        if not workspace_id or not contact_id:
+            self._error(400, 'workspaceId and contactId required'); return
+        effective_key = self._effective_api_key()
+        if not effective_key:
+            self._error(500, 'ANTHROPIC_API_KEY not set'); return
+        try:
+            contacts = _supabase_req('GET', f'crm_contacts?id=eq.{contact_id}&select=*')
+            if not contacts:
+                self._error(404, 'Contact not found'); return
+            contact = contacts[0]
+            activities = _supabase_req(
+                'GET',
+                f'crm_activities?contact_id=eq.{contact_id}&order=created_at.desc&limit=10'
+            )
+            activity_summary = '\n'.join(
+                f'- [{a.get("type","note")}] {a.get("summary","")}'
+                for a in (activities or [])
+            ) or 'No activities recorded'
+            contact_info = (
+                f'Name: {contact.get("name","")}\n'
+                f'Company: {contact.get("company","")}\n'
+                f'Title: {contact.get("title","")}\n'
+                f'Deal Stage: {contact.get("deal_stage","prospect")}\n'
+                f'Deal Value: {contact.get("deal_value","")}\n'
+                f'Notes: {contact.get("notes","")}\n'
+                f'Tags: {", ".join(contact.get("tags") or [])}\n'
+                f'\nRecent Activities:\n{activity_summary}'
+            )
+            system = (
+                'You are Sarah Lin, CMO. Review this contact\'s deal stage, notes, and activity history. '
+                'Score the deal 1-10 (10=ready to close) and recommend one specific next action. '
+                'Respond as JSON only: {"score": <int>, "next_action": "<string>", "reasoning": "<string>"}'
+            )
+            raw = call_anthropic(effective_key, system,
+                                 [{'role': 'user', 'content': contact_info}], max_tokens=400)
+            cleaned = raw.replace('```json', '').replace('```', '').strip()
+            result = json.loads(cleaned)
+            score = int(result.get('score', 5))
+            next_action = str(result.get('next_action', ''))
+            reasoning = str(result.get('reasoning', ''))
+            # Save back to contact
+            _supabase_req('PATCH', f'crm_contacts?id=eq.{contact_id}',
+                          {'ai_score': score, 'next_action': next_action})
+            self._json(200, {'ok': True, 'score': score,
+                             'next_action': next_action, 'reasoning': reasoning})
+        except Exception as e:
+            print(f'  CRM AI score error: {e}')
+            self._error(500, str(e))
+
+    # ── Reputation Management handlers ────────────────────────────────────────
+
+    def _handle_reputation_get(self):
+        """GET /api/reputation?workspaceId=X"""
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        workspace_id = params.get('workspaceId', [''])[0].strip()
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        try:
+            reviews = _supabase_req(
+                'GET',
+                f'reputation_reviews?workspace_id=eq.{urllib.parse.quote(workspace_id)}'
+                f'&order=created_at.desc'
+            )
+            reviews = reviews or []
+            # Compute stats
+            total = len(reviews)
+            avg_rating = round(sum(r.get('rating', 0) for r in reviews) / max(1, total), 2)
+            by_platform = {}
+            pending_count = 0
+            for r in reviews:
+                plat = r.get('platform', 'other')
+                by_platform[plat] = by_platform.get(plat, 0) + 1
+                if r.get('status') == 'pending':
+                    pending_count += 1
+            stats = {
+                'total': total,
+                'avg_rating': avg_rating,
+                'by_platform': by_platform,
+                'pending_count': pending_count,
+            }
+            self._json(200, {'reviews': reviews, 'stats': stats})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_reputation_reviews_post(self):
+        """POST /api/reputation/reviews — add review"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        platform = (body.get('platform') or '').strip()
+        if not workspace_id or not platform:
+            self._error(400, 'workspaceId and platform required'); return
+        payload = {
+            'workspace_id': workspace_id,
+            'platform': platform,
+            'reviewer_name': body.get('reviewer_name') or None,
+            'rating': body.get('rating') or None,
+            'content': body.get('content') or None,
+            'review_date': body.get('review_date') or None,
+            'external_id': body.get('external_id') or None,
+            'status': 'pending',
+        }
+        try:
+            rows = _supabase_req('POST', 'reputation_reviews', payload)
+            self._json(200, {'ok': True, 'review': rows[0] if rows else payload})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_reputation_respond(self):
+        """POST /api/reputation/respond — AI-draft response and save"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        review_id = body.get('reviewId')
+        workspace_id = (body.get('workspaceId') or '').strip()
+        tone = (body.get('tone') or 'professional and warm').strip()
+        if not review_id or not workspace_id:
+            self._error(400, 'reviewId and workspaceId required'); return
+        effective_key = self._effective_api_key()
+        if not effective_key:
+            self._error(500, 'ANTHROPIC_API_KEY not set'); return
+        try:
+            reviews = _supabase_req('GET', f'reputation_reviews?id=eq.{review_id}&select=*')
+            if not reviews:
+                self._error(404, 'Review not found'); return
+            review = reviews[0]
+            rating = review.get('rating', 3)
+            content = review.get('content', '')
+            reviewer = review.get('reviewer_name', 'Customer')
+            system = (
+                f'You are a professional reputation manager. Write a concise, genuine, '
+                f'brand-appropriate response to this {rating}-star review. Tone: {tone}. '
+                f'Be specific to what they wrote. Don\'t be sycophantic. Under 80 words.'
+            )
+            user_msg = (
+                f'Reviewer: {reviewer}\nRating: {rating}/5\nReview: {content}'
+            )
+            response_text = call_anthropic(effective_key, system,
+                                           [{'role': 'user', 'content': user_msg}],
+                                           max_tokens=200)
+            # Save response and update status
+            _supabase_req('PATCH', f'reputation_reviews?id=eq.{review_id}', {
+                'response': response_text,
+                'status': 'responded',
+            })
+            self._json(200, {'ok': True, 'response': response_text})
+        except Exception as e:
+            print(f'  Reputation respond error: {e}')
+            self._error(500, str(e))
+
+    def _handle_reputation_request(self):
+        """POST /api/reputation/request — send review request email"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        customer_email = (body.get('customerEmail') or '').strip()
+        customer_name = (body.get('customerName') or 'Valued Customer').strip()
+        business_name = (body.get('businessName') or 'our business').strip()
+        review_url = (body.get('reviewUrl') or '').strip()
+        if not workspace_id or not customer_email:
+            self._error(400, 'workspaceId and customerEmail required'); return
+        link_html = (f'<a href="{review_url}" style="display:inline-block;margin-top:16px;'
+                     f'padding:12px 24px;background:#1C3A2E;color:#fff;border-radius:6px;'
+                     f'text-decoration:none;font-weight:600;">Leave a Review</a>'
+                     if review_url else '')
+        html = f"""<div style="font-family:-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:28px;">
+        <h2 style="color:#1C3A2E;margin-bottom:12px;">Hi {customer_name},</h2>
+        <p style="color:#444;line-height:1.7;font-size:15px;">
+            Thank you so much for choosing {business_name}. We really hope you had a great experience,
+            and we'd love to hear what you think.
+        </p>
+        <p style="color:#444;line-height:1.7;font-size:15px;">
+            If you have a moment, sharing your honest feedback helps others find us — and helps us keep
+            improving. It only takes a minute.
+        </p>
+        {link_html}
+        <p style="margin-top:24px;color:#888;font-size:13px;">
+            If you have any questions or concerns, just reply to this email. We're always happy to help.
+        </p>
+        <p style="color:#444;font-size:14px;">Warm regards,<br>The {business_name} team</p>
+        </div>"""
+        ok = _send_email(customer_email, f'How was your experience with {business_name}?', html)
+        self._json(200, {'ok': ok})
+
+    # ── Local SEO handlers ────────────────────────────────────────────────────
+
+    def _handle_local_seo_get(self):
+        """GET /api/local-seo?workspaceId=X"""
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        workspace_id = params.get('workspaceId', [''])[0].strip()
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        try:
+            rows = _supabase_req(
+                'GET',
+                f'local_listings?workspace_id=eq.{urllib.parse.quote(workspace_id)}&limit=1'
+            )
+            self._json(200, {'listing': rows[0] if rows else None})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_local_seo_nap(self):
+        """POST /api/local-seo/nap — upsert listing data"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        now_iso = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+        payload = {
+            'workspace_id': workspace_id,
+            'business_name': body.get('business_name') or None,
+            'address': body.get('address') or None,
+            'city': body.get('city') or None,
+            'state': body.get('state') or None,
+            'postcode': body.get('postcode') or None,
+            'phone': body.get('phone') or None,
+            'website': body.get('website') or None,
+            'categories': body.get('categories') or None,
+            'description': body.get('description') or None,
+            'hours': body.get('hours') or {},
+            'updated_at': now_iso,
+        }
+        try:
+            # Check existing
+            rows = _supabase_req(
+                'GET',
+                f'local_listings?workspace_id=eq.{urllib.parse.quote(workspace_id)}&limit=1'
+            )
+            if rows:
+                result = _supabase_req('PATCH',
+                    f'local_listings?workspace_id=eq.{urllib.parse.quote(workspace_id)}',
+                    payload)
+            else:
+                result = _supabase_req('POST', 'local_listings', payload)
+            listing = result[0] if result else payload
+            self._json(200, {'ok': True, 'listing': listing})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_local_seo_audit(self):
+        """POST /api/local-seo/audit — run AI audit on listing data"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        effective_key = self._effective_api_key()
+        if not effective_key:
+            self._error(500, 'ANTHROPIC_API_KEY not set'); return
+        try:
+            rows = _supabase_req(
+                'GET',
+                f'local_listings?workspace_id=eq.{urllib.parse.quote(workspace_id)}&limit=1'
+            )
+            listing = rows[0] if rows else {}
+            listing_text = (
+                f'Business Name: {listing.get("business_name","")}\n'
+                f'Address: {listing.get("address","")}, {listing.get("city","")}, '
+                f'{listing.get("state","")} {listing.get("postcode","")}\n'
+                f'Phone: {listing.get("phone","")}\n'
+                f'Website: {listing.get("website","")}\n'
+                f'Categories: {", ".join(listing.get("categories") or [])}\n'
+                f'Description: {listing.get("description","")}\n'
+                f'Hours: {json.dumps(listing.get("hours") or {})}\n'
+                f'Listing Status: {json.dumps(listing.get("listing_status") or {})}'
+            )
+            system = (
+                'You are Raj Nair, SEO & Analytics Specialist. Audit this local business listing data '
+                'for completeness and local SEO best practice. '
+                'Return JSON only: {"score": <int 1-10>, "issues": [{"severity": "high"|"medium"|"low", '
+                '"issue": "<string>", "fix": "<string>"}], "opportunities": ["<string>"], '
+                '"next_steps": ["<string>"]}'
+            )
+            raw = call_anthropic(effective_key, system,
+                                 [{'role': 'user', 'content': listing_text}], max_tokens=800)
+            cleaned = raw.replace('```json', '').replace('```', '').strip()
+            audit = json.loads(cleaned)
+            # Save last_audit timestamp
+            now_iso = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+            try:
+                if rows:
+                    _supabase_req('PATCH',
+                        f'local_listings?workspace_id=eq.{urllib.parse.quote(workspace_id)}',
+                        {'last_audit': now_iso})
+            except Exception:
+                pass
+            self._json(200, {'ok': True, 'audit': audit})
+        except Exception as e:
+            print(f'  Local SEO audit error: {e}')
+            self._error(500, str(e))
+
+    def _handle_local_seo_listing_patch(self):
+        """PATCH /api/local-seo/listing — update a platform's listing status"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        platform = (body.get('platform') or '').strip()
+        status = (body.get('status') or '').strip()
+        valid_platforms = {'google', 'bing', 'apple_maps', 'yelp', 'facebook',
+                           'yellow_pages', 'foursquare', 'true_local'}
+        valid_statuses = {'claimed', 'unclaimed', 'pending', 'na'}
+        if not workspace_id or not platform or not status:
+            self._error(400, 'workspaceId, platform, and status required'); return
+        if platform not in valid_platforms:
+            self._error(400, f'Invalid platform. Must be one of: {", ".join(valid_platforms)}'); return
+        if status not in valid_statuses:
+            self._error(400, f'Invalid status. Must be one of: {", ".join(valid_statuses)}'); return
+        try:
+            rows = _supabase_req(
+                'GET',
+                f'local_listings?workspace_id=eq.{urllib.parse.quote(workspace_id)}&limit=1'
+            )
+            if not rows:
+                self._error(404, 'Listing not found'); return
+            current_status = rows[0].get('listing_status') or {}
+            current_status[platform] = status
+            _supabase_req('PATCH',
+                f'local_listings?workspace_id=eq.{urllib.parse.quote(workspace_id)}',
+                {'listing_status': current_status})
+            self._json(200, {'ok': True, 'listing_status': current_status})
+        except Exception as e:
+            self._error(500, str(e))
+
+    # ── Social Publishing handlers ────────────────────────────────────────────
+
+    def _handle_social_accounts_get(self):
+        """GET /api/social/accounts?workspaceId=X"""
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        workspace_id = params.get('workspaceId', [''])[0].strip()
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        try:
+            rows = _supabase_req(
+                'GET',
+                f'social_accounts?workspace_id=eq.{urllib.parse.quote(workspace_id)}'
+                f'&select=id,workspace_id,platform,account_name,account_id,page_id,'
+                f'token_type,expires_at,status,created_at'
+            )
+            self._json(200, {'accounts': rows or []})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_social_posts_get(self):
+        """GET /api/social/posts?workspaceId=X&status=X"""
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        workspace_id = params.get('workspaceId', [''])[0].strip()
+        status_filter = params.get('status', [''])[0].strip()
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        path = (f'social_posts?workspace_id=eq.{urllib.parse.quote(workspace_id)}'
+                f'&order=created_at.desc')
+        if status_filter:
+            path += f'&status=eq.{urllib.parse.quote(status_filter)}'
+        try:
+            rows = _supabase_req('GET', path)
+            self._json(200, {'posts': rows or []})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_social_auth_get(self):
+        """GET /api/social/auth/:platform?workspaceId=X — return OAuth URL"""
+        parsed = urllib.parse.urlparse(self.path)
+        params = urllib.parse.parse_qs(parsed.query)
+        workspace_id = params.get('workspaceId', [''])[0].strip()
+        # Extract platform from path: /api/social/auth/facebook
+        parts = parsed.path.rstrip('/').split('/')
+        platform = parts[-1] if parts else ''
+        callback_base = PLATFORM_URL
+        if platform == 'facebook' or platform == 'instagram':
+            if not META_APP_ID:
+                self._error(503, 'META_APP_ID not configured'); return
+            callback = f'{callback_base}/api/social/callback/facebook'
+            params_str = urllib.parse.urlencode({
+                'client_id': META_APP_ID,
+                'redirect_uri': callback,
+                'scope': 'pages_manage_posts,pages_read_engagement,instagram_basic,instagram_content_publish',
+                'state': workspace_id,
+                'response_type': 'code',
+            })
+            auth_url = f'https://www.facebook.com/dialog/oauth?{params_str}'
+        elif platform == 'linkedin':
+            if not LINKEDIN_CLIENT_ID:
+                self._error(503, 'LINKEDIN_CLIENT_ID not configured'); return
+            callback = f'{callback_base}/api/social/callback/linkedin'
+            params_str = urllib.parse.urlencode({
+                'response_type': 'code',
+                'client_id': LINKEDIN_CLIENT_ID,
+                'redirect_uri': callback,
+                'scope': 'w_member_social,r_liteprofile',
+                'state': workspace_id,
+            })
+            auth_url = f'https://www.linkedin.com/oauth/v2/authorization?{params_str}'
+        elif platform == 'twitter':
+            if not TWITTER_CLIENT_ID:
+                self._error(503, 'TWITTER_CLIENT_ID not configured'); return
+            callback = f'{callback_base}/api/social/callback/twitter'
+            params_str = urllib.parse.urlencode({
+                'response_type': 'code',
+                'client_id': TWITTER_CLIENT_ID,
+                'redirect_uri': callback,
+                'scope': 'tweet.write tweet.read users.read',
+                'state': workspace_id,
+                'code_challenge': 'challenge',
+                'code_challenge_method': 'plain',
+            })
+            auth_url = f'https://twitter.com/i/oauth2/authorize?{params_str}'
+        else:
+            self._error(400, f'Unsupported platform: {platform}'); return
+        self._json(200, {'auth_url': auth_url, 'platform': platform})
+
+    def _handle_social_callback_get(self):
+        """GET /api/social/callback/:platform — handle OAuth callback"""
+        parsed = urllib.parse.urlparse(self.path)
+        params = urllib.parse.parse_qs(parsed.query)
+        parts = parsed.path.rstrip('/').split('/')
+        platform = parts[-1] if parts else ''
+        code = params.get('code', [''])[0]
+        workspace_id = params.get('state', [''])[0]
+        error = params.get('error', [''])[0]
+        if error:
+            self._html(400, f'<html><body>OAuth error: {error}</body></html>'); return
+        if not code:
+            self._html(400, '<html><body>No code received.</body></html>'); return
+        callback_base = PLATFORM_URL
+        callback = f'{callback_base}/api/social/callback/{platform}'
+        try:
+            if platform == 'facebook':
+                token_url = (
+                    f'https://graph.facebook.com/v19.0/oauth/access_token'
+                    f'?client_id={META_APP_ID}&redirect_uri={urllib.parse.quote(callback)}'
+                    f'&client_secret={META_APP_SECRET}&code={code}'
+                )
+                with urllib.request.urlopen(token_url, timeout=15) as r:
+                    token_data = json.loads(r.read())
+                access_token = token_data.get('access_token', '')
+                # Get page info
+                pages_url = (f'https://graph.facebook.com/v19.0/me/accounts'
+                             f'?access_token={access_token}')
+                with urllib.request.urlopen(pages_url, timeout=15) as r:
+                    pages_data = json.loads(r.read())
+                pages = pages_data.get('data', [])
+                if pages:
+                    page = pages[0]
+                    encrypted = encrypt_token(page.get('access_token', access_token))
+                    _supabase_req('POST', 'social_accounts', {
+                        'workspace_id': workspace_id,
+                        'platform': 'facebook',
+                        'account_name': page.get('name', ''),
+                        'page_id': page.get('id', ''),
+                        'encrypted_token': encrypted,
+                        'token_type': 'page',
+                        'status': 'connected',
+                    })
+            elif platform == 'linkedin':
+                token_data_raw = urllib.parse.urlencode({
+                    'grant_type': 'authorization_code',
+                    'code': code,
+                    'redirect_uri': callback,
+                    'client_id': LINKEDIN_CLIENT_ID,
+                    'client_secret': LINKEDIN_CLIENT_SECRET,
+                }).encode()
+                req = urllib.request.Request(
+                    'https://www.linkedin.com/oauth/v2/accessToken',
+                    data=token_data_raw,
+                    headers={'Content-Type': 'application/x-www-form-urlencoded'},
+                    method='POST',
+                )
+                with urllib.request.urlopen(req, timeout=15) as r:
+                    token_data = json.loads(r.read())
+                access_token = token_data.get('access_token', '')
+                me_req = urllib.request.Request(
+                    'https://api.linkedin.com/v2/me',
+                    headers={'Authorization': f'Bearer {access_token}'},
+                )
+                with urllib.request.urlopen(me_req, timeout=15) as r:
+                    me_data = json.loads(r.read())
+                encrypted = encrypt_token(access_token)
+                _supabase_req('POST', 'social_accounts', {
+                    'workspace_id': workspace_id,
+                    'platform': 'linkedin',
+                    'account_name': f'{me_data.get("localizedFirstName","")} {me_data.get("localizedLastName","")}'.strip(),
+                    'account_id': me_data.get('id', ''),
+                    'encrypted_token': encrypted,
+                    'token_type': 'user',
+                    'status': 'connected',
+                })
+            elif platform == 'twitter':
+                token_data_raw = urllib.parse.urlencode({
+                    'grant_type': 'authorization_code',
+                    'code': code,
+                    'redirect_uri': callback,
+                    'client_id': TWITTER_CLIENT_ID,
+                    'code_verifier': 'challenge',
+                }).encode()
+                req = urllib.request.Request(
+                    'https://api.twitter.com/2/oauth2/token',
+                    data=token_data_raw,
+                    headers={
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': 'Basic ' + __import__('base64').b64encode(
+                            f'{TWITTER_CLIENT_ID}:{TWITTER_CLIENT_SECRET}'.encode()
+                        ).decode(),
+                    },
+                    method='POST',
+                )
+                with urllib.request.urlopen(req, timeout=15) as r:
+                    token_data = json.loads(r.read())
+                access_token = token_data.get('access_token', '')
+                encrypted = encrypt_token(access_token)
+                _supabase_req('POST', 'social_accounts', {
+                    'workspace_id': workspace_id,
+                    'platform': 'twitter',
+                    'account_name': 'Twitter Account',
+                    'encrypted_token': encrypted,
+                    'token_type': 'user',
+                    'status': 'connected',
+                })
+            redirect_url = f'{PLATFORM_URL}/workspace.html?social={platform}&connected=1'
+            self._html(200, (
+                f'<html><head><meta http-equiv="refresh" content="2;url={redirect_url}"></head>'
+                f'<body style="font-family:sans-serif;text-align:center;padding:40px;">'
+                f'<h2>Connected!</h2><p>Returning to your workspace...</p></body></html>'
+            ))
+        except Exception as e:
+            print(f'  Social callback error ({platform}): {e}')
+            self._html(500, f'<html><body>Connection error: {e}</body></html>')
+
+    def _handle_social_draft(self):
+        """POST /api/social/draft — generate platform-optimized copy via Claude (Cleo)"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        brief = (body.get('brief') or '').strip()
+        platforms = body.get('platforms') or ['facebook', 'instagram', 'linkedin', 'twitter']
+        tone = (body.get('tone') or 'engaging and brand-appropriate').strip()
+        if not workspace_id or not brief:
+            self._error(400, 'workspaceId and brief required'); return
+        effective_key = self._effective_api_key()
+        if not effective_key:
+            self._error(500, 'ANTHROPIC_API_KEY not set'); return
+        system = AGENT_PROMPTS.get('cleo', (
+            'You are Cleo Chan, Social Media Specialist. You write platform-native social copy. '
+            'Twitter: max 280 chars, punchy and direct. '
+            'LinkedIn: professional, insight-led, no hashtag spam. '
+            'Instagram: visual storytelling, 3-5 relevant hashtags. '
+            'Facebook: conversational, community-focused.'
+        ))
+        platforms_list = ', '.join(platforms)
+        user_msg = (
+            f'Brief: {brief}\nTone: {tone}\n'
+            f'Write optimized post copy for these platforms: {platforms_list}\n\n'
+            f'Return JSON only with platform keys: '
+            f'{{"facebook": "...", "instagram": "...", "linkedin": "...", "twitter": "..."}}\n'
+            f'Only include platforms that were requested: {platforms_list}'
+        )
+        try:
+            raw = call_anthropic(effective_key, system,
+                                 [{'role': 'user', 'content': user_msg}], max_tokens=800)
+            cleaned = raw.replace('```json', '').replace('```', '').strip()
+            # Find JSON object
+            start = cleaned.find('{')
+            end = cleaned.rfind('}') + 1
+            if start >= 0 and end > start:
+                drafts = json.loads(cleaned[start:end])
+            else:
+                drafts = {}
+            self._json(200, {'ok': True, 'drafts': drafts})
+        except Exception as e:
+            print(f'  Social draft error: {e}')
+            self._error(500, str(e))
+
+    def _handle_social_posts_post(self):
+        """POST /api/social/posts — create a post"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        platforms = body.get('platforms') or []
+        content = (body.get('content') or '').strip()
+        if not workspace_id or not platforms or not content:
+            self._error(400, 'workspaceId, platforms, and content required'); return
+        scheduled_at = body.get('scheduled_at') or None
+        status = 'scheduled' if scheduled_at else 'draft'
+        payload = {
+            'workspace_id': workspace_id,
+            'platforms': platforms,
+            'content': content,
+            'media_urls': body.get('media_urls') or None,
+            'scheduled_at': scheduled_at,
+            'status': status,
+            'created_by': body.get('created_by') or None,
+        }
+        try:
+            rows = _supabase_req('POST', 'social_posts', payload)
+            self._json(200, {'ok': True, 'post': rows[0] if rows else payload})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_social_publish(self):
+        """POST /api/social/publish — immediately publish a post"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        post_id = body.get('postId')
+        workspace_id = (body.get('workspaceId') or '').strip()
+        if not post_id or not workspace_id:
+            self._error(400, 'postId and workspaceId required'); return
+        try:
+            posts = _supabase_req('GET', f'social_posts?id=eq.{post_id}&select=*')
+            if not posts:
+                self._error(404, 'Post not found'); return
+            post = posts[0]
+            acct_rows = _supabase_req(
+                'GET',
+                f'social_accounts?workspace_id=eq.{urllib.parse.quote(workspace_id)}&status=eq.connected'
+            )
+            accounts = {r['platform']: r for r in (acct_rows or [])}
+            platform_ids, failed = _publish_post_to_platforms(post, accounts)
+            pub_iso = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+            new_status = 'published' if platform_ids else 'failed'
+            _supabase_req('PATCH', f'social_posts?id=eq.{post_id}', {
+                'status': new_status,
+                'published_at': pub_iso if platform_ids else None,
+                'platform_ids': platform_ids,
+                'error': json.dumps(failed) if failed else None,
+            })
+            self._json(200, {
+                'ok': bool(platform_ids),
+                'platform_ids': platform_ids,
+                'failed': failed,
+            })
+        except Exception as e:
+            print(f'  Social publish error: {e}')
+            self._error(500, str(e))
+
+    def _handle_social_posts_patch(self):
+        """PATCH /api/social/posts — update post (cancel, reschedule, edit draft)"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        post_id = body.get('id')
+        if not post_id:
+            self._error(400, 'id required'); return
+        update = {}
+        if 'status' in body:
+            update['status'] = body['status']
+        if 'content' in body:
+            update['content'] = body['content']
+        if 'scheduled_at' in body:
+            update['scheduled_at'] = body['scheduled_at']
+            if body['scheduled_at'] and update.get('status') not in ('cancelled', 'draft'):
+                update['status'] = 'scheduled'
+        if not update:
+            self._error(400, 'Nothing to update'); return
+        try:
+            rows = _supabase_req('PATCH', f'social_posts?id=eq.{post_id}', update)
+            self._json(200, {'ok': True, 'post': rows[0] if rows else {}})
+        except Exception as e:
+            self._error(500, str(e))
+
     def _canva_result_page(self, result: str, detail: str = '') -> str:
         """Return an HTML page that redirects back to the platform after OAuth."""
         if result == 'success':
@@ -4373,6 +5419,10 @@ if __name__ == '__main__':
     _run_db_migrations()   # add partner_id column etc.
     _auto_migrate()        # ensure all required tables exist
     load_db_agents()       # merge Supabase agent overrides/additions into AGENT_PROMPTS
+    # Start social post scheduler daemon
+    _sched_thread = threading.Thread(target=_social_scheduler_loop, daemon=True, name='social-scheduler')
+    _sched_thread.start()
+    print('  ✅ Social post scheduler started (60s interval)')
     server = HTTPServer(('0.0.0.0', PORT), AgentHandler)
     print(f'\n🎯 ClickPoint Agent API')
     print(f'   Running on http://0.0.0.0:{PORT}')

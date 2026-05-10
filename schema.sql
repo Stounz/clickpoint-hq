@@ -254,6 +254,115 @@ create table if not exists workspace_activity (
   timestamp    timestamptz default now()
 );
 
+-- ── CRM tables ───────────────────────────────────────────────────────────────
+
+create table if not exists crm_contacts (
+  id          bigserial primary key,
+  workspace_id text not null,
+  name        text not null,
+  email       text,
+  phone       text,
+  company     text,
+  title       text,
+  tags        text[],
+  notes       text,
+  deal_stage  text default 'prospect' check (deal_stage in ('prospect','qualified','proposal','negotiation','won','lost')),
+  deal_value  numeric,
+  ai_score    int,
+  next_action text,
+  last_contact timestamptz,
+  created_at  timestamptz default now()
+);
+create table if not exists crm_activities (
+  id           bigserial primary key,
+  workspace_id text not null,
+  contact_id   bigint references crm_contacts(id) on delete cascade,
+  type         text check (type in ('call','email','meeting','note','task')),
+  summary      text,
+  created_at   timestamptz default now()
+);
+alter table crm_contacts enable row level security;
+alter table crm_activities enable row level security;
+create policy "deny_anon" on crm_contacts for all using (false);
+create policy "deny_anon" on crm_activities for all using (false);
+
+-- ── Reputation Management tables ─────────────────────────────────────────────
+
+create table if not exists reputation_reviews (
+  id           bigserial primary key,
+  workspace_id text not null,
+  platform     text not null,
+  reviewer_name text,
+  rating       int check (rating between 1 and 5),
+  content      text,
+  review_date  text,
+  response     text,
+  status       text default 'pending' check (status in ('pending','responded','ignored')),
+  external_id  text,
+  created_at   timestamptz default now()
+);
+alter table reputation_reviews enable row level security;
+create policy "deny_anon" on reputation_reviews for all using (false);
+
+-- ── Local SEO tables ──────────────────────────────────────────────────────────
+
+create table if not exists local_listings (
+  id           bigserial primary key,
+  workspace_id text not null,
+  business_name text,
+  address      text,
+  city         text,
+  state        text,
+  postcode     text,
+  country      text default 'AU',
+  phone        text,
+  website      text,
+  categories   text[],
+  description  text,
+  hours        jsonb default '{}',
+  google_place_id text,
+  listing_status jsonb default '{}',
+  last_audit   text,
+  updated_at   timestamptz default now()
+);
+alter table local_listings enable row level security;
+create policy "deny_anon" on local_listings for all using (false);
+
+-- ── Social Publishing tables ──────────────────────────────────────────────────
+
+create table if not exists social_accounts (
+  id           bigserial primary key,
+  workspace_id text not null,
+  platform     text not null check (platform in ('facebook','instagram','linkedin','twitter','tiktok')),
+  account_name text,
+  account_id   text,
+  page_id      text,
+  encrypted_token text,
+  token_type   text default 'page',
+  expires_at   timestamptz,
+  status       text default 'connected',
+  created_at   timestamptz default now(),
+  unique(workspace_id, platform)
+);
+create table if not exists social_posts (
+  id           bigserial primary key,
+  workspace_id text not null,
+  platforms    text[] not null,
+  content      text not null,
+  media_urls   text[],
+  scheduled_at timestamptz,
+  published_at timestamptz,
+  status       text default 'draft' check (status in ('draft','scheduled','published','failed','cancelled')),
+  platform_ids jsonb default '{}',
+  error        text,
+  created_by   text,
+  created_at   timestamptz default now()
+);
+alter table social_accounts enable row level security;
+alter table social_posts enable row level security;
+create policy "deny_anon" on social_accounts for all using (false);
+create policy "deny_anon" on social_posts for all using (false);
+
 -- ── RLS migration: drop open anon policies and replace with deny ──────────────
 -- Run this block in Supabase SQL Editor on existing databases.
 do $$
