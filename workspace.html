@@ -456,6 +456,168 @@
   .ws-bh-dont-input { width:100%; padding:8px 10px; border:1px solid #F5C0C0; border-radius:8px; font-size:12px; font-family:inherit; background:#fff; outline:none; box-sizing:border-box; margin-bottom:8px; }
   .ws-bh-do-input:last-child, .ws-bh-dont-input:last-child { margin-bottom:0; }
 
+  /* ── CRM ── */
+  .crm-avatar { width:38px; height:38px; border-radius:50%; background:var(--teal); color:#fff; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .crm-row { display:flex; align-items:center; gap:12px; padding:11px 10px; border-bottom:1px solid #F0EFE9; border-radius:8px; transition:background 0.15s; margin:0 -10px; }
+  .crm-row:last-child { border-bottom:none; }
+  .crm-row:hover { background:#F9F8F4; }
+  .crm-stage { display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700; }
+  .crm-stage.prospect    { background:rgba(10,132,255,0.10); color:#0055CC; }
+  .crm-stage.qualified   { background:rgba(48,209,88,0.10); color:#1a8a3c; }
+  .crm-stage.proposal    { background:rgba(255,159,10,0.12); color:#B86E00; }
+  .crm-stage.negotiation { background:rgba(212,98,42,0.12); color:#D4622A; }
+  .crm-stage.won         { background:rgba(48,209,88,0.2); color:#1a8a3c; }
+  .crm-stage.lost        { background:#F0EFE9; color:var(--muted); }
+  .crm-score-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .crm-filter-btn { padding:6px 14px; border-radius:20px; border:1.5px solid var(--border); background:#fff; color:var(--text); font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+  .crm-filter-btn.active { background:var(--teal); color:#fff; border-color:var(--teal); }
+  .crm-timeline { border-left:2px solid var(--border); padding-left:14px; margin:12px 0; }
+  .crm-timeline-item { margin-bottom:10px; font-size:12px; color:var(--text); position:relative; }
+  .crm-timeline-item::before { content:''; position:absolute; left:-18px; top:4px; width:8px; height:8px; border-radius:50%; background:var(--teal); border:2px solid #fff; }
+  .crm-timeline-time { font-size:10px; color:var(--muted); margin-top:2px; }
+  .crm-action-btn { padding:5px 11px; border-radius:8px; border:1.5px solid var(--border); background:#fff; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; color:var(--text); transition:all 0.15s; white-space:nowrap; }
+  .crm-action-btn:hover { border-color:var(--teal); color:var(--teal); }
+
+  /* ── Reputation ── */
+  .rep-card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; }
+  .rep-platform { display:inline-block; padding:2px 8px; border-radius:20px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; }
+  .rep-platform.google    { background:rgba(10,132,255,0.10); color:#0055CC; }
+  .rep-platform.yelp      { background:rgba(255,59,48,0.10); color:#C0392B; }
+  .rep-platform.facebook  { background:rgba(10,56,196,0.10); color:#1B35B4; }
+  .rep-platform.g2        { background:rgba(255,112,31,0.12); color:#CC5500; }
+  .rep-platform.trustpilot{ background:rgba(0,182,122,0.12); color:#00825A; }
+  .rep-status { display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700; }
+  .rep-status.pending   { background:rgba(255,159,10,0.12); color:#B86E00; }
+  .rep-status.responded { background:rgba(48,209,88,0.10); color:#1a8a3c; }
+  .rep-status.ignored   { background:#F0EFE9; color:var(--muted); }
+  .rep-stars { color:#FF9F0A; font-size:14px; letter-spacing:1px; }
+  .rep-filter-tab { padding:7px 14px; border-radius:20px; border:1.5px solid var(--border); background:#fff; color:var(--text); font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+  .rep-filter-tab.active { background:var(--teal); color:#fff; border-color:var(--teal); }
+
+  /* ── Local SEO ── */
+  .seo-listing-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:16px; }
+  .seo-listing-card { background:#fff; border:1px solid var(--border); border-radius:10px; padding:14px; display:flex; align-items:center; gap:10px; }
+  .seo-listing-icon { width:36px; height:36px; border-radius:8px; background:rgba(28,58,46,0.07); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  .seo-listing-name { font-size:13px; font-weight:700; color:var(--text); flex:1; }
+  .seo-listing-status { padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700; cursor:pointer; border:none; font-family:inherit; }
+  .seo-listing-status.claimed   { background:rgba(48,209,88,0.12); color:#1a8a3c; }
+  .seo-listing-status.unclaimed { background:rgba(255,69,58,0.10); color:#C0392B; }
+  .seo-listing-status.pending   { background:rgba(255,159,10,0.12); color:#B86E00; }
+  .seo-listing-status.na        { background:#F0EFE9; color:var(--muted); }
+  .seo-audit-issue { display:flex; gap:10px; padding:10px 0; border-bottom:1px solid #F0EFE9; font-size:13px; }
+  .seo-audit-issue:last-child { border-bottom:none; }
+  .seo-audit-sev { width:52px; flex-shrink:0; }
+  .seo-sev { display:inline-block; padding:2px 7px; border-radius:10px; font-size:10px; font-weight:700; text-transform:uppercase; }
+  .seo-sev.high   { background:rgba(255,69,58,0.12); color:#C0392B; }
+  .seo-sev.medium { background:rgba(255,159,10,0.12); color:#B86E00; }
+  .seo-sev.low    { background:rgba(10,132,255,0.10); color:#0055CC; }
+  .seo-score-circle { width:72px; height:72px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800; color:#fff; flex-shrink:0; }
+  .seo-score-circle.green { background:var(--green); }
+  .seo-score-circle.amber { background:var(--amber); }
+  .seo-score-circle.red   { background:var(--red); }
+
+  /* ── Social ── */
+  .social-platform-card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:14px; flex:1; min-width:0; }
+  .social-platform-row { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+  .social-post-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #F0EFE9; font-size:13px; }
+  .social-post-item:last-child { border-bottom:none; }
+  .social-plat-badge { display:inline-block; padding:2px 7px; border-radius:10px; font-size:10px; font-weight:700; flex-shrink:0; }
+  .social-plat-badge.facebook  { background:rgba(10,56,196,0.10); color:#1B35B4; }
+  .social-plat-badge.instagram { background:rgba(188,44,126,0.10); color:#9B2679; }
+  .social-plat-badge.linkedin  { background:rgba(10,102,194,0.10); color:#0A66C2; }
+  .social-plat-badge.twitter   { background:rgba(0,0,0,0.07); color:#000; }
+  .social-status-badge { display:inline-block; padding:3px 8px; border-radius:10px; font-size:11px; font-weight:700; }
+  .social-status-badge.draft     { background:rgba(10,132,255,0.08); color:#0055CC; }
+  .social-status-badge.scheduled { background:rgba(255,159,10,0.12); color:#B86E00; }
+  .social-status-badge.published { background:rgba(48,209,88,0.10); color:#1a8a3c; }
+  .social-status-badge.failed    { background:rgba(255,69,58,0.10); color:#C0392B; }
+  .social-filter-tab { padding:6px 14px; border-radius:20px; border:1.5px solid var(--border); background:#fff; color:var(--text); font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+  .social-filter-tab.active { background:var(--teal); color:#fff; border-color:var(--teal); }
+  .social-char-count { font-size:11px; color:var(--muted); }
+  .social-char-count.over { color:var(--red); font-weight:700; }
+
+  /* ── Generic modal overlay ── */
+  .ws-modal-overlay { position:fixed; inset:0; background:rgba(10,18,14,0.65); z-index:5000; display:flex; align-items:center; justify-content:center; padding:24px; backdrop-filter:blur(4px); }
+  .ws-modal-box { background:#fff; border-radius:20px; padding:28px; max-width:500px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.22); position:relative; }
+  .ws-modal-title { font-size:17px; font-weight:800; color:var(--text); margin-bottom:4px; }
+  .ws-modal-sub { font-size:13px; color:var(--muted); margin-bottom:20px; }
+  .ws-modal-close { position:absolute; top:16px; right:16px; width:28px; height:28px; border-radius:8px; background:#F5F4EF; border:none; cursor:pointer; font-size:15px; color:#888; display:flex; align-items:center; justify-content:center; }
+  .ws-modal-close:hover { background:#E8E7E1; }
+  .ws-field-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#555; display:block; margin-bottom:6px; }
+  .ws-field-input { width:100%; padding:10px 13px; border:1.5px solid var(--border); border-radius:9px; font-size:13px; font-family:inherit; outline:none; box-sizing:border-box; margin-bottom:12px; transition:border-color 0.15s; }
+  .ws-field-input:focus { border-color:var(--teal); }
+  .ws-field-select { width:100%; padding:10px 13px; border:1.5px solid var(--border); border-radius:9px; font-size:13px; font-family:inherit; outline:none; background:#fff; box-sizing:border-box; margin-bottom:12px; appearance:none; -webkit-appearance:none; cursor:pointer; transition:border-color 0.15s; }
+  .ws-field-select:focus { border-color:var(--teal); }
+  .ws-field-textarea { width:100%; padding:10px 13px; border:1.5px solid var(--border); border-radius:9px; font-size:13px; font-family:inherit; outline:none; box-sizing:border-box; resize:vertical; min-height:80px; margin-bottom:12px; transition:border-color 0.15s; }
+  .ws-field-textarea:focus { border-color:var(--teal); }
+  .ws-btn-primary { padding:10px 22px; background:var(--teal); color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+  .ws-btn-primary:hover { background:var(--teal-md); }
+  .ws-btn-primary:disabled { opacity:0.6; cursor:default; }
+  .ws-btn-secondary { padding:10px 20px; background:#fff; color:var(--text); border:1.5px solid var(--border); border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+  .ws-btn-secondary:hover { border-color:#aaa; }
+  .ws-spinner { width:20px; height:20px; border:2.5px solid var(--border); border-top-color:var(--teal); border-radius:50%; animation:spin 0.7s linear infinite; display:inline-block; vertical-align:middle; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* ── GEO / AI Visibility ── */
+  .geo-score-ring { width:100px; height:100px; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:34px; font-weight:800; color:#fff; flex-shrink:0; }
+  .geo-score-ring.high   { background:linear-gradient(135deg,#1C8C44,#30D158); }
+  .geo-score-ring.medium { background:linear-gradient(135deg,#B86E00,#FF9F0A); }
+  .geo-score-ring.low    { background:linear-gradient(135deg,#C0392B,#FF453A); }
+  .geo-score-ring small  { font-size:11px; font-weight:600; opacity:0.85; margin-top:2px; }
+  .geo-platform-box { border:1.5px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
+  .geo-platform-label { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px; }
+  .geo-platform-label.chatgpt { color:#10a37f; }
+  .geo-platform-label.gemini  { color:#4285F4; }
+  .geo-platform-label.perplexity { color:#20808D; }
+  .geo-platform-body { font-size:13px; color:#444; line-height:1.65; background:#F8F8F5; border-radius:8px; padding:12px; white-space:pre-wrap; }
+  .geo-gap-row { display:flex; gap:10px; padding:10px 0; border-bottom:1px solid #F0EFE9; font-size:13px; }
+  .geo-gap-row:last-child { border-bottom:none; }
+  .geo-gap-priority { padding:2px 7px; border-radius:10px; font-size:10px; font-weight:700; flex-shrink:0; margin-top:2px; }
+  .geo-gap-priority.high   { background:rgba(255,69,58,0.12); color:#C0392B; }
+  .geo-gap-priority.medium { background:rgba(255,159,10,0.12); color:#B86E00; }
+  .geo-gap-priority.low    { background:rgba(10,132,255,0.10); color:#0055CC; }
+  .geo-action-item { display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px solid #F0EFE9; }
+  .geo-action-item:last-child { border-bottom:none; }
+  .geo-action-check { width:18px; height:18px; flex-shrink:0; accent-color:var(--teal); margin-top:1px; cursor:pointer; }
+
+  /* ── Content Pipeline ── */
+  .content-split { display:grid; grid-template-columns:280px 1fr; gap:20px; }
+  @media(max-width:900px){ .content-split { grid-template-columns:1fr; } }
+  .content-queue-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; cursor:pointer; border:1.5px solid transparent; transition:all 0.15s; margin-bottom:6px; background:#fff; border-color:var(--border); }
+  .content-queue-item:hover { border-color:var(--teal); }
+  .content-queue-item.selected { border-color:var(--teal); background:rgba(28,58,46,0.05); }
+  .content-status { padding:2px 8px; border-radius:10px; font-size:10px; font-weight:700; flex-shrink:0; }
+  .content-status.brief     { background:rgba(10,132,255,0.10); color:#0055CC; }
+  .content-status.writing   { background:rgba(255,159,10,0.12); color:#B86E00; }
+  .content-status.ready     { background:rgba(48,209,88,0.12); color:#1a8a3c; }
+  .content-status.published { background:rgba(28,58,46,0.10); color:var(--teal); }
+  .content-doc-box { background:#fff; border:1.5px solid var(--border); border-radius:12px; padding:20px 24px; font-size:14px; line-height:1.8; color:#222; min-height:200px; font-family:'DM Sans',sans-serif; white-space:pre-wrap; overflow-y:auto; max-height:480px; }
+  .content-step-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; background:rgba(28,58,46,0.08); color:var(--teal); margin-bottom:12px; }
+  .kw-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .kw-table th { text-align:left; padding:7px 10px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); border-bottom:1.5px solid var(--border); }
+  .kw-table td { padding:8px 10px; border-bottom:1px solid var(--border); color:var(--text); }
+  .kw-table tr:last-child td { border-bottom:none; }
+  .kw-table input { width:100%; border:none; outline:none; font-size:12px; font-family:inherit; background:transparent; }
+
+  /* ── Social Listening ── */
+  .listening-tabs { display:flex; gap:2px; background:#F0EFE9; border-radius:10px; padding:3px; margin-bottom:20px; }
+  .listening-tab { flex:1; padding:8px; text-align:center; font-size:12px; font-weight:600; color:var(--muted); border-radius:8px; cursor:pointer; transition:all 0.15s; }
+  .listening-tab.active { background:#fff; color:var(--teal); box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+  .listening-mention-card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
+  .listening-platform-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; margin-bottom:8px; }
+  .listening-platform-badge.reddit   { background:rgba(255,69,0,0.10); color:#C0392B; }
+  .listening-platform-badge.twitter  { background:rgba(0,0,0,0.07); color:#333; }
+  .listening-platform-badge.linkedin { background:rgba(10,102,194,0.10); color:#0A66C2; }
+  .listening-sentiment { padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700; }
+  .listening-sentiment.positive { background:rgba(48,209,88,0.12); color:#1a8a3c; }
+  .listening-sentiment.neutral  { background:rgba(153,153,144,0.12); color:var(--muted); }
+  .listening-sentiment.negative { background:rgba(255,69,58,0.10); color:#C0392B; }
+  .listening-opp-card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:12px; display:flex; gap:12px; align-items:flex-start; }
+  .listening-effort { padding:2px 8px; border-radius:10px; font-size:10px; font-weight:700; }
+  .listening-effort.low    { background:rgba(48,209,88,0.10); color:#1a8a3c; }
+  .listening-effort.medium { background:rgba(255,159,10,0.12); color:#B86E00; }
+  .listening-effort.high   { background:rgba(255,69,58,0.10); color:#C0392B; }
+
   /* ── Budget Pacing ── */
   .ws-pacing-wrap { margin-top:16px; }
   .ws-pacing-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
@@ -803,6 +965,14 @@
       <div class="ws-nav-item" data-view="escalations" onclick="wsSetView('escalations')">🚨 &nbsp;Support <span class="ws-nav-badge" id="wsNavEscBadge" style="display:none"></span></div>
       <div class="ws-nav-section">Account</div>
       <div class="ws-nav-item" data-view="brand" onclick="wsSetView('brand')">🎨 &nbsp;Brand Hub</div>
+      <div class="ws-nav-section">Growth Tools</div>
+      <div class="ws-nav-item" data-view="crm" onclick="wsSetView('crm')">👥 &nbsp;CRM</div>
+      <div class="ws-nav-item" data-view="reputation" onclick="wsSetView('reputation')">⭐ &nbsp;Reputation</div>
+      <div class="ws-nav-item" data-view="local-seo" onclick="wsSetView('local-seo')">📍 &nbsp;Local SEO</div>
+      <div class="ws-nav-item" data-view="social" onclick="wsSetView('social')">📣 &nbsp;Social</div>
+      <div class="ws-nav-item" data-view="geo" onclick="wsSetView('geo')">🧠 &nbsp;AI Visibility</div>
+      <div class="ws-nav-item" data-view="content" onclick="wsSetView('content')">✍️ &nbsp;Content</div>
+      <div class="ws-nav-item" data-view="listening" onclick="wsSetView('listening')">👂 &nbsp;Listening</div>
       <div class="ws-nav-item" data-view="settings" onclick="wsSetView('settings')">⚙️ &nbsp;Settings</div>
     </div>
 
@@ -1561,6 +1731,552 @@
             </div>
           </div>
 
+        </div>
+      </div>
+
+      <!-- ── CRM View ── -->
+      <div class="ws-view" id="view-crm">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div>
+            <div class="ws-page-title">👥 CRM</div>
+            <div class="ws-page-sub">Manage contacts and track your pipeline</div>
+          </div>
+          <button class="ws-btn-primary" onclick="crmOpenForm(null)">+ Add Contact</button>
+        </div>
+
+        <!-- KPIs -->
+        <div class="ws-kpi-grid" id="crm-kpi-grid">
+          <div class="ws-kpi"><div class="ws-kpi-val" id="crm-kpi-total">—</div><div class="ws-kpi-label">Total Contacts</div></div>
+          <div class="ws-kpi"><div class="ws-kpi-val green" id="crm-kpi-qualified">—</div><div class="ws-kpi-label">Qualified</div></div>
+          <div class="ws-kpi"><div class="ws-kpi-val" id="crm-kpi-pipeline">—</div><div class="ws-kpi-label">Open Pipeline Value</div></div>
+          <div class="ws-kpi"><div class="ws-kpi-val green" id="crm-kpi-won">—</div><div class="ws-kpi-label">Won This Month</div></div>
+        </div>
+
+        <div class="ws-two-col" style="grid-template-columns:1fr 360px;">
+          <!-- Contact list -->
+          <div>
+            <div class="ws-card" style="margin-bottom:0;">
+              <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap;">
+                <input id="crm-search" type="text" placeholder="Search contacts…" class="ws-field-input" style="margin-bottom:0;flex:1;min-width:160px;" oninput="crmFilterRender()">
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+                <button class="crm-filter-btn active" onclick="crmSetStage('all',this)">All</button>
+                <button class="crm-filter-btn" onclick="crmSetStage('prospect',this)">Prospect</button>
+                <button class="crm-filter-btn" onclick="crmSetStage('qualified',this)">Qualified</button>
+                <button class="crm-filter-btn" onclick="crmSetStage('proposal',this)">Proposal</button>
+                <button class="crm-filter-btn" onclick="crmSetStage('negotiation',this)">Negotiation</button>
+                <button class="crm-filter-btn" onclick="crmSetStage('won',this)">Won</button>
+                <button class="crm-filter-btn" onclick="crmSetStage('lost',this)">Lost</button>
+              </div>
+              <div id="crm-list"><div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;"><div class="ws-spinner"></div><div style="margin-top:10px;">Loading contacts…</div></div></div>
+            </div>
+          </div>
+
+          <!-- Detail / form panel -->
+          <div id="crm-detail-panel" style="display:none;">
+            <div class="ws-card" id="crm-form-card">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                <div style="font-size:14px;font-weight:700;color:var(--text);" id="crm-form-title">Add Contact</div>
+                <button class="ws-modal-close" style="position:static;" onclick="crmCloseDetail()">✕</button>
+              </div>
+              <label class="ws-field-label">Full Name *</label>
+              <input class="ws-field-input" id="crm-f-name" placeholder="e.g. Jane Smith">
+              <label class="ws-field-label">Email</label>
+              <input class="ws-field-input" id="crm-f-email" type="email" placeholder="jane@company.com">
+              <label class="ws-field-label">Phone</label>
+              <input class="ws-field-input" id="crm-f-phone" placeholder="+61 4XX XXX XXX">
+              <label class="ws-field-label">Company</label>
+              <input class="ws-field-input" id="crm-f-company" placeholder="Company name">
+              <label class="ws-field-label">Title</label>
+              <input class="ws-field-input" id="crm-f-title" placeholder="e.g. Marketing Manager">
+              <label class="ws-field-label">Deal Stage</label>
+              <select class="ws-field-select" id="crm-f-stage">
+                <option value="prospect">Prospect</option>
+                <option value="qualified">Qualified</option>
+                <option value="proposal">Proposal</option>
+                <option value="negotiation">Negotiation</option>
+                <option value="won">Won</option>
+                <option value="lost">Lost</option>
+              </select>
+              <label class="ws-field-label">Deal Value ($)</label>
+              <input class="ws-field-input" id="crm-f-value" type="number" min="0" placeholder="0">
+              <label class="ws-field-label">Tags (comma-separated)</label>
+              <input class="ws-field-input" id="crm-f-tags" placeholder="e.g. vip, q1, inbound">
+              <label class="ws-field-label">Notes</label>
+              <textarea class="ws-field-textarea" id="crm-f-notes" placeholder="Any notes about this contact…"></textarea>
+              <div style="display:flex;gap:8px;">
+                <button class="ws-btn-primary" style="flex:1;" onclick="crmSaveContact()">Save Contact</button>
+                <button class="ws-btn-secondary" onclick="crmCloseDetail()">Cancel</button>
+              </div>
+              <input type="hidden" id="crm-f-id">
+            </div>
+
+            <!-- Activity log panel (shows when editing existing contact) -->
+            <div class="ws-card" id="crm-activity-card" style="margin-top:16px;display:none;">
+              <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;">Activity Log</div>
+              <div id="crm-activity-list" class="crm-timeline"></div>
+              <div id="crm-log-form" style="margin-top:12px;">
+                <select class="ws-field-select" id="crm-act-type" style="margin-bottom:8px;">
+                  <option value="call">📞 Call</option>
+                  <option value="email">📧 Email</option>
+                  <option value="meeting">🤝 Meeting</option>
+                  <option value="note">📝 Note</option>
+                  <option value="task">✅ Task</option>
+                </select>
+                <textarea class="ws-field-textarea" id="crm-act-summary" placeholder="Activity summary…" style="min-height:60px;margin-bottom:8px;"></textarea>
+                <button class="ws-btn-primary" onclick="crmLogActivity()">Log Activity</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Reputation View ── -->
+      <div class="ws-view" id="view-reputation">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div>
+            <div class="ws-page-title">⭐ Reputation Management</div>
+            <div class="ws-page-sub">Monitor and respond to reviews across all platforms</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="ws-btn-secondary" onclick="repOpenRequestModal()">📨 Request Reviews</button>
+            <button class="ws-btn-primary" onclick="repOpenAddModal()">+ Add Review</button>
+          </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="ws-kpi-grid">
+          <div class="ws-kpi"><div class="ws-kpi-val" id="rep-kpi-total">—</div><div class="ws-kpi-label">Total Reviews</div></div>
+          <div class="ws-kpi"><div class="ws-kpi-val green" id="rep-kpi-avg">—</div><div class="ws-kpi-label">Average Rating</div></div>
+          <div class="ws-kpi"><div class="ws-kpi-val amber" id="rep-kpi-pending">—</div><div class="ws-kpi-label">Pending Responses</div></div>
+          <div class="ws-kpi"><div class="ws-kpi-val" id="rep-kpi-month">—</div><div class="ws-kpi-label">This Month</div></div>
+        </div>
+
+        <!-- Platform filter tabs -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+          <button class="rep-filter-tab active" onclick="repFilter('all',this)">All</button>
+          <button class="rep-filter-tab" onclick="repFilter('google',this)">Google</button>
+          <button class="rep-filter-tab" onclick="repFilter('yelp',this)">Yelp</button>
+          <button class="rep-filter-tab" onclick="repFilter('facebook',this)">Facebook</button>
+          <button class="rep-filter-tab" onclick="repFilter('g2',this)">G2</button>
+          <button class="rep-filter-tab" onclick="repFilter('trustpilot',this)">Trustpilot</button>
+        </div>
+
+        <div id="rep-list"><div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;"><div class="ws-spinner"></div><div style="margin-top:10px;">Loading reviews…</div></div></div>
+      </div>
+
+      <!-- ── Local SEO View ── -->
+      <div class="ws-view" id="view-local-seo">
+        <div class="ws-page-title">📍 Local SEO</div>
+        <div class="ws-page-sub">Manage your business listings and local search presence</div>
+
+        <div class="ws-two-col">
+          <!-- Left: Business NAP form -->
+          <div class="ws-card">
+            <div class="ws-card-title">Business Information (NAP)</div>
+            <label class="ws-field-label">Business Name</label>
+            <input class="ws-field-input" id="seo-name" placeholder="e.g. Acme Services">
+            <label class="ws-field-label">Address</label>
+            <input class="ws-field-input" id="seo-address" placeholder="123 Main Street">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+              <div>
+                <label class="ws-field-label">City</label>
+                <input class="ws-field-input" id="seo-city" placeholder="Sydney">
+              </div>
+              <div>
+                <label class="ws-field-label">State</label>
+                <input class="ws-field-input" id="seo-state" placeholder="NSW">
+              </div>
+              <div>
+                <label class="ws-field-label">Postcode</label>
+                <input class="ws-field-input" id="seo-postcode" placeholder="2000">
+              </div>
+            </div>
+            <label class="ws-field-label">Phone</label>
+            <input class="ws-field-input" id="seo-phone" placeholder="+61 2 XXXX XXXX">
+            <label class="ws-field-label">Website</label>
+            <input class="ws-field-input" id="seo-website" placeholder="https://yoursite.com.au">
+            <label class="ws-field-label">Categories (comma-separated)</label>
+            <input class="ws-field-input" id="seo-categories" placeholder="e.g. Marketing Agency, Digital Marketing">
+            <label class="ws-field-label">Business Description</label>
+            <textarea class="ws-field-textarea" id="seo-description" placeholder="Brief description for directory listings…"></textarea>
+            <label class="ws-field-label">Business Hours</label>
+            <div id="seo-hours-grid" style="display:grid;grid-template-columns:80px 1fr;gap:6px;align-items:center;margin-bottom:12px;font-size:13px;">
+              <span style="font-weight:600;color:var(--muted);">Mon</span><input class="ws-field-input" id="seo-h-mon" placeholder="9:00–17:00" style="margin-bottom:0;">
+              <span style="font-weight:600;color:var(--muted);">Tue</span><input class="ws-field-input" id="seo-h-tue" placeholder="9:00–17:00" style="margin-bottom:0;">
+              <span style="font-weight:600;color:var(--muted);">Wed</span><input class="ws-field-input" id="seo-h-wed" placeholder="9:00–17:00" style="margin-bottom:0;">
+              <span style="font-weight:600;color:var(--muted);">Thu</span><input class="ws-field-input" id="seo-h-thu" placeholder="9:00–17:00" style="margin-bottom:0;">
+              <span style="font-weight:600;color:var(--muted);">Fri</span><input class="ws-field-input" id="seo-h-fri" placeholder="9:00–17:00" style="margin-bottom:0;">
+              <span style="font-weight:600;color:var(--muted);">Sat</span><input class="ws-field-input" id="seo-h-sat" placeholder="Closed" style="margin-bottom:0;">
+              <span style="font-weight:600;color:var(--muted);">Sun</span><input class="ws-field-input" id="seo-h-sun" placeholder="Closed" style="margin-bottom:0;">
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <button class="ws-btn-primary" onclick="localSeoSave()">Save Business Info</button>
+              <span id="seo-saved-toast" style="display:none;font-size:12px;font-weight:600;color:#1a8a3c;">✓ Saved</span>
+            </div>
+          </div>
+
+          <!-- Right: Listing grid + AI Audit -->
+          <div>
+            <div class="ws-card" style="margin-bottom:16px;">
+              <div class="ws-card-title">Directory Listings</div>
+              <div class="seo-listing-grid" id="seo-listing-grid">
+                <!-- rendered by JS -->
+              </div>
+            </div>
+
+            <div class="ws-card">
+              <div class="ws-card-title">🤖 AI Local SEO Audit</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Raj will analyse your local presence and identify issues, opportunities, and next steps.</div>
+              <div id="seo-last-audit" style="font-size:11px;color:var(--muted);margin-bottom:12px;"></div>
+              <button class="ws-btn-primary" id="seo-audit-btn" onclick="localSeoAudit()" style="width:100%;">Run Local SEO Audit</button>
+              <div id="seo-audit-result" style="margin-top:16px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Social Publishing View ── -->
+      <div class="ws-view" id="view-social">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div>
+            <div class="ws-page-title">📣 Social Publishing</div>
+            <div class="ws-page-sub">Schedule and publish content across all platforms</div>
+          </div>
+          <button class="ws-btn-primary" onclick="socialOpenDraftModal()">✨ AI Draft</button>
+        </div>
+
+        <!-- Platform connection cards -->
+        <div class="social-platform-row" id="social-platform-cards">
+          <div class="social-platform-card"><div style="font-size:22px;margin-bottom:6px;">📘</div><div style="font-size:13px;font-weight:700;">Facebook</div><div style="font-size:11px;color:var(--muted);margin:4px 0;" id="social-status-facebook">Not connected</div><button class="crm-action-btn" onclick="socialConnect('facebook')">Connect</button></div>
+          <div class="social-platform-card"><div style="font-size:22px;margin-bottom:6px;">📸</div><div style="font-size:13px;font-weight:700;">Instagram</div><div style="font-size:11px;color:var(--muted);margin:4px 0;" id="social-status-instagram">Not connected</div><button class="crm-action-btn" onclick="socialConnect('instagram')">Connect</button></div>
+          <div class="social-platform-card"><div style="font-size:22px;margin-bottom:6px;">💼</div><div style="font-size:13px;font-weight:700;">LinkedIn</div><div style="font-size:11px;color:var(--muted);margin:4px 0;" id="social-status-linkedin">Not connected</div><button class="crm-action-btn" onclick="socialConnect('linkedin')">Connect</button></div>
+          <div class="social-platform-card"><div style="font-size:22px;margin-bottom:6px;">🐦</div><div style="font-size:13px;font-weight:700;">Twitter / X</div><div style="font-size:11px;color:var(--muted);margin:4px 0;" id="social-status-twitter">Not connected</div><button class="crm-action-btn" onclick="socialConnect('twitter')">Connect</button></div>
+        </div>
+
+        <div class="ws-two-col">
+          <!-- Composer -->
+          <div class="ws-card">
+            <div class="ws-card-title">✏️ Post Composer</div>
+
+            <!-- Platform checkboxes -->
+            <div style="display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap;">
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;font-weight:600;"><input type="checkbox" id="soc-ch-facebook" style="accent-color:var(--teal);" onchange="socialTogglePlatform('facebook')"> 📘 Facebook</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;font-weight:600;"><input type="checkbox" id="soc-ch-instagram" style="accent-color:var(--teal);" onchange="socialTogglePlatform('instagram')"> 📸 Instagram</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;font-weight:600;"><input type="checkbox" id="soc-ch-linkedin" style="accent-color:var(--teal);" onchange="socialTogglePlatform('linkedin')"> 💼 LinkedIn</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;font-weight:600;"><input type="checkbox" id="soc-ch-twitter" style="accent-color:var(--teal);" onchange="socialTogglePlatform('twitter')"> 🐦 Twitter/X</label>
+            </div>
+
+            <!-- Per-platform textareas (shown when checked) -->
+            <div id="soc-platform-facebook" style="display:none;margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><span style="font-size:12px;font-weight:700;">📘 Facebook</span><span class="social-char-count" id="soc-count-facebook">0 chars</span></div>
+              <textarea class="ws-field-textarea" id="soc-text-facebook" placeholder="Facebook post content…" style="min-height:80px;margin-bottom:0;" oninput="socialCountChars('facebook')"></textarea>
+            </div>
+            <div id="soc-platform-instagram" style="display:none;margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><span style="font-size:12px;font-weight:700;">📸 Instagram</span><span class="social-char-count" id="soc-count-instagram">0 chars</span></div>
+              <textarea class="ws-field-textarea" id="soc-text-instagram" placeholder="Instagram caption…" style="min-height:80px;margin-bottom:0;" oninput="socialCountChars('instagram')"></textarea>
+            </div>
+            <div id="soc-platform-linkedin" style="display:none;margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><span style="font-size:12px;font-weight:700;">💼 LinkedIn</span><span class="social-char-count" id="soc-count-linkedin">0 chars</span></div>
+              <textarea class="ws-field-textarea" id="soc-text-linkedin" placeholder="LinkedIn post content…" style="min-height:80px;margin-bottom:0;" oninput="socialCountChars('linkedin')"></textarea>
+            </div>
+            <div id="soc-platform-twitter" style="display:none;margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><span style="font-size:12px;font-weight:700;">🐦 Twitter/X</span><span class="social-char-count" id="soc-count-twitter">0 / 280</span></div>
+              <textarea class="ws-field-textarea" id="soc-text-twitter" placeholder="Tweet content… (280 char limit)" style="min-height:60px;margin-bottom:0;" maxlength="280" oninput="socialCountChars('twitter')"></textarea>
+            </div>
+
+            <label class="ws-field-label" style="margin-top:4px;">Image URL (optional)</label>
+            <input class="ws-field-input" id="soc-image-url" placeholder="https://…">
+
+            <!-- Schedule toggle -->
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <label style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="radio" name="soc-when" value="now" checked onchange="socialToggleSchedule()" style="accent-color:var(--teal);"> Post Now</label>
+              <label style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="radio" name="soc-when" value="schedule" onchange="socialToggleSchedule()" style="accent-color:var(--teal);"> Schedule</label>
+            </div>
+            <div id="soc-schedule-picker" style="display:none;margin-bottom:12px;">
+              <label class="ws-field-label">Scheduled Date & Time</label>
+              <input class="ws-field-input" id="soc-scheduled-at" type="datetime-local">
+            </div>
+
+            <div style="display:flex;gap:8px;">
+              <button class="ws-btn-primary" onclick="socialSubmitPost(false)" style="flex:1;">Publish Now</button>
+              <button class="ws-btn-secondary" onclick="socialSubmitPost(true)">Schedule</button>
+            </div>
+          </div>
+
+          <!-- Post queue -->
+          <div class="ws-card">
+            <div class="ws-card-title">📋 Post Queue</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+              <button class="social-filter-tab active" onclick="socialQueueFilter('all',this)">All</button>
+              <button class="social-filter-tab" onclick="socialQueueFilter('draft',this)">Drafts</button>
+              <button class="social-filter-tab" onclick="socialQueueFilter('scheduled',this)">Scheduled</button>
+              <button class="social-filter-tab" onclick="socialQueueFilter('published',this)">Published</button>
+              <button class="social-filter-tab" onclick="socialQueueFilter('failed',this)">Failed</button>
+            </div>
+            <div id="social-queue-list"><div style="text-align:center;padding:28px;color:var(--muted);font-size:13px;"><div class="ws-spinner"></div><div style="margin-top:10px;">Loading posts…</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── GEO / AI Visibility View ── -->
+      <div class="ws-view" id="view-geo">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div>
+            <div class="ws-page-title">🧠 AI Visibility</div>
+            <div class="ws-page-sub">See how your brand appears in ChatGPT, Gemini, and Perplexity</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);" id="geo-last-run"></div>
+        </div>
+
+        <!-- Config card -->
+        <div class="ws-card" style="margin-bottom:20px;">
+          <div class="ws-card-title">🔍 Analysis Setup</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div>
+              <label class="ws-field-label">Brand Name *</label>
+              <input class="ws-field-input" id="geo-brand-name" placeholder="e.g. Acme Corp">
+            </div>
+            <div>
+              <label class="ws-field-label">Website URL</label>
+              <input class="ws-field-input" id="geo-website" placeholder="https://yoursite.com">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div>
+              <label class="ws-field-label">Top Competitors (comma-separated)</label>
+              <input class="ws-field-input" id="geo-competitors" placeholder="e.g. Competitor A, Competitor B">
+            </div>
+            <div>
+              <label class="ws-field-label">Key Topics / Services (comma-separated)</label>
+              <input class="ws-field-input" id="geo-topics" placeholder="e.g. digital marketing, SEO, PPC">
+            </div>
+          </div>
+          <button class="ws-btn-primary" id="geo-run-btn" onclick="geoRunAnalysis()">Run AI Visibility Analysis</button>
+        </div>
+
+        <!-- Loading state -->
+        <div id="geo-loading" style="display:none;text-align:center;padding:48px 20px;">
+          <div class="ws-spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px;"></div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">Raj is checking your AI visibility…</div>
+          <div style="font-size:13px;color:var(--muted);">Simulating how ChatGPT, Gemini, and Perplexity respond to queries about your brand. This takes 15–30 seconds.</div>
+        </div>
+
+        <!-- Error state -->
+        <div id="geo-error" style="display:none;background:rgba(255,69,58,0.07);border:1.5px solid rgba(255,69,58,0.2);border-radius:12px;padding:16px;color:var(--red);font-size:13px;font-weight:600;margin-bottom:16px;"></div>
+
+        <!-- Results section -->
+        <div id="geo-results" style="display:none;">
+          <!-- Score + summary -->
+          <div class="ws-card" style="margin-bottom:16px;">
+            <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+              <div id="geo-score-ring" class="geo-score-ring medium">
+                <span id="geo-score-val">—</span>
+                <small>/10</small>
+              </div>
+              <div style="flex:1;min-width:200px;">
+                <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">AI Visibility Score</div>
+                <div style="font-size:14px;color:var(--text);line-height:1.55;" id="geo-summary">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Platform previews -->
+          <div class="ws-card" style="margin-bottom:16px;">
+            <div class="ws-card-title">💬 How AI Platforms Respond</div>
+            <div class="geo-platform-box">
+              <div class="geo-platform-label chatgpt">ChatGPT-style response</div>
+              <div class="geo-platform-body" id="geo-resp-chatgpt">—</div>
+            </div>
+            <div class="geo-platform-box">
+              <div class="geo-platform-label perplexity">Perplexity-style response</div>
+              <div class="geo-platform-body" id="geo-resp-perplexity">—</div>
+            </div>
+          </div>
+
+          <!-- Gaps table -->
+          <div class="ws-card" style="margin-bottom:16px;">
+            <div class="ws-card-title">🕳️ Visibility Gaps</div>
+            <div id="geo-gaps-list">
+              <div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">No gaps found yet.</div>
+            </div>
+          </div>
+
+          <!-- Action checklist -->
+          <div class="ws-card">
+            <div class="ws-card-title">✅ Action Checklist</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Check items off as you complete them — progress is saved locally.</div>
+            <div id="geo-actions-list">
+              <div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">Run analysis to generate actions.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div id="geo-empty" style="text-align:center;padding:60px 20px;">
+          <div style="font-size:48px;margin-bottom:16px;">🧠</div>
+          <div style="font-size:17px;font-weight:800;color:var(--text);margin-bottom:8px;">Discover your AI search presence</div>
+          <div style="font-size:13px;color:var(--muted);max-width:400px;margin:0 auto;">Enter your brand details above and run an analysis to see how you appear in AI-generated answers — the fastest growing search category in 2025.</div>
+        </div>
+      </div>
+
+      <!-- ── Content Pipeline View ── -->
+      <div class="ws-view" id="view-content">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <div class="ws-page-title">✍️ Content Pipeline</div>
+            <div class="ws-page-sub">Brief, write, and track SEO content with Jess</div>
+          </div>
+          <button class="ws-btn-primary" onclick="contentNewItem()">+ New Content</button>
+        </div>
+
+        <div class="content-split">
+          <!-- Left: Queue -->
+          <div>
+            <div class="ws-card" style="margin-bottom:16px;">
+              <div class="ws-card-title">📋 Content Queue</div>
+              <div id="content-queue-list">
+                <div style="text-align:center;padding:32px 16px;color:var(--muted);">
+                  <div style="font-size:32px;margin-bottom:10px;">📝</div>
+                  <div style="font-size:13px;">No content yet — create your first brief</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Keyword Tracker -->
+            <div class="ws-card">
+              <div class="ws-card-title">📊 Keyword Tracker</div>
+              <div style="overflow-x:auto;">
+                <table class="kw-table" id="kw-tracker-table">
+                  <thead>
+                    <tr>
+                      <th>Keyword</th>
+                      <th>Target URL</th>
+                      <th style="text-align:center;">Pos.</th>
+                      <th style="text-align:center;">Δ</th>
+                    </tr>
+                  </thead>
+                  <tbody id="kw-tracker-body"></tbody>
+                </table>
+              </div>
+              <button class="ws-btn-secondary" style="margin-top:12px;width:100%;font-size:12px;" onclick="contentAddKeyword()">+ Add Keyword</button>
+            </div>
+          </div>
+
+          <!-- Right: Workspace -->
+          <div id="content-workspace">
+            <div class="ws-card" style="text-align:center;padding:48px 24px;">
+              <div style="font-size:40px;margin-bottom:14px;">✍️</div>
+              <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">Content Workspace</div>
+              <div style="font-size:13px;color:var(--muted);">Select a content item or create a new one to get started.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Social Listening View ── -->
+      <div class="ws-view" id="view-listening">
+        <div style="margin-bottom:20px;">
+          <div class="ws-page-title">👂 Social Listening</div>
+          <div class="ws-page-sub">Monitor brand mentions and find engagement opportunities</div>
+        </div>
+
+        <!-- Settings card -->
+        <div class="ws-card" style="margin-bottom:20px;" id="listening-setup-card">
+          <div class="ws-card-title">⚙️ Monitoring Setup</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div>
+              <label class="ws-field-label">Brand Name</label>
+              <input class="ws-field-input" id="listening-brand" placeholder="Your brand name">
+            </div>
+            <div>
+              <label class="ws-field-label">Keywords to Track (comma-separated)</label>
+              <input class="ws-field-input" id="listening-keywords" placeholder="e.g. digital marketing, SEO agency">
+            </div>
+            <div>
+              <label class="ws-field-label">Competitors (comma-separated)</label>
+              <input class="ws-field-input" id="listening-competitors" placeholder="e.g. Vendasta, Okara">
+            </div>
+          </div>
+          <button class="ws-btn-secondary" onclick="listeningSaveSettings()">Save Settings</button>
+          <span id="listening-saved-toast" style="display:none;font-size:12px;color:var(--green);font-weight:600;margin-left:12px;">✓ Saved</span>
+        </div>
+
+        <!-- Tabs -->
+        <div class="listening-tabs">
+          <div class="listening-tab active" onclick="listeningSetTab('mentions',this)">📡 Mentions</div>
+          <div class="listening-tab" onclick="listeningSetTab('opportunities',this)">💡 Opportunities</div>
+          <div class="listening-tab" onclick="listeningSetTab('alerts',this)">🔔 Alerts</div>
+        </div>
+
+        <!-- Mentions tab -->
+        <div id="listening-tab-mentions">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div style="font-size:13px;color:var(--muted);">Simulated mentions from Reddit, Twitter, and LinkedIn</div>
+            <button class="ws-btn-primary" id="listening-sim-btn" onclick="listeningSimulateMentions()">Simulate Mentions</button>
+          </div>
+          <div id="listening-mentions-loading" style="display:none;text-align:center;padding:32px;">
+            <div class="ws-spinner" style="margin:0 auto 12px;"></div>
+            <div style="font-size:13px;color:var(--muted);">Cleo is scanning for mentions…</div>
+          </div>
+          <div id="listening-mentions-list">
+            <div style="text-align:center;padding:48px 20px;">
+              <div style="font-size:36px;margin-bottom:12px;">📡</div>
+              <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">No mentions yet</div>
+              <div style="font-size:13px;color:var(--muted);">Click "Simulate Mentions" to see how your brand appears across social platforms.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Opportunities tab -->
+        <div id="listening-tab-opportunities" style="display:none;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div style="font-size:13px;color:var(--muted);">Content and engagement opportunities based on your keywords</div>
+            <button class="ws-btn-primary" id="listening-opp-btn" onclick="listeningFindOpportunities()">Find Opportunities</button>
+          </div>
+          <div id="listening-opp-loading" style="display:none;text-align:center;padding:32px;">
+            <div class="ws-spinner" style="margin:0 auto 12px;"></div>
+            <div style="font-size:13px;color:var(--muted);">Sarah is identifying opportunities…</div>
+          </div>
+          <div id="listening-opp-list">
+            <div style="text-align:center;padding:48px 20px;">
+              <div style="font-size:36px;margin-bottom:12px;">💡</div>
+              <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">No opportunities yet</div>
+              <div style="font-size:13px;color:var(--muted);">Click "Find Opportunities" to discover ways to engage and grow.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alerts tab -->
+        <div id="listening-tab-alerts" style="display:none;">
+          <div class="ws-card" style="max-width:520px;">
+            <div class="ws-card-title">🔔 Alert Preferences</div>
+            <div style="margin-bottom:16px;">
+              <label class="ws-field-label">Alert me when</label>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="alert-brand" style="accent-color:var(--teal);" checked> Brand mentioned</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="alert-competitor" style="accent-color:var(--teal);"> Competitor mentioned</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="alert-keyword" style="accent-color:var(--teal);"> Keyword trending</label>
+              </div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <label class="ws-field-label">Alert Email</label>
+              <input class="ws-field-input" id="alert-email" placeholder="you@company.com">
+            </div>
+            <div style="margin-bottom:16px;">
+              <label class="ws-field-label">Frequency</label>
+              <select class="ws-field-select" id="alert-frequency">
+                <option value="daily">Daily Digest</option>
+                <option value="realtime">Real-time</option>
+                <option value="weekly">Weekly Summary</option>
+              </select>
+            </div>
+            <button class="ws-btn-primary" onclick="listeningSaveAlerts()">Save Alert Preferences</button>
+            <span id="alerts-saved-toast" style="display:none;font-size:12px;color:var(--green);font-weight:600;margin-left:12px;">✓ Saved</span>
+            <div style="margin-top:16px;background:rgba(10,132,255,0.07);border:1.5px solid rgba(10,132,255,0.2);border-radius:10px;padding:12px;font-size:12px;color:#0055CC;">
+              <strong>Coming soon:</strong> real-time webhook alerts will notify you the moment a mention is detected across supported platforms.
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2821,6 +3537,13 @@ function wsSetView(view) {
   }
   if (view === 'settings')    wsLoadBilling();
   if (view === 'escalations') wsLoadEscalations();
+  if (view === 'crm')         crmLoad();
+  if (view === 'reputation')  repLoad();
+  if (view === 'local-seo')   localSeoLoad();
+  if (view === 'social')      socialLoad();
+  if (view === 'geo')         geoLoad();
+  if (view === 'content')     contentLoad();
+  if (view === 'listening')   listeningLoad();
 }
 
 function wsRenderGate(viewId, feature, planRequired) {
@@ -4701,6 +5424,1511 @@ async function wsSendCampaignReply(campaignId, idx) {
 function wsCloseCampaignDrawer() {
   document.getElementById('wsCmpDrawerOverlay').classList.remove('open');
   document.getElementById('wsCmpDrawer').classList.remove('open');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── CRM ─────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let _crmContacts = [];
+let _crmStageFilter = 'all';
+let _crmEditId = null;
+
+async function crmLoad() {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const listEl = document.getElementById('crm-list');
+  listEl.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;"><div class="ws-spinner"></div><div style="margin-top:10px;">Loading contacts…</div></div>';
+  try {
+    const resp = await fetch(`${WS_API}/api/crm/contacts?workspaceId=${encodeURIComponent(wsId)}`);
+    if (!resp.ok) throw new Error('non-2xx');
+    const data = await resp.json();
+    _crmContacts = Array.isArray(data.contacts) ? data.contacts : [];
+  } catch(e) {
+    _crmContacts = [];
+  }
+  crmRenderKpis();
+  crmFilterRender();
+}
+
+function crmRenderKpis() {
+  const total = _crmContacts.length;
+  const qualified = _crmContacts.filter(c => c.stage === 'qualified').length;
+  const now = new Date();
+  const openPipeline = _crmContacts
+    .filter(c => c.stage !== 'won' && c.stage !== 'lost')
+    .reduce((s, c) => s + (parseFloat(c.deal_value) || 0), 0);
+  const wonMonth = _crmContacts.filter(c => {
+    if (c.stage !== 'won') return false;
+    const d = new Date(c.updated_at || c.created_at || 0);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+  document.getElementById('crm-kpi-total').textContent = total;
+  document.getElementById('crm-kpi-qualified').textContent = qualified;
+  document.getElementById('crm-kpi-pipeline').textContent = '$' + openPipeline.toLocaleString();
+  document.getElementById('crm-kpi-won').textContent = wonMonth;
+}
+
+function crmSetStage(stage, btn) {
+  _crmStageFilter = stage;
+  document.querySelectorAll('.crm-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  crmFilterRender();
+}
+
+function crmFilterRender() {
+  const q = (document.getElementById('crm-search').value || '').toLowerCase();
+  let contacts = _crmContacts;
+  if (_crmStageFilter !== 'all') contacts = contacts.filter(c => c.stage === _crmStageFilter);
+  if (q) contacts = contacts.filter(c => `${c.name} ${c.company} ${c.email}`.toLowerCase().includes(q));
+  crmRenderList(contacts);
+}
+
+function crmRenderList(contacts) {
+  const el = document.getElementById('crm-list');
+  if (!contacts.length) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:14px;">No contacts yet — add your first contact</div>';
+    return;
+  }
+  const scoreColor = s => s >= 7 ? 'var(--green)' : s >= 4 ? 'var(--amber)' : 'var(--red)';
+  el.innerHTML = contacts.map(c => {
+    const initials = (c.name || '?').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+    const score = c.ai_score;
+    const scoreDot = score != null ? `<div class="crm-score-dot" style="background:${scoreColor(score)}" title="AI Score: ${score}/10"></div><span style="font-size:11px;font-weight:700;color:var(--muted);">${score}/10</span>` : '';
+    const lastContact = c.last_contact_at ? new Date(c.last_contact_at).toLocaleDateString('en-AU',{day:'numeric',month:'short'}) : '—';
+    return `<div class="crm-row">
+      <div class="crm-avatar">${initials}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;color:var(--text);">${c.name || '—'}</div>
+        <div style="font-size:11px;color:var(--muted);">${c.company || ''}</div>
+      </div>
+      <span class="crm-stage ${(c.stage||'prospect').toLowerCase()}">${c.stage || 'Prospect'}</span>
+      <span style="font-size:12px;font-weight:600;color:var(--text);min-width:60px;text-align:right;">${c.deal_value ? '$'+parseFloat(c.deal_value).toLocaleString() : '—'}</span>
+      <div style="display:flex;align-items:center;gap:4px;min-width:54px;">${scoreDot}</div>
+      <span style="font-size:11px;color:var(--muted);min-width:60px;text-align:right;">${lastContact}</span>
+      <div style="display:flex;gap:5px;flex-shrink:0;">
+        <button class="crm-action-btn" onclick="crmOpenForm('${c.id}')">Edit</button>
+        <button class="crm-action-btn" onclick="crmAiScore('${c.id}')">AI Score</button>
+        <button class="crm-action-btn" onclick="crmOpenActivity('${c.id}')">Log</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function crmOpenForm(id) {
+  _crmEditId = id || null;
+  const panel = document.getElementById('crm-detail-panel');
+  const actCard = document.getElementById('crm-activity-card');
+  panel.style.display = 'block';
+  if (id) {
+    const c = _crmContacts.find(x => x.id === id);
+    if (!c) return;
+    document.getElementById('crm-form-title').textContent = 'Edit Contact';
+    document.getElementById('crm-f-name').value    = c.name || '';
+    document.getElementById('crm-f-email').value   = c.email || '';
+    document.getElementById('crm-f-phone').value   = c.phone || '';
+    document.getElementById('crm-f-company').value = c.company || '';
+    document.getElementById('crm-f-title').value   = c.title || '';
+    document.getElementById('crm-f-stage').value   = c.stage || 'prospect';
+    document.getElementById('crm-f-value').value   = c.deal_value || '';
+    document.getElementById('crm-f-tags').value    = Array.isArray(c.tags) ? c.tags.join(', ') : (c.tags || '');
+    document.getElementById('crm-f-notes').value   = c.notes || '';
+    document.getElementById('crm-f-id').value      = c.id;
+    actCard.style.display = 'block';
+    crmRenderActivities(c.activities || []);
+  } else {
+    document.getElementById('crm-form-title').textContent = 'Add Contact';
+    ['crm-f-name','crm-f-email','crm-f-phone','crm-f-company','crm-f-title','crm-f-value','crm-f-tags','crm-f-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('crm-f-stage').value = 'prospect';
+    document.getElementById('crm-f-id').value = '';
+    actCard.style.display = 'none';
+  }
+}
+
+function crmRenderActivities(activities) {
+  const el = document.getElementById('crm-activity-list');
+  if (!activities.length) { el.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px 0;">No activities yet</div>'; return; }
+  el.innerHTML = activities.map(a => `
+    <div class="crm-timeline-item">
+      <strong>${a.type || 'note'}</strong> — ${a.summary || ''}
+      <div class="crm-timeline-time">${a.created_at ? new Date(a.created_at).toLocaleDateString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : ''}</div>
+    </div>
+  `).join('');
+}
+
+function crmOpenActivity(contactId) {
+  crmOpenForm(contactId);
+  document.getElementById('crm-act-summary').focus();
+}
+
+function crmCloseDetail() {
+  document.getElementById('crm-detail-panel').style.display = 'none';
+  _crmEditId = null;
+}
+
+async function crmSaveContact() {
+  const wsId = wsSession.workspaceId;
+  const name = document.getElementById('crm-f-name').value.trim();
+  if (!name) { alert('Name is required'); return; }
+  const payload = {
+    workspaceId: wsId,
+    name,
+    email:       document.getElementById('crm-f-email').value.trim(),
+    phone:       document.getElementById('crm-f-phone').value.trim(),
+    company:     document.getElementById('crm-f-company').value.trim(),
+    title:       document.getElementById('crm-f-title').value.trim(),
+    stage:       document.getElementById('crm-f-stage').value,
+    deal_value:  parseFloat(document.getElementById('crm-f-value').value) || null,
+    tags:        document.getElementById('crm-f-tags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    notes:       document.getElementById('crm-f-notes').value.trim(),
+  };
+  const id = document.getElementById('crm-f-id').value;
+  if (id) payload.id = id;
+  try {
+    const resp = await fetch(`${WS_API}/api/crm/contacts`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    });
+    if (!resp.ok) throw new Error('non-2xx');
+  } catch(e) { /* best-effort */ }
+  crmCloseDetail();
+  crmLoad();
+}
+
+async function crmAiScore(contactId) {
+  const wsId = wsSession.workspaceId;
+  // Show modal
+  const overlay = document.createElement('div');
+  overlay.className = 'ws-modal-overlay';
+  overlay.id = 'crm-ai-modal';
+  overlay.innerHTML = `<div class="ws-modal-box" style="max-width:420px;">
+    <button class="ws-modal-close" onclick="document.getElementById('crm-ai-modal').remove()">✕</button>
+    <div class="ws-modal-title">AI Lead Score</div>
+    <div class="ws-modal-sub">Analysing this contact…</div>
+    <div style="text-align:center;padding:28px;"><div class="ws-spinner" style="width:32px;height:32px;border-width:3px;"></div></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  try {
+    const resp = await fetch(`${WS_API}/api/crm/ai-score`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ workspaceId: wsId, contactId })
+    });
+    const data = resp.ok ? await resp.json() : {};
+    const score = data.score || data.ai_score || 5;
+    const scoreColor = score >= 7 ? '#30D158' : score >= 4 ? '#FF9F0A' : '#FF453A';
+    const box = overlay.querySelector('.ws-modal-box');
+    box.innerHTML = `<button class="ws-modal-close" onclick="document.getElementById('crm-ai-modal').remove()">✕</button>
+      <div class="ws-modal-title">AI Lead Score</div>
+      <div style="display:flex;align-items:center;gap:20px;margin:20px 0;">
+        <div style="width:80px;height:80px;border-radius:50%;background:${scoreColor};display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;flex-shrink:0;">${score}</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);">Score: ${score}/10</div>
+          <div style="font-size:13px;color:var(--text);margin-top:6px;font-weight:600;">${data.next_action || ''}</div>
+        </div>
+      </div>
+      <div style="font-size:13px;color:#444;line-height:1.6;background:#F5F4EF;border-radius:10px;padding:14px;">${data.reasoning || 'Score generated based on contact profile and engagement signals.'}</div>
+      <button class="ws-btn-primary" style="width:100%;margin-top:16px;" onclick="document.getElementById('crm-ai-modal').remove()">Done</button>`;
+    // Update local record
+    const c = _crmContacts.find(x => x.id === contactId);
+    if (c) { c.ai_score = score; crmFilterRender(); }
+  } catch(e) {
+    overlay.querySelector('.ws-modal-box').innerHTML = `<button class="ws-modal-close" onclick="document.getElementById('crm-ai-modal').remove()">✕</button><div class="ws-modal-title">AI Lead Score</div><div style="color:var(--red);padding:20px 0;">Failed to score contact. Please try again.</div>`;
+  }
+}
+
+async function crmLogActivity() {
+  const wsId = wsSession.workspaceId;
+  const contactId = document.getElementById('crm-f-id').value;
+  if (!contactId) return;
+  const type    = document.getElementById('crm-act-type').value;
+  const summary = document.getElementById('crm-act-summary').value.trim();
+  if (!summary) { document.getElementById('crm-act-summary').focus(); return; }
+  try {
+    await fetch(`${WS_API}/api/crm/activities`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ workspaceId: wsId, contactId, type, summary })
+    });
+  } catch(e) {}
+  document.getElementById('crm-act-summary').value = '';
+  // Refresh activities
+  const c = _crmContacts.find(x => x.id === contactId);
+  if (c) {
+    if (!c.activities) c.activities = [];
+    c.activities.unshift({ type, summary, created_at: new Date().toISOString() });
+    crmRenderActivities(c.activities);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── REPUTATION ───────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let _repReviews = [];
+let _repPlatformFilter = 'all';
+
+async function repLoad() {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const listEl = document.getElementById('rep-list');
+  listEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;"><div class="ws-spinner"></div><div style="margin-top:10px;">Loading reviews…</div></div>';
+  try {
+    const resp = await fetch(`${WS_API}/api/reputation?workspaceId=${encodeURIComponent(wsId)}`);
+    if (!resp.ok) throw new Error('non-2xx');
+    const data = await resp.json();
+    _repReviews = Array.isArray(data.reviews) ? data.reviews : [];
+  } catch(e) {
+    _repReviews = [];
+  }
+  repRenderKpis();
+  repRenderList();
+}
+
+function repRenderKpis() {
+  const total = _repReviews.length;
+  const pending = _repReviews.filter(r => r.status === 'pending' || !r.status).length;
+  const now = new Date();
+  const thisMonth = _repReviews.filter(r => {
+    const d = new Date(r.review_date || r.created_at || 0);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+  const rated = _repReviews.filter(r => r.rating);
+  const avg = rated.length ? (rated.reduce((s,r) => s+(parseFloat(r.rating)||0), 0) / rated.length).toFixed(1) : '—';
+  document.getElementById('rep-kpi-total').textContent = total;
+  document.getElementById('rep-kpi-avg').textContent = avg !== '—' ? `${avg} ★` : '—';
+  document.getElementById('rep-kpi-pending').textContent = pending;
+  document.getElementById('rep-kpi-month').textContent = thisMonth;
+}
+
+function repFilter(platform, btn) {
+  _repPlatformFilter = platform;
+  document.querySelectorAll('.rep-filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  repRenderList();
+}
+
+function repRenderList() {
+  const listEl = document.getElementById('rep-list');
+  let reviews = _repReviews;
+  if (_repPlatformFilter !== 'all') reviews = reviews.filter(r => (r.platform||'').toLowerCase() === _repPlatformFilter);
+  if (!reviews.length) {
+    listEl.innerHTML = '<div style="text-align:center;padding:48px;color:var(--muted);font-size:14px;">No reviews found — add your first review or request some from customers.</div>';
+    return;
+  }
+  listEl.innerHTML = reviews.map(r => {
+    const stars = '★'.repeat(Math.max(0, Math.min(5, parseInt(r.rating)||0))) + '☆'.repeat(5 - Math.max(0, Math.min(5, parseInt(r.rating)||0)));
+    const platform = (r.platform || 'google').toLowerCase();
+    const status = r.status || 'pending';
+    const dateStr = r.review_date ? new Date(r.review_date).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) : '—';
+    return `<div class="rep-card" id="rep-card-${r.id}">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
+        <span class="rep-platform ${platform}">${r.platform || 'Google'}</span>
+        <strong style="font-size:13px;">${r.reviewer_name || 'Anonymous'}</strong>
+        <span style="font-size:12px;color:var(--muted);">${dateStr}</span>
+        <span class="rep-status ${status}" style="margin-left:auto;">${status.charAt(0).toUpperCase()+status.slice(1)}</span>
+      </div>
+      <div class="rep-stars">${stars}</div>
+      <div style="font-size:13px;color:#444;line-height:1.6;margin:8px 0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;" id="rep-content-${r.id}">${(r.content||'').replace(/</g,'&lt;')}</div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        <button class="crm-action-btn" onclick="repAiRespond('${r.id}')">✨ AI Response</button>
+        <button class="crm-action-btn" onclick="repIgnore('${r.id}')">Ignore</button>
+      </div>
+      <div id="rep-response-${r.id}" style="display:none;margin-top:12px;">
+        <textarea class="ws-field-textarea" id="rep-resp-text-${r.id}" style="min-height:80px;margin-bottom:8px;"></textarea>
+        <button class="ws-btn-primary" onclick="repSaveResponse('${r.id}')">Save Response</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function repAiRespond(reviewId) {
+  const wsId = wsSession.workspaceId;
+  const btn = event.currentTarget;
+  btn.textContent = '⏳';
+  btn.disabled = true;
+  try {
+    const resp = await fetch(`${WS_API}/api/reputation/respond`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ workspaceId: wsId, reviewId })
+    });
+    const data = resp.ok ? await resp.json() : {};
+    const responseText = data.response || data.suggested_response || '';
+    const respDiv = document.getElementById(`rep-response-${reviewId}`);
+    const respTextarea = document.getElementById(`rep-resp-text-${reviewId}`);
+    if (respDiv && respTextarea) {
+      respTextarea.value = responseText;
+      respDiv.style.display = 'block';
+    }
+  } catch(e) {}
+  btn.textContent = '✨ AI Response';
+  btn.disabled = false;
+}
+
+async function repSaveResponse(reviewId) {
+  const wsId = wsSession.workspaceId;
+  const text = document.getElementById(`rep-resp-text-${reviewId}`)?.value?.trim();
+  if (!text) return;
+  try {
+    await fetch(`${WS_API}/api/reputation/respond`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ workspaceId: wsId, reviewId, response: text, save: true })
+    });
+  } catch(e) {}
+  const r = _repReviews.find(x => x.id === reviewId);
+  if (r) r.status = 'responded';
+  repRenderList();
+}
+
+async function repIgnore(reviewId) {
+  const wsId = wsSession.workspaceId;
+  try {
+    await fetch(`${WS_API}/api/reputation/reviews`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ workspaceId: wsId, id: reviewId, status: 'ignored' })
+    });
+  } catch(e) {}
+  const r = _repReviews.find(x => x.id === reviewId);
+  if (r) r.status = 'ignored';
+  repRenderList();
+}
+
+function repOpenAddModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'ws-modal-overlay';
+  overlay.id = 'rep-add-modal';
+  overlay.innerHTML = `<div class="ws-modal-box">
+    <button class="ws-modal-close" onclick="document.getElementById('rep-add-modal').remove()">✕</button>
+    <div class="ws-modal-title">Add Review</div>
+    <div class="ws-modal-sub">Manually add a review to track it in your reputation dashboard.</div>
+    <label class="ws-field-label">Platform</label>
+    <select class="ws-field-select" id="rep-add-platform">
+      <option value="google">Google</option><option value="yelp">Yelp</option>
+      <option value="facebook">Facebook</option><option value="g2">G2</option><option value="trustpilot">Trustpilot</option>
+    </select>
+    <label class="ws-field-label">Reviewer Name</label>
+    <input class="ws-field-input" id="rep-add-reviewer" placeholder="e.g. Jane S.">
+    <label class="ws-field-label">Rating (1–5)</label>
+    <div style="display:flex;gap:6px;margin-bottom:12px;" id="rep-add-stars">
+      ${[1,2,3,4,5].map(n=>`<span onclick="repPickStar(${n})" id="rep-star-${n}" style="font-size:22px;cursor:pointer;opacity:0.3;">★</span>`).join('')}
+    </div>
+    <input type="hidden" id="rep-add-rating" value="">
+    <label class="ws-field-label">Review Date</label>
+    <input class="ws-field-input" id="rep-add-date" type="date" value="${new Date().toISOString().slice(0,10)}">
+    <label class="ws-field-label">Review Content</label>
+    <textarea class="ws-field-textarea" id="rep-add-content" placeholder="Paste the review text here…"></textarea>
+    <button class="ws-btn-primary" style="width:100%;" onclick="repAddReview()">Add Review</button>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+
+function repPickStar(n) {
+  document.getElementById('rep-add-rating').value = n;
+  [1,2,3,4,5].forEach(i => {
+    document.getElementById(`rep-star-${i}`).style.opacity = i <= n ? '1' : '0.3';
+  });
+}
+
+async function repAddReview() {
+  const wsId = wsSession.workspaceId;
+  const payload = {
+    workspaceId: wsId,
+    platform:     document.getElementById('rep-add-platform').value,
+    reviewer_name:document.getElementById('rep-add-reviewer').value.trim(),
+    rating:       parseInt(document.getElementById('rep-add-rating').value) || null,
+    review_date:  document.getElementById('rep-add-date').value,
+    content:      document.getElementById('rep-add-content').value.trim(),
+    status:       'pending',
+  };
+  try {
+    await fetch(`${WS_API}/api/reputation/reviews`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    });
+  } catch(e) {}
+  document.getElementById('rep-add-modal')?.remove();
+  repLoad();
+}
+
+function repOpenRequestModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'ws-modal-overlay';
+  overlay.id = 'rep-req-modal';
+  overlay.innerHTML = `<div class="ws-modal-box">
+    <button class="ws-modal-close" onclick="document.getElementById('rep-req-modal').remove()">✕</button>
+    <div class="ws-modal-title">Request Reviews</div>
+    <div class="ws-modal-sub">Send a review request email to a customer.</div>
+    <label class="ws-field-label">Customer Email *</label>
+    <input class="ws-field-input" id="rep-req-email" type="email" placeholder="customer@example.com">
+    <label class="ws-field-label">Customer Name</label>
+    <input class="ws-field-input" id="rep-req-cust-name" placeholder="e.g. John">
+    <label class="ws-field-label">Business Name</label>
+    <input class="ws-field-input" id="rep-req-biz-name" value="${wsSession ? wsSession.companyName : ''}">
+    <label class="ws-field-label">Review Link (optional)</label>
+    <input class="ws-field-input" id="rep-req-link" placeholder="https://g.page/your-business/review">
+    <button class="ws-btn-primary" style="width:100%;" onclick="repRequestReview()">Send Request</button>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function repRequestReview() {
+  const wsId = wsSession.workspaceId;
+  const email = document.getElementById('rep-req-email').value.trim();
+  if (!email) { alert('Customer email is required'); return; }
+  const payload = {
+    workspaceId:  wsId,
+    customer_email: email,
+    customer_name:  document.getElementById('rep-req-cust-name').value.trim(),
+    business_name:  document.getElementById('rep-req-biz-name').value.trim(),
+    review_link:    document.getElementById('rep-req-link').value.trim(),
+  };
+  try {
+    await fetch(`${WS_API}/api/reputation/request`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    });
+    alert('Review request sent!');
+  } catch(e) { alert('Failed to send — please try again.'); }
+  document.getElementById('rep-req-modal')?.remove();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── LOCAL SEO ────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const _seoListings = [
+  { key:'google_business', name:'Google Business Profile', icon:'🟢' },
+  { key:'bing_places',     name:'Bing Places',            icon:'🔵' },
+  { key:'apple_maps',      name:'Apple Maps',             icon:'🍎' },
+  { key:'yelp',            name:'Yelp',                   icon:'⭕' },
+  { key:'facebook',        name:'Facebook',               icon:'📘' },
+  { key:'yellow_pages',    name:'Yellow Pages',           icon:'📒' },
+  { key:'foursquare',      name:'Foursquare',             icon:'📍' },
+  { key:'true_local',      name:'True Local',             icon:'🏠' },
+];
+let _seoData = {};
+
+async function localSeoLoad() {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  try {
+    const resp = await fetch(`${WS_API}/api/local-seo?workspaceId=${encodeURIComponent(wsId)}`);
+    if (!resp.ok) throw new Error('non-2xx');
+    const data = await resp.json();
+    _seoData = data;
+    // Populate NAP form
+    const fields = { name:'seo-name', address:'seo-address', city:'seo-city', state:'seo-state',
+      postcode:'seo-postcode', phone:'seo-phone', website:'seo-website', categories:'seo-categories', description:'seo-description' };
+    Object.entries(fields).forEach(([key, id]) => {
+      const el = document.getElementById(id);
+      if (el && data[key] != null) el.value = data[key];
+    });
+    // Hours
+    const days = ['mon','tue','wed','thu','fri','sat','sun'];
+    const hours = data.hours || {};
+    days.forEach(d => { const el = document.getElementById(`seo-h-${d}`); if (el && hours[d]) el.value = hours[d]; });
+    // Listings
+    localSeoRenderListings(data.listings || {});
+    // Last audit
+    if (data.last_audit_at) {
+      document.getElementById('seo-last-audit').textContent = `Last audited: ${new Date(data.last_audit_at).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})}`;
+    }
+  } catch(e) {
+    _seoData = {};
+    localSeoRenderListings({});
+  }
+}
+
+function localSeoRenderListings(listings) {
+  const grid = document.getElementById('seo-listing-grid');
+  const statusOptions = ['claimed','unclaimed','pending','na'];
+  grid.innerHTML = _seoListings.map(l => {
+    const status = (listings[l.key] || 'na').toLowerCase();
+    const statusLabel = status === 'na' ? 'N/A' : status.charAt(0).toUpperCase()+status.slice(1);
+    return `<div class="seo-listing-card">
+      <div class="seo-listing-icon">${l.icon}</div>
+      <div class="seo-listing-name">${l.name}</div>
+      <div style="position:relative;">
+        <button class="seo-listing-status ${status}" id="seo-lst-${l.key}" onclick="seoListingCycle('${l.key}')">${statusLabel}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function seoListingCycle(key) {
+  const order = ['na','unclaimed','pending','claimed'];
+  const btn = document.getElementById(`seo-lst-${key}`);
+  const current = btn.className.split(' ').find(c => ['claimed','unclaimed','pending','na'].includes(c)) || 'na';
+  const nextStatus = order[(order.indexOf(current)+1) % order.length];
+  btn.className = `seo-listing-status ${nextStatus}`;
+  btn.textContent = nextStatus === 'na' ? 'N/A' : nextStatus.charAt(0).toUpperCase()+nextStatus.slice(1);
+  await localSeoUpdateListing(key, nextStatus);
+}
+
+async function localSeoUpdateListing(platform, status) {
+  if (!wsSession) return;
+  try {
+    await fetch(`${WS_API}/api/local-seo/listing`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ workspaceId: wsSession.workspaceId, platform, status })
+    });
+  } catch(e) {}
+}
+
+async function localSeoSave() {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const days = ['mon','tue','wed','thu','fri','sat','sun'];
+  const hours = {};
+  days.forEach(d => { hours[d] = document.getElementById(`seo-h-${d}`)?.value || ''; });
+  const payload = {
+    workspaceId: wsId,
+    name:        document.getElementById('seo-name').value.trim(),
+    address:     document.getElementById('seo-address').value.trim(),
+    city:        document.getElementById('seo-city').value.trim(),
+    state:       document.getElementById('seo-state').value.trim(),
+    postcode:    document.getElementById('seo-postcode').value.trim(),
+    phone:       document.getElementById('seo-phone').value.trim(),
+    website:     document.getElementById('seo-website').value.trim(),
+    categories:  document.getElementById('seo-categories').value.trim(),
+    description: document.getElementById('seo-description').value.trim(),
+    hours,
+  };
+  const toast = document.getElementById('seo-saved-toast');
+  try {
+    await fetch(`${WS_API}/api/local-seo/nap`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    });
+    toast.style.display = 'inline';
+    setTimeout(() => { toast.style.display = 'none'; }, 2500);
+  } catch(e) { alert('Failed to save. Please try again.'); }
+}
+
+async function localSeoAudit() {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const btn = document.getElementById('seo-audit-btn');
+  const resultEl = document.getElementById('seo-audit-result');
+  btn.disabled = true;
+  btn.textContent = 'Auditing…';
+  resultEl.innerHTML = '<div style="text-align:center;padding:24px;"><div class="ws-spinner" style="width:32px;height:32px;border-width:3px;"></div><div style="margin-top:12px;font-size:13px;color:var(--muted);">Raj is auditing your local presence…</div></div>';
+  try {
+    const resp = await fetch(`${WS_API}/api/local-seo/audit`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ workspaceId: wsId })
+    });
+    if (!resp.ok) throw new Error('non-2xx');
+    const data = await resp.json();
+    const score = data.score || 5;
+    const scoreClass = score >= 7 ? 'green' : score >= 4 ? 'amber' : 'red';
+    const issues = (data.issues || []).map(i => `
+      <div class="seo-audit-issue">
+        <div class="seo-audit-sev"><span class="seo-sev ${i.severity||'medium'}">${(i.severity||'medium').toUpperCase()}</span></div>
+        <div><strong>${i.title||'Issue'}</strong><div style="font-size:12px;color:var(--muted);margin-top:3px;">${i.fix||''}</div></div>
+      </div>`).join('');
+    const opportunities = (data.opportunities || []).map(o => `<li style="margin:4px 0;font-size:13px;color:#444;">${o}</li>`).join('');
+    const nextSteps = (data.next_steps || []).map((s,i) => `<li style="margin:4px 0;font-size:13px;color:#444;">${i+1}. ${s}</li>`).join('');
+    resultEl.innerHTML = `
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+        <div class="seo-score-circle ${scoreClass}">${score}</div>
+        <div><div style="font-size:16px;font-weight:800;color:var(--text);">Local SEO Score: ${score}/10</div><div style="font-size:12px;color:var(--muted);margin-top:4px;">Audit completed ${new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})}</div></div>
+      </div>
+      ${issues ? `<div class="ws-card" style="margin-bottom:12px;"><div style="font-size:13px;font-weight:700;margin-bottom:10px;">🔴 Issues</div>${issues}</div>` : ''}
+      ${opportunities ? `<div class="ws-card" style="margin-bottom:12px;"><div style="font-size:13px;font-weight:700;margin-bottom:8px;">💡 Opportunities</div><ul style="padding-left:16px;">${opportunities}</ul></div>` : ''}
+      ${nextSteps ? `<div class="ws-card"><div style="font-size:13px;font-weight:700;margin-bottom:8px;">✅ Next Steps</div><ol style="padding-left:16px;">${nextSteps}</ol></div>` : ''}`;
+    document.getElementById('seo-last-audit').textContent = `Last audited: ${new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})}`;
+  } catch(e) {
+    resultEl.innerHTML = '<div style="color:var(--red);font-size:13px;padding:12px 0;">Audit failed. Please check your business info is saved and try again.</div>';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Run Local SEO Audit';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── SOCIAL PUBLISHING ────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let _socialPosts = [];
+let _socialAccounts = {};
+let _socialQueueFilter = 'all';
+
+async function socialLoad() {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  // Load accounts
+  try {
+    const resp = await fetch(`${WS_API}/api/social/accounts?workspaceId=${encodeURIComponent(wsId)}`);
+    if (resp.ok) {
+      const data = await resp.json();
+      _socialAccounts = data.accounts || {};
+      socialRenderPlatformCards();
+    }
+  } catch(e) {}
+  // Load posts
+  const queueEl = document.getElementById('social-queue-list');
+  queueEl.innerHTML = '<div style="text-align:center;padding:28px;color:var(--muted);font-size:13px;"><div class="ws-spinner"></div><div style="margin-top:10px;">Loading posts…</div></div>';
+  try {
+    const resp = await fetch(`${WS_API}/api/social/posts?workspaceId=${encodeURIComponent(wsId)}`);
+    if (resp.ok) {
+      const data = await resp.json();
+      _socialPosts = Array.isArray(data.posts) ? data.posts : [];
+    } else {
+      _socialPosts = [];
+    }
+  } catch(e) { _socialPosts = []; }
+  socialRenderQueue();
+}
+
+function socialRenderPlatformCards() {
+  const platforms = ['facebook','instagram','linkedin','twitter'];
+  platforms.forEach(p => {
+    const statusEl = document.getElementById(`social-status-${p}`);
+    if (!statusEl) return;
+    const acc = _socialAccounts[p];
+    if (acc && acc.connected) {
+      statusEl.innerHTML = `<span style="color:var(--green);">✅ Connected</span>${acc.account_name ? ` — ${acc.account_name}` : ''}`;
+    } else {
+      statusEl.textContent = 'Not connected';
+    }
+  });
+}
+
+async function socialConnect(platform) {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  try {
+    const resp = await fetch(`${WS_API}/api/social/auth/${platform}?workspaceId=${encodeURIComponent(wsId)}`);
+    if (!resp.ok) throw new Error('non-2xx');
+    const data = await resp.json();
+    if (data.url) {
+      const popup = window.open(data.url, 'socialOAuth', 'width=600,height=700');
+      window.addEventListener('message', function handler(e) {
+        if (e.data && e.data.type === 'social_oauth_success' && e.data.platform === platform) {
+          window.removeEventListener('message', handler);
+          popup && popup.close();
+          socialLoad();
+        }
+      });
+    } else {
+      alert(`OAuth for ${platform} is not configured yet.`);
+    }
+  } catch(e) {
+    alert(`Could not connect ${platform}. Please try again.`);
+  }
+}
+
+function socialTogglePlatform(platform) {
+  const checked = document.getElementById(`soc-ch-${platform}`).checked;
+  document.getElementById(`soc-platform-${platform}`).style.display = checked ? 'block' : 'none';
+}
+
+function socialToggleSchedule() {
+  const val = document.querySelector('input[name="soc-when"]:checked')?.value;
+  document.getElementById('soc-schedule-picker').style.display = val === 'schedule' ? 'block' : 'none';
+}
+
+function socialCountChars(platform) {
+  const text = document.getElementById(`soc-text-${platform}`)?.value || '';
+  const countEl = document.getElementById(`soc-count-${platform}`);
+  if (!countEl) return;
+  if (platform === 'twitter') {
+    countEl.textContent = `${text.length} / 280`;
+    countEl.className = `social-char-count${text.length > 280 ? ' over' : ''}`;
+  } else {
+    countEl.textContent = `${text.length} chars`;
+  }
+}
+
+async function socialSubmitPost(schedule) {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const platforms = ['facebook','instagram','linkedin','twitter'].filter(p => document.getElementById(`soc-ch-${p}`)?.checked);
+  if (!platforms.length) { alert('Select at least one platform'); return; }
+  const content = {};
+  platforms.forEach(p => { content[p] = document.getElementById(`soc-text-${p}`)?.value?.trim() || ''; });
+  const imageUrl   = document.getElementById('soc-image-url')?.value?.trim();
+  const scheduledAt = document.getElementById('soc-scheduled-at')?.value;
+  const payload = { workspaceId: wsId, platforms, content, image_url: imageUrl || null };
+  if (schedule && scheduledAt) payload.scheduled_at = new Date(scheduledAt).toISOString();
+  try {
+    const resp = await fetch(`${WS_API}/api/social/posts`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    });
+    if (!resp.ok) throw new Error('non-2xx');
+    const data = await resp.json();
+    if (!schedule && data.post_id) {
+      // Publish immediately
+      await fetch(`${WS_API}/api/social/publish`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ workspaceId: wsId, postId: data.post_id })
+      });
+    }
+    // Clear composer
+    platforms.forEach(p => {
+      const ta = document.getElementById(`soc-text-${p}`);
+      if (ta) ta.value = '';
+      const cb = document.getElementById(`soc-ch-${p}`);
+      if (cb) { cb.checked = false; }
+      socialTogglePlatform(p);
+    });
+    document.getElementById('soc-image-url').value = '';
+    socialLoad();
+  } catch(e) { alert('Failed to submit post. Please try again.'); }
+}
+
+function socialQueueFilter(filter, btn) {
+  _socialQueueFilter = filter;
+  document.querySelectorAll('.social-filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  socialRenderQueue();
+}
+
+function socialRenderQueue() {
+  const queueEl = document.getElementById('social-queue-list');
+  let posts = _socialPosts;
+  if (_socialQueueFilter !== 'all') posts = posts.filter(p => p.status === _socialQueueFilter);
+  if (!posts.length) {
+    queueEl.innerHTML = `<div style="text-align:center;padding:36px;color:var(--muted);font-size:13px;">No ${_socialQueueFilter === 'all' ? '' : _socialQueueFilter+' '}posts yet.</div>`;
+    return;
+  }
+  queueEl.innerHTML = posts.map(p => {
+    const status = p.status || 'draft';
+    const platforms = Array.isArray(p.platforms) ? p.platforms : [];
+    const platBadges = platforms.map(pl => `<span class="social-plat-badge ${pl}">${pl.charAt(0).toUpperCase()+pl.slice(1)}</span>`).join(' ');
+    const preview = Object.values(p.content || {}).join(' ').slice(0,60) || '(no content)';
+    const timeStr = p.scheduled_at
+      ? `Scheduled ${new Date(p.scheduled_at).toLocaleDateString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}`
+      : (p.published_at ? `Published ${new Date(p.published_at).toLocaleDateString('en-AU',{day:'numeric',month:'short'})}` : '');
+    return `<div class="social-post-item">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px;">${platBadges}</div>
+        <div style="font-size:12px;color:#444;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${preview.replace(/</g,'&lt;')}…</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px;">${timeStr}</div>
+      </div>
+      <span class="social-status-badge ${status}">${status.charAt(0).toUpperCase()+status.slice(1)}</span>
+      <div style="display:flex;gap:4px;flex-shrink:0;">
+        <button class="crm-action-btn" onclick="socialCancelPost('${p.id}')" title="Cancel">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function socialCancelPost(postId) {
+  if (!wsSession) return;
+  if (!confirm('Cancel this post?')) return;
+  try {
+    await fetch(`${WS_API}/api/social/posts`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ workspaceId: wsSession.workspaceId, id: postId, status: 'cancelled' })
+    });
+  } catch(e) {}
+  _socialPosts = _socialPosts.filter(p => p.id !== postId);
+  socialRenderQueue();
+}
+
+function socialOpenDraftModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'ws-modal-overlay';
+  overlay.id = 'social-draft-modal';
+  overlay.innerHTML = `<div class="ws-modal-box">
+    <button class="ws-modal-close" onclick="document.getElementById('social-draft-modal').remove()">✕</button>
+    <div class="ws-modal-title">✨ AI Draft Posts</div>
+    <div class="ws-modal-sub">Tell the AI what you want to post about and it will generate platform-specific copy.</div>
+    <label class="ws-field-label">What do you want to post about? *</label>
+    <textarea class="ws-field-textarea" id="draft-brief" placeholder="e.g. We're running a 20% off sale this weekend on all services. We want to drive urgency and sign-ups." style="min-height:80px;"></textarea>
+    <label class="ws-field-label">Tone</label>
+    <select class="ws-field-select" id="draft-tone">
+      <option value="professional">Professional</option>
+      <option value="casual">Casual</option>
+      <option value="witty">Witty</option>
+      <option value="urgent">Urgent</option>
+    </select>
+    <label class="ws-field-label">Platforms</label>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="checkbox" id="draft-ch-facebook" checked style="accent-color:var(--teal);"> Facebook</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="checkbox" id="draft-ch-instagram" checked style="accent-color:var(--teal);"> Instagram</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="checkbox" id="draft-ch-linkedin" checked style="accent-color:var(--teal);"> LinkedIn</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="checkbox" id="draft-ch-twitter" checked style="accent-color:var(--teal);"> Twitter/X</label>
+    </div>
+    <button class="ws-btn-primary" style="width:100%;" id="draft-gen-btn" onclick="socialGenerateDraft()">Generate Drafts</button>
+    <div id="draft-results" style="margin-top:16px;"></div>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function socialGenerateDraft() {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const brief = document.getElementById('draft-brief').value.trim();
+  if (!brief) { alert('Please describe what you want to post about'); return; }
+  const tone = document.getElementById('draft-tone').value;
+  const platforms = ['facebook','instagram','linkedin','twitter'].filter(p => document.getElementById(`draft-ch-${p}`)?.checked);
+  const btn = document.getElementById('draft-gen-btn');
+  const resultsEl = document.getElementById('draft-results');
+  btn.disabled = true; btn.textContent = 'Generating…';
+  resultsEl.innerHTML = '<div style="text-align:center;padding:20px;"><div class="ws-spinner"></div><div style="margin-top:8px;font-size:12px;color:var(--muted);">Drafting your posts…</div></div>';
+  try {
+    const resp = await fetch(`${WS_API}/api/social/draft`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ workspaceId: wsId, brief, tone, platforms })
+    });
+    if (!resp.ok) throw new Error('non-2xx');
+    const data = await resp.json();
+    const drafts = data.drafts || {};
+    resultsEl.innerHTML = platforms.map(p => `
+      <div style="margin-bottom:12px;">
+        <label class="ws-field-label">${p.charAt(0).toUpperCase()+p.slice(1)}</label>
+        <textarea class="ws-field-textarea" id="draft-result-${p}" style="min-height:80px;margin-bottom:0;">${(drafts[p]||'').replace(/</g,'&lt;')}</textarea>
+      </div>`).join('') +
+      `<button class="ws-btn-primary" style="width:100%;margin-top:8px;" onclick="socialUseDrafts()">Use These Drafts</button>`;
+  } catch(e) {
+    resultsEl.innerHTML = '<div style="color:var(--red);font-size:13px;">Failed to generate drafts. Please try again.</div>';
+  }
+  btn.disabled = false; btn.textContent = 'Generate Drafts';
+}
+
+function socialUseDrafts() {
+  const platforms = ['facebook','instagram','linkedin','twitter'];
+  platforms.forEach(p => {
+    const ta = document.getElementById(`draft-result-${p}`);
+    if (!ta) return;
+    const text = ta.value;
+    if (!text) return;
+    // Check the platform checkbox and set text in composer
+    const cb = document.getElementById(`soc-ch-${p}`);
+    if (cb) { cb.checked = true; socialTogglePlatform(p); }
+    const compTA = document.getElementById(`soc-text-${p}`);
+    if (compTA) compTA.value = text;
+    socialCountChars(p);
+  });
+  document.getElementById('social-draft-modal')?.remove();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// GEO / AI VISIBILITY
+// ══════════════════════════════════════════════════════════════════════════════
+
+let _geoLastResult = null;
+
+function geoLoad() {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  // Pre-fill brand name from workspace
+  const brandEl = document.getElementById('geo-brand-name');
+  if (brandEl && !brandEl.value) brandEl.value = wsSession.companyName || wsWorkspace?.name || '';
+  // Restore last result from localStorage
+  const stored = localStorage.getItem(`wsGeoResult_${wsId}`);
+  if (stored) {
+    try {
+      _geoLastResult = JSON.parse(stored);
+      geoRenderResults(_geoLastResult);
+    } catch(e) {}
+  }
+}
+
+async function geoRunAnalysis() {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const brandName   = document.getElementById('geo-brand-name').value.trim();
+  const website     = document.getElementById('geo-website').value.trim();
+  const competitors = document.getElementById('geo-competitors').value.trim();
+  const topics      = document.getElementById('geo-topics').value.trim();
+  if (!brandName) { alert('Please enter a brand name'); return; }
+
+  const btn = document.getElementById('geo-run-btn');
+  btn.disabled = true; btn.textContent = 'Analysing…';
+  document.getElementById('geo-loading').style.display = 'block';
+  document.getElementById('geo-empty').style.display = 'none';
+  document.getElementById('geo-results').style.display = 'none';
+  document.getElementById('geo-error').style.display = 'none';
+
+  try {
+    const prompt = `You are analysing AI search visibility for a brand. Brand: "${brandName}". Website: ${website || 'not provided'}. Competitors: ${competitors || 'none listed'}. Key topics/services: ${topics || 'not specified'}.
+
+Please respond with a JSON object only (no markdown, no extra text) with this exact structure:
+{
+  "score": <number 1-10>,
+  "summary": "<2-3 sentence plain text summary of AI visibility>",
+  "sample_responses": {
+    "chatgpt_style": "<a realistic 3-4 sentence response that ChatGPT might give when someone asks about ${brandName}>",
+    "perplexity_style": "<a realistic 3-4 sentence response that Perplexity might give about ${brandName}>"
+  },
+  "gaps": [
+    {"gap": "<gap description>", "fix": "<specific fix>", "priority": "high|medium|low"},
+    {"gap": "<gap description>", "fix": "<specific fix>", "priority": "high|medium|low"},
+    {"gap": "<gap description>", "fix": "<specific fix>", "priority": "high|medium|low"}
+  ],
+  "actions": [
+    "<specific actionable step 1>",
+    "<specific actionable step 2>",
+    "<specific actionable step 3>",
+    "<specific actionable step 4>",
+    "<specific actionable step 5>"
+  ]
+}`;
+
+    const res = await fetch(`${WS_API}/api/agent`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        agentId: 'raj',
+        messages: [{role:'user', content: prompt}],
+        workspaceId: wsId,
+        client: wsSession.companyName
+      })
+    });
+    const data = await res.json();
+    const raw = (data.content || '').trim();
+    // Extract JSON from response
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON in response');
+    const result = JSON.parse(jsonMatch[0]);
+    result.brandName = brandName;
+    result.analyzedAt = new Date().toISOString();
+    _geoLastResult = result;
+    localStorage.setItem(`wsGeoResult_${wsId}`, JSON.stringify(result));
+    geoRenderResults(result);
+  } catch(e) {
+    document.getElementById('geo-error').style.display = 'block';
+    document.getElementById('geo-error').textContent = 'Analysis failed — please check your connection and try again. (' + (e.message || 'unknown error') + ')';
+    document.getElementById('geo-empty').style.display = 'block';
+  } finally {
+    document.getElementById('geo-loading').style.display = 'none';
+    btn.disabled = false; btn.textContent = 'Run AI Visibility Analysis';
+  }
+}
+
+function geoRenderResults(result) {
+  if (!result) return;
+  document.getElementById('geo-empty').style.display = 'none';
+  document.getElementById('geo-results').style.display = 'block';
+
+  // Score ring
+  const score = result.score || 0;
+  const ring = document.getElementById('geo-score-ring');
+  ring.className = 'geo-score-ring ' + (score >= 7 ? 'high' : score >= 4 ? 'medium' : 'low');
+  document.getElementById('geo-score-val').textContent = score;
+
+  // Summary
+  document.getElementById('geo-summary').textContent = result.summary || '';
+
+  // Platform responses
+  const sr = result.sample_responses || {};
+  document.getElementById('geo-resp-chatgpt').textContent   = sr.chatgpt_style   || 'No data.';
+  document.getElementById('geo-resp-perplexity').textContent = sr.perplexity_style || 'No data.';
+
+  // Gaps
+  const gapsEl = document.getElementById('geo-gaps-list');
+  if (result.gaps && result.gaps.length) {
+    gapsEl.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;padding:6px 0 8px;border-bottom:1.5px solid var(--border);margin-bottom:4px;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);">Gap</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);">Fix</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);">Priority</div>
+    </div>` + result.gaps.map(g => `
+      <div class="geo-gap-row">
+        <div style="flex:1;">${g.gap || ''}</div>
+        <div style="flex:1;color:var(--muted);">${g.fix || ''}</div>
+        <div><span class="geo-gap-priority ${g.priority || 'medium'}">${(g.priority||'medium').charAt(0).toUpperCase()+(g.priority||'medium').slice(1)}</span></div>
+      </div>`).join('');
+  } else {
+    gapsEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--muted);font-size:13px;">No gaps identified.</div>';
+  }
+
+  // Actions checklist
+  const actEl = document.getElementById('geo-actions-list');
+  const wsId = wsSession?.workspaceId || '';
+  const checked = JSON.parse(localStorage.getItem(`wsGeoChecked_${wsId}`) || '{}');
+  if (result.actions && result.actions.length) {
+    actEl.innerHTML = result.actions.map((a, i) => `
+      <div class="geo-action-item">
+        <input type="checkbox" class="geo-action-check" id="geo-act-${i}" ${checked[i] ? 'checked' : ''} onchange="geoToggleAction(${i})">
+        <label for="geo-act-${i}" style="font-size:13px;color:var(--text);line-height:1.5;cursor:pointer;${checked[i] ? 'text-decoration:line-through;color:var(--muted);' : ''}">${a}</label>
+      </div>`).join('');
+  } else {
+    actEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--muted);font-size:13px;">No specific actions generated.</div>';
+  }
+
+  // Timestamp
+  if (result.analyzedAt) {
+    const d = new Date(result.analyzedAt);
+    document.getElementById('geo-last-run').textContent = 'Last analysed: ' + d.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  }
+}
+
+function geoToggleAction(idx) {
+  const wsId = wsSession?.workspaceId || '';
+  const checked = JSON.parse(localStorage.getItem(`wsGeoChecked_${wsId}`) || '{}');
+  const cb = document.getElementById(`geo-act-${idx}`);
+  checked[idx] = cb?.checked || false;
+  localStorage.setItem(`wsGeoChecked_${wsId}`, JSON.stringify(checked));
+  const lbl = cb?.nextElementSibling;
+  if (lbl) {
+    lbl.style.textDecoration = checked[idx] ? 'line-through' : '';
+    lbl.style.color = checked[idx] ? 'var(--muted)' : 'var(--text)';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CONTENT PIPELINE
+// ══════════════════════════════════════════════════════════════════════════════
+
+let _contentItems = [];
+let _contentSelected = null;
+let _contentBriefOutput = '';
+
+function contentLoad() {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const raw = localStorage.getItem(`wsContentQueue_${wsId}`);
+  _contentItems = raw ? JSON.parse(raw) : [];
+  contentRenderQueue();
+  contentRenderKeywords();
+}
+
+function contentSaveItems() {
+  if (!wsSession) return;
+  localStorage.setItem(`wsContentQueue_${wsSession.workspaceId}`, JSON.stringify(_contentItems));
+}
+
+function contentRenderQueue() {
+  const el = document.getElementById('content-queue-list');
+  if (!_contentItems.length) {
+    el.innerHTML = `<div style="text-align:center;padding:32px 16px;color:var(--muted);">
+      <div style="font-size:32px;margin-bottom:10px;">📝</div>
+      <div style="font-size:13px;">No content yet — create your first brief</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = _contentItems.map(item => `
+    <div class="content-queue-item ${_contentSelected === item.id ? 'selected' : ''}" onclick="contentSelect('${item.id}')">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${item.keyword || 'Untitled'}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${item.type || 'Blog Post'} · ${new Date(item.createdAt).toLocaleDateString('en-AU',{day:'numeric',month:'short'})}</div>
+      </div>
+      <span class="content-status ${item.status}">${item.status.charAt(0).toUpperCase()+item.status.slice(1)}</span>
+    </div>`).join('');
+}
+
+function contentNewItem() {
+  const id = 'cnt_' + Date.now();
+  const item = {
+    id, keyword: '', type: 'Blog Post', wordCount: '1200', goal: '', audience: '',
+    secondaryKeywords: '', status: 'brief', createdAt: new Date().toISOString(),
+    brief: '', article: ''
+  };
+  _contentItems.unshift(item);
+  contentSaveItems();
+  contentRenderQueue();
+  contentSelect(id);
+}
+
+function contentSelect(id) {
+  _contentSelected = id;
+  _contentBriefOutput = '';
+  contentRenderQueue();
+  const item = _contentItems.find(i => i.id === id);
+  if (!item) return;
+  const ws = document.getElementById('content-workspace');
+  ws.innerHTML = `
+    <div class="ws-card">
+      <div class="content-step-badge">Step 1 — Brief</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div>
+          <label class="ws-field-label">Target Keyword *</label>
+          <input class="ws-field-input" id="cnt-keyword" value="${(item.keyword||'').replace(/"/g,'&quot;')}" placeholder="e.g. local SEO for dentists">
+        </div>
+        <div>
+          <label class="ws-field-label">Secondary Keywords</label>
+          <input class="ws-field-input" id="cnt-secondary" value="${(item.secondaryKeywords||'').replace(/"/g,'&quot;')}" placeholder="e.g. dental SEO, dentist marketing">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div>
+          <label class="ws-field-label">Content Type</label>
+          <select class="ws-field-select" id="cnt-type">
+            <option ${item.type==='Blog Post'?'selected':''}>Blog Post</option>
+            <option ${item.type==='Landing Page'?'selected':''}>Landing Page</option>
+            <option ${item.type==='Pillar Page'?'selected':''}>Pillar Page</option>
+            <option ${item.type==='Product Page'?'selected':''}>Product Page</option>
+          </select>
+        </div>
+        <div>
+          <label class="ws-field-label">Word Count</label>
+          <select class="ws-field-select" id="cnt-wc">
+            <option ${item.wordCount==='500'?'selected':''}>500</option>
+            <option ${item.wordCount==='800'?'selected':''}>800</option>
+            <option ${item.wordCount==='1200'?'selected':''}>1200</option>
+            <option ${item.wordCount==='2000'?'selected':''}>2000</option>
+            <option ${item.wordCount==='3000+'?'selected':''}>3000+</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div>
+          <label class="ws-field-label">Business Goal</label>
+          <input class="ws-field-input" id="cnt-goal" value="${(item.goal||'').replace(/"/g,'&quot;')}" placeholder="e.g. Generate leads for dental implants">
+        </div>
+        <div>
+          <label class="ws-field-label">Target Audience</label>
+          <input class="ws-field-input" id="cnt-audience" value="${(item.audience||'').replace(/"/g,'&quot;')}" placeholder="e.g. Adults 35-60 in metro areas">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;">
+        <button class="ws-btn-primary" id="cnt-brief-btn" onclick="contentGenerateBrief('${id}')">Generate Brief with Jess</button>
+        <button class="ws-btn-secondary" onclick="contentDeleteItem('${id}')" style="color:var(--red);border-color:rgba(255,69,58,0.3);">Delete</button>
+      </div>
+      <div id="cnt-brief-loading" style="display:none;text-align:center;padding:20px;">
+        <div class="ws-spinner" style="margin:0 auto 10px;"></div>
+        <div style="font-size:13px;color:var(--muted);">Jess is writing your brief…</div>
+      </div>
+      ${item.brief ? `
+      <div style="margin-top:4px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px;">Brief Output</div>
+        <div class="content-doc-box" id="cnt-brief-output">${(item.brief||'').replace(/</g,'&lt;')}</div>
+        <div style="margin-top:12px;">
+          <div class="content-step-badge">Step 2 — Write</div>
+          <div style="display:flex;gap:10px;align-items:center;margin-top:10px;">
+            <button class="ws-btn-primary" id="cnt-write-btn" onclick="contentWriteArticle('${id}')">Write Full Article</button>
+            <span style="font-size:12px;color:var(--muted);">30–60 seconds</span>
+          </div>
+          <div id="cnt-write-loading" style="display:none;text-align:center;padding:20px;">
+            <div class="ws-spinner" style="margin:0 auto 10px;"></div>
+            <div style="font-size:13px;color:var(--muted);">Jess is writing… this takes 30–60 seconds</div>
+          </div>
+          ${item.article ? `
+          <div style="margin-top:12px;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px;">Article</div>
+            <div class="content-doc-box" id="cnt-article-output">${(item.article||'').replace(/</g,'&lt;')}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">
+              <span style="font-size:12px;color:var(--muted);" id="cnt-word-count">${(item.article||'').split(/\s+/).filter(Boolean).length} words</span>
+              <button class="ws-btn-secondary" style="font-size:12px;" onclick="contentCopyArticle('${id}')">Copy to Clipboard</button>
+              <button class="ws-btn-secondary" style="font-size:12px;" onclick="contentExportArticle('${id}')">Export .txt</button>
+              ${item.status !== 'ready' && item.status !== 'published' ? `<button class="ws-btn-primary" style="font-size:12px;" onclick="contentMarkReady('${id}')">✓ Mark as Ready</button>` : `<span style="color:var(--green);font-size:12px;font-weight:700;">✓ Ready</span>`}
+            </div>
+          </div>` : ''}
+        </div>
+      </div>` : ''}
+    </div>`;
+}
+
+async function contentGenerateBrief(id) {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const item = _contentItems.find(i => i.id === id);
+  if (!item) return;
+  const keyword    = document.getElementById('cnt-keyword')?.value?.trim() || '';
+  const secondary  = document.getElementById('cnt-secondary')?.value?.trim() || '';
+  const type       = document.getElementById('cnt-type')?.value || 'Blog Post';
+  const wc         = document.getElementById('cnt-wc')?.value || '1200';
+  const goal       = document.getElementById('cnt-goal')?.value?.trim() || '';
+  const audience   = document.getElementById('cnt-audience')?.value?.trim() || '';
+  if (!keyword) { alert('Please enter a target keyword'); return; }
+  // Save fields
+  Object.assign(item, { keyword, secondaryKeywords: secondary, type, wordCount: wc, goal, audience });
+  contentSaveItems(); contentRenderQueue();
+
+  const btn = document.getElementById('cnt-brief-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+  document.getElementById('cnt-brief-loading').style.display = 'block';
+
+  const msg = `Generate a full content brief for: ${keyword}. Content type: ${type}. Target word count: ${wc}. Business goal: ${goal || 'not specified'}. Target audience: ${audience || 'not specified'}. Secondary keywords: ${secondary || 'none'}. Include: target keyword, H2 structure with suggested headings, internal link suggestions, UTM-tagged CTA, and a meta description draft.`;
+  try {
+    const res = await fetch(`${WS_API}/api/agent`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ agentId: 'jess', messages: [{role:'user', content: msg}], workspaceId: wsId, client: wsSession.companyName })
+    });
+    const data = await res.json();
+    item.brief = data.content || '';
+    item.status = 'brief';
+    contentSaveItems();
+    contentSelect(id);
+  } catch(e) {
+    alert('Brief generation failed. Please try again.');
+    if (btn) { btn.disabled = false; btn.textContent = 'Generate Brief with Jess'; }
+    document.getElementById('cnt-brief-loading').style.display = 'none';
+  }
+}
+
+async function contentWriteArticle(id) {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const item = _contentItems.find(i => i.id === id);
+  if (!item || !item.brief) return;
+  const btn = document.getElementById('cnt-write-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Writing…'; }
+  document.getElementById('cnt-write-loading').style.display = 'block';
+  const msg = `Now write the complete, publish-ready article based on this brief: ${item.brief}\n\nWrite the full piece, not an outline. Use proper headings, engaging introduction, and a clear CTA at the end. Aim for ${item.wordCount} words.`;
+  try {
+    const res = await fetch(`${WS_API}/api/agent`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ agentId: 'jess', messages: [{role:'user', content: msg}], workspaceId: wsId, client: wsSession.companyName })
+    });
+    const data = await res.json();
+    item.article = data.content || '';
+    item.status = 'writing';
+    contentSaveItems();
+    contentSelect(id);
+  } catch(e) {
+    alert('Article generation failed. Please try again.');
+    if (btn) { btn.disabled = false; btn.textContent = 'Write Full Article'; }
+    document.getElementById('cnt-write-loading').style.display = 'none';
+  }
+}
+
+function contentMarkReady(id) {
+  const item = _contentItems.find(i => i.id === id);
+  if (!item) return;
+  item.status = 'ready';
+  contentSaveItems();
+  contentRenderQueue();
+  contentSelect(id);
+}
+
+function contentDeleteItem(id) {
+  if (!confirm('Delete this content item?')) return;
+  _contentItems = _contentItems.filter(i => i.id !== id);
+  contentSaveItems();
+  _contentSelected = null;
+  contentRenderQueue();
+  document.getElementById('content-workspace').innerHTML = `<div class="ws-card" style="text-align:center;padding:48px 24px;">
+    <div style="font-size:40px;margin-bottom:14px;">✍️</div>
+    <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">Content Workspace</div>
+    <div style="font-size:13px;color:var(--muted);">Select a content item or create a new one to get started.</div>
+  </div>`;
+}
+
+function contentCopyArticle(id) {
+  const item = _contentItems.find(i => i.id === id);
+  if (!item || !item.article) return;
+  navigator.clipboard.writeText(item.article).then(() => { alert('Article copied to clipboard!'); }).catch(() => { alert('Copy failed — please select and copy manually.'); });
+}
+
+function contentExportArticle(id) {
+  const item = _contentItems.find(i => i.id === id);
+  if (!item || !item.article) return;
+  const blob = new Blob([item.article], {type:'text/plain'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = (item.keyword || 'article').replace(/\s+/g,'-').toLowerCase() + '.txt';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function contentRenderKeywords() {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const kws = JSON.parse(localStorage.getItem(`wsKeywords_${wsId}`) || '[]');
+  const tbody = document.getElementById('kw-tracker-body');
+  if (!tbody) return;
+  tbody.innerHTML = kws.map((k, i) => `
+    <tr>
+      <td><input class="kw-table" style="width:100%;" value="${(k.keyword||'').replace(/"/g,'&quot;')}" onblur="contentUpdateKeyword(${i},'keyword',this.value)"></td>
+      <td><input class="kw-table" style="width:100%;" value="${(k.url||'').replace(/"/g,'&quot;')}" onblur="contentUpdateKeyword(${i},'url',this.value)"></td>
+      <td style="text-align:center;"><input class="kw-table" style="width:50px;text-align:center;" value="${k.position||''}" onblur="contentUpdateKeyword(${i},'position',this.value)"></td>
+      <td style="text-align:center;font-weight:700;font-size:12px;color:${k.change>0?'var(--green)':k.change<0?'var(--red)':'var(--muted)'}">${k.change>0?'↑'+k.change:k.change<0?'↓'+Math.abs(k.change):'—'}</td>
+    </tr>`).join('') + `<tr><td colspan="4" style="padding:6px 0;"><button style="font-size:11px;color:var(--teal);background:none;border:none;cursor:pointer;font-family:inherit;" onclick="contentAddKeyword()">+ Add row</button></td></tr>`;
+}
+
+function contentAddKeyword() {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const kws = JSON.parse(localStorage.getItem(`wsKeywords_${wsId}`) || '[]');
+  kws.push({ keyword:'', url:'', position:'', change:0, updated: new Date().toISOString() });
+  localStorage.setItem(`wsKeywords_${wsId}`, JSON.stringify(kws));
+  contentRenderKeywords();
+}
+
+function contentUpdateKeyword(idx, field, val) {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const kws = JSON.parse(localStorage.getItem(`wsKeywords_${wsId}`) || '[]');
+  if (!kws[idx]) return;
+  kws[idx][field] = val;
+  kws[idx].updated = new Date().toISOString();
+  localStorage.setItem(`wsKeywords_${wsId}`, JSON.stringify(kws));
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SOCIAL LISTENING
+// ══════════════════════════════════════════════════════════════════════════════
+
+let _listeningTab = 'mentions';
+
+function listeningLoad() {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const settings = JSON.parse(localStorage.getItem(`wsListeningSettings_${wsId}`) || '{}');
+  const brandEl = document.getElementById('listening-brand');
+  const kwEl    = document.getElementById('listening-keywords');
+  const compEl  = document.getElementById('listening-competitors');
+  if (brandEl) brandEl.value = settings.brand || wsSession.companyName || '';
+  if (kwEl)    kwEl.value    = settings.keywords || '';
+  if (compEl)  compEl.value  = settings.competitors || '';
+  // Restore alerts
+  const alerts = JSON.parse(localStorage.getItem(`wsListeningAlerts_${wsId}`) || '{}');
+  if (alerts.email) { const el = document.getElementById('alert-email'); if (el) el.value = alerts.email; }
+  if (alerts.frequency) { const el = document.getElementById('alert-frequency'); if (el) el.value = alerts.frequency; }
+  if (alerts.brand !== undefined) { const el = document.getElementById('alert-brand'); if (el) el.checked = alerts.brand; }
+  if (alerts.competitor !== undefined) { const el = document.getElementById('alert-competitor'); if (el) el.checked = alerts.competitor; }
+  if (alerts.keyword !== undefined) { const el = document.getElementById('alert-keyword'); if (el) el.checked = alerts.keyword; }
+}
+
+function listeningSaveSettings() {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const settings = {
+    brand:       document.getElementById('listening-brand')?.value?.trim() || '',
+    keywords:    document.getElementById('listening-keywords')?.value?.trim() || '',
+    competitors: document.getElementById('listening-competitors')?.value?.trim() || ''
+  };
+  localStorage.setItem(`wsListeningSettings_${wsId}`, JSON.stringify(settings));
+  const toast = document.getElementById('listening-saved-toast');
+  if (toast) { toast.style.display = 'inline'; setTimeout(() => { toast.style.display = 'none'; }, 2000); }
+}
+
+function listeningSetTab(tab, el) {
+  _listeningTab = tab;
+  document.querySelectorAll('.listening-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('listening-tab-mentions').style.display      = tab === 'mentions'      ? 'block' : 'none';
+  document.getElementById('listening-tab-opportunities').style.display = tab === 'opportunities'  ? 'block' : 'none';
+  document.getElementById('listening-tab-alerts').style.display        = tab === 'alerts'         ? 'block' : 'none';
+}
+
+async function listeningSimulateMentions() {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const settings = JSON.parse(localStorage.getItem(`wsListeningSettings_${wsId}`) || '{}');
+  const brandName = settings.brand || wsSession.companyName || 'the brand';
+  const keywords  = settings.keywords || '';
+  const btn = document.getElementById('listening-sim-btn');
+  const loadEl = document.getElementById('listening-mentions-loading');
+  const listEl = document.getElementById('listening-mentions-list');
+  btn.disabled = true; btn.textContent = 'Simulating…';
+  loadEl.style.display = 'block';
+  listEl.style.display = 'none';
+
+  const prompt = `Simulate 5 realistic social media mentions for a brand called "${brandName}" using keywords: ${keywords || 'general business'}. For each mention return a JSON array element with: platform (reddit|twitter|linkedin), snippet (realistic post text, 1-3 sentences), sentiment (positive|neutral|negative), action (short recommended action for the brand). Return only a JSON array, no extra text.`;
+  try {
+    const res = await fetch(`${WS_API}/api/agent`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ agentId:'cleo', messages:[{role:'user',content:prompt}], workspaceId:wsId, client:wsSession.companyName })
+    });
+    const data = await res.json();
+    const raw = (data.content || '').trim();
+    const arrMatch = raw.match(/\[[\s\S]*\]/);
+    if (!arrMatch) throw new Error('No JSON array');
+    const mentions = JSON.parse(arrMatch[0]);
+    listEl.innerHTML = mentions.map((m, i) => `
+      <div class="listening-mention-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+          <span class="listening-platform-badge ${m.platform||'twitter'}">${(m.platform||'twitter').charAt(0).toUpperCase()+(m.platform||'twitter').slice(1)}</span>
+          <span class="listening-sentiment ${m.sentiment||'neutral'}">${(m.sentiment||'neutral').charAt(0).toUpperCase()+(m.sentiment||'neutral').slice(1)}</span>
+        </div>
+        <div style="font-size:13px;color:#333;line-height:1.6;margin-bottom:10px;">"${(m.snippet||'').replace(/</g,'&lt;')}"</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <div style="font-size:11px;color:var(--muted);">💡 ${(m.action||'').replace(/</g,'&lt;')}</div>
+          <button class="crm-action-btn" onclick="listeningDraftResponse(${i}, \`${(m.snippet||'').replace(/`/g,"'").replace(/</g,'&lt;')}\`, '${m.platform||'twitter'}')">Draft Response</button>
+        </div>
+        <div id="listening-resp-${i}" style="margin-top:10px;display:none;"></div>
+      </div>`).join('');
+    listEl.style.display = 'block';
+  } catch(e) {
+    listEl.innerHTML = '<div style="color:var(--red);font-size:13px;padding:16px;">Failed to simulate mentions. Please try again.</div>';
+    listEl.style.display = 'block';
+  } finally {
+    loadEl.style.display = 'none';
+    btn.disabled = false; btn.textContent = 'Simulate Mentions';
+  }
+}
+
+async function listeningDraftResponse(idx, mentionText, platform) {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const respEl = document.getElementById(`listening-resp-${idx}`);
+  if (!respEl) return;
+  respEl.style.display = 'block';
+  respEl.innerHTML = '<div class="ws-spinner" style="display:inline-block;vertical-align:middle;"></div> <span style="font-size:12px;color:var(--muted);">Drafting response…</span>';
+  const prompt = `Draft a professional, brand-appropriate response to this ${platform} mention: "${mentionText}". Keep it concise, friendly, and on-brand. 1-3 sentences maximum.`;
+  try {
+    const res = await fetch(`${WS_API}/api/agent`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ agentId:'cleo', messages:[{role:'user',content:prompt}], workspaceId:wsId, client:wsSession.companyName })
+    });
+    const data = await res.json();
+    const draft = (data.content || '').trim();
+    respEl.innerHTML = `
+      <div style="background:rgba(28,58,46,0.05);border:1.5px solid rgba(28,58,46,0.15);border-radius:10px;padding:12px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--teal);margin-bottom:6px;">Suggested Response</div>
+        <textarea style="width:100%;border:none;background:transparent;font-size:13px;font-family:inherit;resize:vertical;outline:none;color:var(--text);line-height:1.55;" rows="3">${draft.replace(/</g,'&lt;')}</textarea>
+        <button class="crm-action-btn" onclick="listeningCopyResponse(${idx})" style="margin-top:6px;">Copy</button>
+      </div>`;
+  } catch(e) {
+    respEl.innerHTML = '<div style="font-size:12px;color:var(--red);">Draft failed — please try again.</div>';
+  }
+}
+
+function listeningCopyResponse(idx) {
+  const respEl = document.getElementById(`listening-resp-${idx}`);
+  const ta = respEl?.querySelector('textarea');
+  if (!ta) return;
+  navigator.clipboard.writeText(ta.value).then(() => { alert('Response copied!'); });
+}
+
+async function listeningFindOpportunities() {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const settings = JSON.parse(localStorage.getItem(`wsListeningSettings_${wsId}`) || '{}');
+  const brandName   = settings.brand || wsSession.companyName || 'the brand';
+  const keywords    = settings.keywords || '';
+  const competitors = settings.competitors || '';
+  const btn = document.getElementById('listening-opp-btn');
+  const loadEl = document.getElementById('listening-opp-loading');
+  const listEl = document.getElementById('listening-opp-list');
+  btn.disabled = true; btn.textContent = 'Finding…';
+  loadEl.style.display = 'block';
+  listEl.style.display = 'none';
+
+  const prompt = `Identify 4 content and engagement opportunities for a brand called "${brandName}". Their keywords: ${keywords||'general business'}. Their competitors: ${competitors||'none listed'}. For each opportunity return a JSON array element with: platform (string), opportunity (1-2 sentence description), action (what the brand should do, 1 sentence), effort (low|medium|high). Return only a JSON array, no extra text.`;
+  try {
+    const res = await fetch(`${WS_API}/api/agent`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ agentId:'sarah', messages:[{role:'user',content:prompt}], workspaceId:wsId, client:wsSession.companyName })
+    });
+    const data = await res.json();
+    const raw = (data.content || '').trim();
+    const arrMatch = raw.match(/\[[\s\S]*\]/);
+    if (!arrMatch) throw new Error('No JSON array');
+    const opps = JSON.parse(arrMatch[0]);
+    listEl.innerHTML = opps.map(o => `
+      <div class="listening-opp-card">
+        <div style="width:40px;height:40px;border-radius:10px;background:rgba(28,58,46,0.08);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">💡</div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+            <span style="font-size:12px;font-weight:700;color:var(--text);">${(o.platform||'').replace(/</g,'&lt;')}</span>
+            <span class="listening-effort ${o.effort||'medium'}">${(o.effort||'medium').charAt(0).toUpperCase()+(o.effort||'medium').slice(1)} effort</span>
+          </div>
+          <div style="font-size:13px;color:#333;line-height:1.55;margin-bottom:6px;">${(o.opportunity||'').replace(/</g,'&lt;')}</div>
+          <div style="font-size:12px;color:var(--teal);font-weight:600;">→ ${(o.action||'').replace(/</g,'&lt;')}</div>
+        </div>
+      </div>`).join('');
+    listEl.style.display = 'block';
+  } catch(e) {
+    listEl.innerHTML = '<div style="color:var(--red);font-size:13px;padding:16px;">Failed to find opportunities. Please try again.</div>';
+    listEl.style.display = 'block';
+  } finally {
+    loadEl.style.display = 'none';
+    btn.disabled = false; btn.textContent = 'Find Opportunities';
+  }
+}
+
+function listeningSaveAlerts() {
+  if (!wsSession) return;
+  const wsId = wsSession.workspaceId;
+  const alerts = {
+    email:      document.getElementById('alert-email')?.value?.trim() || '',
+    frequency:  document.getElementById('alert-frequency')?.value || 'daily',
+    brand:      document.getElementById('alert-brand')?.checked ?? true,
+    competitor: document.getElementById('alert-competitor')?.checked ?? false,
+    keyword:    document.getElementById('alert-keyword')?.checked ?? false
+  };
+  localStorage.setItem(`wsListeningAlerts_${wsId}`, JSON.stringify(alerts));
+  const toast = document.getElementById('alerts-saved-toast');
+  if (toast) { toast.style.display = 'inline'; setTimeout(() => { toast.style.display = 'none'; }, 2000); }
 }
 </script>
 </body>
