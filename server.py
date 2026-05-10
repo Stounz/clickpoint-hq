@@ -419,6 +419,52 @@ def _auto_migrate():
             "type text not null,detail text default '',"
             "timestamp timestamptz default now()"
         ),
+        'crm_contacts': (
+            "id bigserial primary key,"
+            "workspace_id text not null,name text not null,email text,phone text,"
+            "company text,title text,tags text[],notes text,"
+            "deal_stage text default 'prospect',"
+            "deal_value numeric,ai_score int,next_action text,"
+            "last_contact timestamptz,created_at timestamptz default now()"
+        ),
+        'crm_activities': (
+            "id bigserial primary key,"
+            "workspace_id text not null,contact_id bigint,"
+            "type text,summary text,created_at timestamptz default now()"
+        ),
+        'reputation_reviews': (
+            "id bigserial primary key,"
+            "workspace_id text not null,platform text not null,"
+            "reviewer_name text,rating int,content text,review_date text,"
+            "response text,status text default 'pending',external_id text,"
+            "created_at timestamptz default now()"
+        ),
+        'local_listings': (
+            "id bigserial primary key,"
+            "workspace_id text not null,business_name text,address text,"
+            "city text,state text,postcode text,country text default 'AU',"
+            "phone text,website text,categories text[],description text,"
+            "hours jsonb default '{}',google_place_id text,"
+            "listing_status jsonb default '{}',last_audit text,"
+            "updated_at timestamptz default now()"
+        ),
+        'social_accounts': (
+            "id bigserial primary key,"
+            "workspace_id text not null,platform text not null,"
+            "account_name text,account_id text,page_id text,"
+            "encrypted_token text,token_type text default 'page',"
+            "expires_at timestamptz,status text default 'connected',"
+            "created_at timestamptz default now()"
+        ),
+        'social_posts': (
+            "id bigserial primary key,"
+            "workspace_id text not null,platforms text[] not null,"
+            "content text not null,media_urls text[],"
+            "scheduled_at timestamptz,published_at timestamptz,"
+            "status text default 'draft',"
+            "platform_ids jsonb default '{}',error text,"
+            "created_by text,created_at timestamptz default now()"
+        ),
     }
 
     hdrs = {'apikey': SUPABASE_SERVICE_KEY, 'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
