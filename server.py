@@ -465,6 +465,69 @@ def _auto_migrate():
             "platform_ids jsonb default '{}',error text,"
             "created_by text,created_at timestamptz default now()"
         ),
+        # ── Auth / access tables ─────────────────────────────────────────────
+        'workspace_access': (
+            "id bigserial primary key,"
+            "workspace_id text not null,company_name text not null,"
+            "contact_name text default '',email text not null,"
+            "access_code text not null,partner_id text default null,"
+            "plan text default 'starter',active boolean default true,"
+            "last_login timestamptz,created_at timestamptz default now()"
+        ),
+        'partner_accounts': (
+            "id bigserial primary key,"
+            "partner_id text unique not null,name text not null,"
+            "agency_name text default '',email text unique not null,"
+            "password_hash text not null,website text default '',"
+            "commission_rate numeric default 0.20,"
+            "active boolean default true,created_at timestamptz default now()"
+        ),
+        'partner_reset_tokens': (
+            "id bigserial primary key,"
+            "email text not null,token text not null,"
+            "expires_at timestamptz not null,"
+            "used boolean default false,created_at timestamptz default now()"
+        ),
+        'portal_access': (
+            "id bigserial primary key,"
+            "client text not null,email text not null,"
+            "access_code text not null,workspace_id text default null,"
+            "active boolean default true,last_login timestamptz,"
+            "created_at timestamptz default now()"
+        ),
+        'agent_memories': (
+            "id bigserial primary key,"
+            "agent_key text not null,client text not null default 'General',"
+            "memory text not null,importance int default 5,"
+            "created_at timestamptz default now()"
+        ),
+        'client_reports': (
+            "id bigserial primary key,"
+            "client text not null,workspace_id text,"
+            "period text not null,health_score numeric,health_label text,"
+            "report_data jsonb default '{}',"
+            "generated_at timestamptz default now(),"
+            "status text default 'draft'"
+        ),
+        'integration_credentials': (
+            "id bigserial primary key,"
+            "integration_id text not null unique,"
+            "workspace_id text,platform text not null,"
+            "encrypted_token text not null,token_type text default 'oauth',"
+            "expires_at timestamptz,created_at timestamptz default now()"
+        ),
+        'platform_settings': (
+            "key text primary key,value text not null,"
+            "updated_at timestamptz default now()"
+        ),
+        'hq_messages': (
+            "id bigserial primary key,"
+            "thread_id text not null default gen_random_uuid()::text,"
+            "from_role text not null,from_email text not null,"
+            "partner_id text,subject text default '',"
+            "body text not null,read boolean default false,"
+            "created_at timestamptz default now()"
+        ),
     }
 
     hdrs = {'apikey': SUPABASE_SERVICE_KEY, 'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
@@ -1919,7 +1982,9 @@ class AgentHandler(BaseHTTPRequestHandler):
                               '/api/integrations/connect', '/api/integrations/disconnect'],
             }).encode())
         elif self.path == '/api/env-check':
-            # Diagnostic — shows WHICH vars are set (booleans only, no values)
+            # Diagnostic — admin-only, shows WHICH vars are set (booleans only, no values)
+            if not self._is_admin():
+                self._json(403, {'error': 'Admin credentials required'}); return
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.send_cors_headers()
@@ -1948,15 +2013,23 @@ class AgentHandler(BaseHTTPRequestHandler):
         elif self.path.startswith('/api/portal'):
             self._handle_portal_get()
         elif self.path == '/api/workspaces':
+            if not self._is_admin():
+                self._json(403, {'error': 'Admin credentials required'}); return
             self._handle_workspaces_list()
         elif self.path == '/api/admin/migrate':
+            if not self._is_admin():
+                self._json(403, {'error': 'Admin credentials required'}); return
             self._handle_admin_migrate()
         elif self.path.startswith('/api/partner/clients'):
             self._handle_partner_clients()
         elif self.path.startswith('/api/partner/summary'):
             self._handle_partner_summary()
+        elif self.path.startswith('/api/partner/verify-reset'):
+            self._handle_partner_verify_reset()
         elif self.path.startswith('/api/partner/escalations'):
             self._handle_partner_escalations_get()
+        elif self.path.startswith('/api/hq/messages'):
+            self._handle_hq_messages_get()
         elif self.path.startswith('/api/escalation'):
             self._handle_workspace_escalations_get()
         elif self.path.startswith('/api/campaigns'):
@@ -2018,7 +2091,8 @@ class AgentHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         ip = self._client_ip()
         _auth_paths = {'/api/hq/auth', '/api/portal/auth', '/api/workspace/auth',
-                       '/api/partner/register', '/api/partner/forgot-password'}
+                       '/api/partner/register', '/api/partner/forgot-password',
+                       '/api/partner/reset-password', '/api/partner/verify-reset'}
         if self.path in _auth_paths:
             if not _login_limiter.allow(f'{ip}:{self.path}'):
                 self._error(429, 'Too many requests — please wait before trying again.'); return
@@ -2031,6 +2105,8 @@ class AgentHandler(BaseHTTPRequestHandler):
         elif self.path == '/api/chain':
             self._handle_chain()
         elif self.path == '/api/agents/save':
+            if not self._is_admin():
+                self._json(403, {'error': 'Admin credentials required'}); return
             self._handle_agents_save()
         elif self.path == '/api/metrics/fetch':
             self._handle_metrics_fetch()
@@ -2074,6 +2150,10 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_partner_register()
         elif self.path == '/api/partner/forgot-password':
             self._handle_partner_forgot_password()
+        elif self.path == '/api/partner/reset-password':
+            self._handle_partner_reset_password()
+        elif self.path == '/api/hq/message':
+            self._handle_hq_message_post()
         elif self.path == '/api/workspace/resend-code':
             self._handle_workspace_resend_code()
         elif self.path == '/api/campaign/request':
@@ -3317,7 +3397,7 @@ class AgentHandler(BaseHTTPRequestHandler):
         })
 
     def _handle_partner_forgot_password(self):
-        """Send password reset instructions to a partner email."""
+        """Send a real password-reset link to a partner email (token stored in DB)."""
         try:
             body = self._read_body()
         except Exception:
@@ -3325,9 +3405,54 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         email = body.get('email', '').strip().lower()
         if not email:
-            self._json(200, {'ok': True}); return  # Silent — don't reveal anything
+            self._json(200, {'ok': True}); return  # Silent
 
-        reset_html = f"""<!DOCTYPE html>
+        # Verify this email has a partner account before issuing a token
+        account_exists = False
+        if SUPABASE_URL and SUPABASE_SERVICE_KEY:
+            try:
+                import urllib.parse as _up_fp
+                qurl = (f"{SUPABASE_URL}/rest/v1/partner_accounts"
+                        f"?email=eq.{_up_fp.quote(email)}&active=eq.true&select=id&limit=1")
+                req = urllib.request.Request(qurl, headers={
+                    'apikey': SUPABASE_SERVICE_KEY,
+                    'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                })
+                with urllib.request.urlopen(req, timeout=6) as r:
+                    rows = json.loads(r.read())
+                account_exists = bool(rows)
+            except Exception as ex:
+                print(f'  ⚠️  forgot-password DB check: {ex}')
+        else:
+            account_exists = True  # Dev mode — always allow
+
+        if account_exists and SUPABASE_URL and SUPABASE_SERVICE_KEY:
+            import secrets as _sec
+            import datetime as _dt
+            token = _sec.token_urlsafe(32)
+            expires = (_dt.datetime.utcnow() + _dt.timedelta(hours=2)).isoformat() + 'Z'
+            try:
+                import urllib.parse as _up_fp2
+                # Expire any existing unused tokens for this email
+                del_url = (f"{SUPABASE_URL}/rest/v1/partner_reset_tokens"
+                           f"?email=eq.{_up_fp2.quote(email)}&used=eq.false")
+                del_req = urllib.request.Request(del_url, method='DELETE', headers={
+                    'apikey': SUPABASE_SERVICE_KEY,
+                    'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                    'Prefer': 'return=minimal',
+                })
+                urllib.request.urlopen(del_req, timeout=5)
+                # Store new token
+                _supabase_req('POST', 'partner_reset_tokens', {
+                    'email': email, 'token': token, 'expires_at': expires
+                }, service_role=True)
+            except Exception as ex:
+                print(f'  ⚠️  forgot-password token store: {ex}')
+                self._json(200, {'ok': True}); return
+
+            base_url = os.getenv('APP_BASE_URL', 'https://platform.clickpointconsulting.com.au')
+            reset_link = f"{base_url}/partner.html?action=reset&token={token}"
+            reset_html = f"""<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#F5F4EF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F4EF;padding:40px 20px;">
@@ -3335,22 +3460,26 @@ class AgentHandler(BaseHTTPRequestHandler):
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
   <tr><td style="background:#1C3A2E;padding:28px 36px;">
     <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:8px;">ClickPoint Partner Network</div>
-    <div style="font-size:22px;font-weight:800;color:#ffffff;margin-bottom:6px;">Password Reset Request</div>
+    <div style="font-size:22px;font-weight:800;color:#ffffff;margin-bottom:6px;">Reset Your Password</div>
   </td></tr>
   <tr><td style="padding:32px 36px;">
     <p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 20px;">Hi,</p>
     <p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 24px;">
       We received a password reset request for the partner account associated with <strong>{email}</strong>.
-      A member of our team will be in touch shortly to verify your identity and reset your access.
-    </p>
-    <p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 24px;">
-      If you didn't request this, you can safely ignore this email — your account remains secure.
+      Click the button below to set a new password — this link expires in <strong>2 hours</strong>.
     </p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
       <tr><td align="center">
-        <a href="https://platform.clickpointconsulting.com.au/partner.html" style="display:inline-block;background:#D4622A;color:#ffffff;text-decoration:none;padding:15px 36px;border-radius:12px;font-weight:700;font-size:15px;">Go to Partner Portal →</a>
+        <a href="{reset_link}" style="display:inline-block;background:#D4622A;color:#ffffff;text-decoration:none;padding:15px 36px;border-radius:12px;font-weight:700;font-size:15px;">Reset Password →</a>
       </td></tr>
     </table>
+    <p style="font-size:13px;color:#999;line-height:1.6;">
+      If the button doesn't work, copy this link:<br>
+      <a href="{reset_link}" style="color:#D4622A;word-break:break-all;">{reset_link}</a>
+    </p>
+    <p style="font-size:13px;color:#aaa;line-height:1.6;margin-top:20px;">
+      If you didn't request this, you can safely ignore this email — your account remains secure.
+    </p>
   </td></tr>
   <tr><td style="background:#F5F4EF;padding:20px 36px;border-top:1px solid #E2E1DB;">
     <div style="font-size:11px;color:#bbb;text-align:center;">ClickPoint Consulting · Partner Network</div>
@@ -3359,16 +3488,119 @@ class AgentHandler(BaseHTTPRequestHandler):
 </td></tr>
 </table>
 </body></html>"""
+            _send_email(email, 'ClickPoint — Reset your partner portal password', reset_html)
+            print(f'  🔑 Partner reset token issued for {email}')
+        elif not account_exists:
+            print(f'  ⚠️  forgot-password: no account for {email} — silent skip')
 
-        _send_email(email, 'ClickPoint — Password reset request received', reset_html)
-        # Notify HQ so team can action manually
-        notify_email = _ENV.get('NOTIFY_EMAIL', '')
-        if notify_email:
-            _send_email(notify_email, f'[ClickPoint] Partner password reset request — {email}',
-                        f'<p>Password reset requested for partner account: <strong>{email}</strong></p><p>Please verify and reset their access via the partner portal.</p>')
-
-        print(f'  🔑 Partner forgot-password: {email}')
         self._json(200, {'ok': True})
+
+    def _handle_partner_verify_reset(self):
+        """GET /api/partner/verify-reset?token=XXX — validate a reset token."""
+        import urllib.parse as _up_vr
+        qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        token = qs.get('token', [None])[0]
+        if not token:
+            self._json(200, {'valid': False, 'error': 'Missing token'}); return
+
+        if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+            self._json(200, {'valid': True, 'demo': True}); return
+
+        try:
+            import datetime as _dt
+            qurl = (f"{SUPABASE_URL}/rest/v1/partner_reset_tokens"
+                    f"?token=eq.{_up_vr.quote(token)}&used=eq.false&select=email,expires_at&limit=1")
+            req = urllib.request.Request(qurl, headers={
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            })
+            with urllib.request.urlopen(req, timeout=6) as r:
+                rows = json.loads(r.read())
+            if not rows:
+                self._json(200, {'valid': False, 'error': 'Invalid or expired token'}); return
+            row = rows[0]
+            expires_at = row.get('expires_at', '')
+            try:
+                exp = _dt.datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+                if exp < _dt.datetime.now(_dt.timezone.utc):
+                    self._json(200, {'valid': False, 'error': 'Token has expired'}); return
+            except Exception:
+                pass
+            self._json(200, {'valid': True, 'email': row.get('email', '')})
+        except Exception as ex:
+            print(f'  ⚠️  verify-reset error: {ex}')
+            self._json(200, {'valid': False, 'error': 'Server error'})
+
+    def _handle_partner_reset_password(self):
+        """POST /api/partner/reset-password — set a new password using a valid token."""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+
+        token       = body.get('token', '').strip()
+        new_password = body.get('password', '').strip()
+
+        if not token or not new_password:
+            self._json(200, {'ok': False, 'error': 'Token and password required'}); return
+        if len(new_password) < 8:
+            self._json(200, {'ok': False, 'error': 'Password must be at least 8 characters'}); return
+
+        if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+            self._json(200, {'ok': True, 'demo': True}); return
+
+        import urllib.parse as _up_rp
+        import datetime as _dt
+        try:
+            # Validate token
+            qurl = (f"{SUPABASE_URL}/rest/v1/partner_reset_tokens"
+                    f"?token=eq.{_up_rp.quote(token)}&used=eq.false&select=id,email,expires_at&limit=1")
+            req = urllib.request.Request(qurl, headers={
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            })
+            with urllib.request.urlopen(req, timeout=6) as r:
+                rows = json.loads(r.read())
+            if not rows:
+                self._json(200, {'ok': False, 'error': 'Invalid or expired token'}); return
+            row = rows[0]
+            try:
+                exp = _dt.datetime.fromisoformat(row['expires_at'].replace('Z', '+00:00'))
+                if exp < _dt.datetime.now(_dt.timezone.utc):
+                    self._json(200, {'ok': False, 'error': 'Token has expired'}); return
+            except Exception:
+                pass
+
+            email    = row['email']
+            token_id = row['id']
+            new_hash = _hash_password(new_password, email)
+
+            # Update partner_accounts password
+            pu_url = (f"{SUPABASE_URL}/rest/v1/partner_accounts"
+                      f"?email=eq.{_up_rp.quote(email)}")
+            pu_req = urllib.request.Request(pu_url,
+                data=json.dumps({'password_hash': new_hash}).encode(),
+                headers={'apikey': SUPABASE_SERVICE_KEY,
+                         'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                         'Content-Type': 'application/json', 'Prefer': 'return=minimal'},
+                method='PATCH')
+            urllib.request.urlopen(pu_req, timeout=6)
+
+            # Mark token as used
+            tu_url = f"{SUPABASE_URL}/rest/v1/partner_reset_tokens?id=eq.{token_id}"
+            tu_req = urllib.request.Request(tu_url,
+                data=json.dumps({'used': True}).encode(),
+                headers={'apikey': SUPABASE_SERVICE_KEY,
+                         'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                         'Content-Type': 'application/json', 'Prefer': 'return=minimal'},
+                method='PATCH')
+            urllib.request.urlopen(tu_req, timeout=5)
+
+            print(f'  🔑 Partner password reset complete for {email}')
+            self._json(200, {'ok': True})
+        except Exception as ex:
+            print(f'  ⚠️  reset-password error: {ex}')
+            self._json(200, {'ok': False, 'error': 'Server error'})
 
     def _handle_workspace_resend_code(self):
         """Resend a client's access code to their registered email."""
@@ -3515,22 +3747,130 @@ class AgentHandler(BaseHTTPRequestHandler):
     ]
 
     def _handle_partner_clients(self):
-        """Return list of clients for the authenticated partner."""
-        # In production this would validate a session token and filter by partner_id.
-        # For now returns demo data so the portal works out of the box.
+        """Return list of clients for the authenticated partner, filtered by partner_id."""
+        import urllib.parse as _up_pc
+        qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        partner_id = qs.get('partnerId', [None])[0] or qs.get('partner_id', [None])[0]
+
+        # Try real DB first
+        if SUPABASE_URL and SUPABASE_SERVICE_KEY and partner_id and partner_id != 'partner-demo':
+            try:
+                qurl = (f"{SUPABASE_URL}/rest/v1/workspace_access"
+                        f"?partner_id=eq.{_up_pc.quote(partner_id)}"
+                        f"&select=workspace_id,company_name,contact_name,email,plan,active,last_login,created_at"
+                        f"&order=created_at.desc")
+                req = urllib.request.Request(qurl, headers={
+                    'apikey': SUPABASE_SERVICE_KEY,
+                    'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                })
+                with urllib.request.urlopen(req, timeout=8) as r:
+                    rows = json.loads(r.read())
+
+                # Enrich with campaign counts from campaigns table
+                clients = []
+                commission_rate = 0.20
+                plan_mrr = {'starter': 500, 'growth': 1200, 'scale': 2500, 'enterprise': 5000}
+                for row in rows:
+                    ws = row.get('workspace_id', '')
+                    # Count campaigns for this workspace
+                    cmpgn_count = 0
+                    try:
+                        curl = (f"{SUPABASE_URL}/rest/v1/campaigns"
+                                f"?client=eq.{_up_pc.quote(ws)}&select=id&status=eq.Active")
+                        creq = urllib.request.Request(curl, headers={
+                            'apikey': SUPABASE_SERVICE_KEY,
+                            'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                            'Prefer': 'count=exact',
+                        })
+                        with urllib.request.urlopen(creq, timeout=5) as cr:
+                            cmpgn_count = len(json.loads(cr.read()))
+                    except Exception:
+                        pass
+
+                    mrr = plan_mrr.get(row.get('plan', 'starter'), 500)
+                    last_login = row.get('last_login') or ''
+                    if last_login:
+                        try:
+                            import datetime as _dt
+                            then = _dt.datetime.fromisoformat(last_login.replace('Z', '+00:00'))
+                            now  = _dt.datetime.now(_dt.timezone.utc)
+                            diff = now - then
+                            if diff.days == 0:
+                                hrs = diff.seconds // 3600
+                                last_active = f'{hrs} hour{"s" if hrs != 1 else ""} ago'
+                            elif diff.days == 1:
+                                last_active = '1 day ago'
+                            else:
+                                last_active = f'{diff.days} days ago'
+                        except Exception:
+                            last_active = 'Recently'
+                    else:
+                        last_active = 'Never'
+
+                    clients.append({
+                        'id':         ws,
+                        'name':       row.get('company_name', ws),
+                        'email':      row.get('email', ''),
+                        'plan':       row.get('plan', 'starter'),
+                        'health':     7.0,   # placeholder — no health metric yet
+                        'mrr':        mrr,
+                        'commission': round(mrr * commission_rate, 2),
+                        'status':     'active' if row.get('active', True) else 'inactive',
+                        'lastActive': last_active,
+                        'campaigns':  cmpgn_count,
+                    })
+
+                self._json(200, {'success': True, 'clients': clients, 'total': len(clients), 'source': 'db'})
+                return
+            except Exception as ex:
+                print(f'  ⚠️  partner/clients DB error: {ex}')
+
+        # Fallback: demo data (used when Supabase not configured or partner_id is demo)
         commission_rate = 0.20
-        clients = []
-        for c in self._PARTNER_DEMO_CLIENTS:
-            clients.append({**c, 'commission': round(c['mrr'] * commission_rate, 2)})
-        self._json(200, {
-            'success': True,
-            'clients': clients,
-            'total': len(clients),
-        })
+        clients = [{**c, 'commission': round(c['mrr'] * commission_rate, 2)}
+                   for c in self._PARTNER_DEMO_CLIENTS]
+        self._json(200, {'success': True, 'clients': clients, 'total': len(clients), 'source': 'demo'})
 
     def _handle_partner_summary(self):
         """Return aggregate KPIs for the partner dashboard."""
-        clients = self._PARTNER_DEMO_CLIENTS
+        import urllib.parse as _up_ps
+        qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        partner_id = qs.get('partnerId', [None])[0] or qs.get('partner_id', [None])[0]
+
+        if SUPABASE_URL and SUPABASE_SERVICE_KEY and partner_id and partner_id != 'partner-demo':
+            try:
+                qurl = (f"{SUPABASE_URL}/rest/v1/workspace_access"
+                        f"?partner_id=eq.{_up_ps.quote(partner_id)}"
+                        f"&select=workspace_id,plan,active,last_login"
+                        f"&order=created_at.desc")
+                req = urllib.request.Request(qurl, headers={
+                    'apikey': SUPABASE_SERVICE_KEY,
+                    'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                })
+                with urllib.request.urlopen(req, timeout=8) as r:
+                    rows = json.loads(r.read())
+
+                commission_rate = 0.20
+                plan_mrr = {'starter': 500, 'growth': 1200, 'scale': 2500, 'enterprise': 5000}
+                total_mrr   = sum(plan_mrr.get(r.get('plan', 'starter'), 500) for r in rows)
+                active       = sum(1 for r in rows if r.get('active', True))
+                commission   = round(total_mrr * commission_rate, 2)
+                self._json(200, {
+                    'success':        True,
+                    'activeClients':  active,
+                    'totalClients':   len(rows),
+                    'totalMrr':       total_mrr,
+                    'commission':     commission,
+                    'avgHealth':      7.5,   # placeholder
+                    'totalCampaigns': 0,
+                    'source':         'db',
+                })
+                return
+            except Exception as ex:
+                print(f'  ⚠️  partner/summary DB error: {ex}')
+
+        # Fallback demo data
+        clients     = self._PARTNER_DEMO_CLIENTS
         total_mrr   = sum(c['mrr'] for c in clients)
         active      = sum(1 for c in clients if c['status'] == 'active')
         avg_health  = round(sum(c['health'] for c in clients) / len(clients), 1)
@@ -3544,7 +3884,118 @@ class AgentHandler(BaseHTTPRequestHandler):
             'commission':      commission,
             'avgHealth':       avg_health,
             'totalCampaigns':  total_cmpgn,
+            'source':          'demo',
         })
+
+    # ── HQ messaging (agency ↔ admin) ────────────────────────────────────────────
+
+    def _handle_hq_messages_get(self):
+        """GET /api/hq/messages?partnerId=X&role=partner|admin — fetch thread messages."""
+        import urllib.parse as _up_hm
+        qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        partner_id = qs.get('partnerId', [None])[0]
+        role       = qs.get('role', ['partner'])[0]
+        limit      = int(qs.get('limit', ['50'])[0])
+
+        if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+            self._json(200, {'success': True, 'messages': [], 'demo': True}); return
+
+        try:
+            filters = f"select=*&order=created_at.asc&limit={limit}"
+            if partner_id:
+                filters = f"partner_id=eq.{_up_hm.quote(partner_id)}&{filters}"
+            elif role != 'admin':
+                self._json(200, {'success': False, 'error': 'partnerId required'}); return
+
+            qurl = f"{SUPABASE_URL}/rest/v1/hq_messages?{filters}"
+            req = urllib.request.Request(qurl, headers={
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            })
+            with urllib.request.urlopen(req, timeout=8) as r:
+                messages = json.loads(r.read())
+
+            # Mark messages as read for the requesting role
+            if messages and partner_id:
+                try:
+                    unread_ids = [m['id'] for m in messages
+                                  if not m.get('read') and m.get('from_role') != role]
+                    for mid in unread_ids:
+                        ru_url = f"{SUPABASE_URL}/rest/v1/hq_messages?id=eq.{mid}"
+                        ru_req = urllib.request.Request(ru_url,
+                            data=json.dumps({'read': True}).encode(),
+                            headers={'apikey': SUPABASE_SERVICE_KEY,
+                                     'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                                     'Content-Type': 'application/json',
+                                     'Prefer': 'return=minimal'},
+                            method='PATCH')
+                        urllib.request.urlopen(ru_req, timeout=5)
+                except Exception:
+                    pass
+
+            self._json(200, {'success': True, 'messages': messages, 'total': len(messages)})
+        except Exception as ex:
+            print(f'  hq/messages GET error: {ex}')
+            self._json(200, {'success': False, 'error': str(ex)})
+
+    def _handle_hq_message_post(self):
+        """POST /api/hq/message — send a message in a partner<->admin thread."""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+
+        partner_id = body.get('partnerId', '').strip()
+        from_role  = body.get('fromRole', 'partner').strip()   # 'partner' | 'admin'
+        from_email = body.get('fromEmail', '').strip()
+        subject    = body.get('subject', '').strip()
+        msg_body   = body.get('body', '').strip()
+
+        if not msg_body or not from_email:
+            self._json(200, {'ok': False, 'error': 'body and fromEmail required'}); return
+        if from_role not in ('partner', 'admin'):
+            self._json(200, {'ok': False, 'error': 'fromRole must be partner or admin'}); return
+
+        if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+            self._json(200, {'ok': True, 'demo': True}); return
+
+        try:
+            row = {
+                'from_role':  from_role,
+                'from_email': from_email,
+                'partner_id': partner_id or None,
+                'subject':    subject,
+                'body':       msg_body,
+                'read':       False,
+            }
+            result = _supabase_req('POST', 'hq_messages', row, service_role=True)
+            print(f'  HQ message from {from_role}/{from_email} re partner {partner_id}')
+
+            # Email notification to admin when a partner sends a message
+            if from_role == 'partner':
+                notify_email = _ENV.get('NOTIFY_EMAIL', '')
+                if notify_email:
+                    notif_html = (
+                        f'<div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px;">'
+                        f'<div style="font-size:20px;font-weight:800;color:#1C3A2E;margin-bottom:4px;">ClickPoint HQ</div>'
+                        f'<div style="font-size:13px;color:#999;margin-bottom:24px;">New message from a partner</div>'
+                        f'<p style="color:#555;font-size:14px;">From: <strong>{from_email}</strong>'
+                        f'{" (Partner: " + partner_id + ")" if partner_id else ""}</p>'
+                        + (f'<p style="color:#555;font-size:14px;">Subject: <strong>{subject}</strong></p>' if subject else '')
+                        + f'<div style="background:#f5f7fa;border-radius:8px;padding:16px;margin:16px 0;'
+                          f'font-size:14px;color:#333;line-height:1.6;">{msg_body}</div>'
+                        f'<p style="font-size:12px;color:#aaa;">Reply via the Admin HQ portal.</p></div>'
+                    )
+                    _send_email(
+                        notify_email,
+                        f'[ClickPoint] Partner message{" — " + subject if subject else ""} from {from_email}',
+                        notif_html
+                    )
+
+            self._json(200, {'ok': True, 'id': result[0].get('id') if isinstance(result, list) and result else None})
+        except Exception as ex:
+            print(f'  hq/message POST error: {ex}')
+            self._json(200, {'ok': False, 'error': str(ex)})
 
     def _handle_workspace_auth(self):
         """Authenticate a workspace user. Falls back to demo mode."""
@@ -5435,6 +5886,21 @@ class AgentHandler(BaseHTTPRequestHandler):
 
     def _error(self, code, msg):
         self._json(code, {'error': msg})
+
+    def _is_admin(self) -> bool:
+        """
+        Check that the request carries valid admin credentials.
+        Accepts either:
+          - X-Admin-Key header matching HQ_ADMIN_PASS env var, or
+          - Authorization: Bearer <HQ_ADMIN_PASS>
+        Falls back to True in dev mode (no SUPABASE_URL configured).
+        """
+        admin_pass = os.getenv('HQ_ADMIN_PASS', '') or HQ_ADMIN_PASS
+        if not admin_pass:
+            return True  # dev/unconfigured — allow all
+        supplied = (self.headers.get('X-Admin-Key', '')
+                    or self.headers.get('Authorization', '').removeprefix('Bearer ').strip())
+        return supplied == admin_pass
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
