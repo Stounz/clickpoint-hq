@@ -15,6 +15,33 @@ import os
 import sys
 import datetime
 import threading
+import time
+import collections
+
+# ── Rate limiter ─────────────────────────────────────────────────────────────
+class _RateLimiter:
+    """Sliding-window rate limiter keyed by (ip, endpoint)."""
+    def __init__(self, max_calls: int, window_seconds: int):
+        self._max   = max_calls
+        self._win   = window_seconds
+        self._hits: dict[str, collections.deque] = {}
+        self._lock  = threading.Lock()
+
+    def allow(self, key: str) -> bool:
+        now = time.monotonic()
+        with self._lock:
+            dq = self._hits.setdefault(key, collections.deque())
+            cutoff = now - self._win
+            while dq and dq[0] < cutoff:
+                dq.popleft()
+            if len(dq) >= self._max:
+                return False
+            dq.append(now)
+            return True
+
+# 10 login attempts per IP per 60 s; 60 agent calls per IP per 60 s
+_login_limiter = _RateLimiter(max_calls=10, window_seconds=60)
+_agent_limiter = _RateLimiter(max_calls=60, window_seconds=60)
 
 # ── Optional encryption (pip3 install cryptography) ───────────────────────────
 try:
@@ -55,28 +82,11 @@ def _load_env() -> dict:
         except Exception as e:
             print(f'  ⚠️  APP_CONFIG parse error: {e}')
 
-    # Baked-in defaults — Railway Runtime V2 does not inject user env vars.
-    # Values are base64-encoded to avoid VCS secret scanning patterns.
-    # Env vars / APP_CONFIG always take precedence over these.
-    import base64 as _b64
-    def _d(s): return _b64.b64decode(s.encode()).decode()
-    _baked = {
-        'HQ_ADMIN_EMAIL':  _d('YWRtaW5AY2xpY2twb2ludGNvbnN1bHRpbmcuY29tLmF1'),
-        'HQ_ADMIN_PASS':   _d('YWRtaW5fMTIzIQ=='),
-        'HUBSPOT_TOKEN':   _d('cGF0LWFwMS0wMGMwMGEzNy1mNDM0LTQ4NWUtOGI0Zi03YTQ3M2FiZWQ0NjU='),
-        'RESEND_API_KEY':  _d('cmVfYW1tRkg0czFfTGVualNuOUI5c0FhYjVkR2hRcDYxOEV5'),
-        'STRIPE_SECRET_KEY':  _d('c2tfbGl2ZV81MUNOaVhsSDJJSHZVNmlVNUZaa3JZUTVNa3dQQzd6RmVLY21RckZQY3FWUHlBd0IyQ3NMRlBGblhrekhSNVhpMUtaeU1XTzFnaDFLQnJFUklodzNPd2hacTAwekNhVzlWczg='),
-        'SUPABASE_URL':       _d('aHR0cHM6Ly9iYW5lbHZ6anR0ZHFrd21idnlibS5zdXBhYmFzZS5jbw=='),
-        'SUPABASE_SERVICE_KEY': _d('c2Jfc2VjcmV0X0NKekNfaW9FUTJERUJNZDRhV3g5eFFfcGZrUmp0V3U='),
-        'CANVA_CLIENT_ID':     _d('T0MtQVozMllmMlZycHRr'),
-        'CANVA_CLIENT_SECRET': _d('Y252Y2FHT3JHbVFUdTA3QzhLV3RNdkNIcFdtWURTZnBDQ3M2cFpnVkFnLUNBTHhVMjExNjU0Njk='),
-        'INTEGRATION_ENCRYPTION_KEY': 'ItpeEiu8UM9x7oJpmXz0j1x9Bm0oS_lozKoQJS3gt8A=',
+    # Non-secret defaults only — all credentials must be set as Railway env vars
+    _defaults = {
         'PLATFORM_URL': 'https://platform.clickpointconsulting.com.au',
-        'HQ_PARTNER_EMAIL': _d('cGFydG5lckBjbGlja3BvaW50Y29uc3VsdGluZy5jb20uYXU='),
-        'HQ_PARTNER_PASS':  _d('cGFydG5lcl8xMjMh'),
-        # STRIPE_PRICE_GROWTH, STRIPE_PRICE_PRO, STRIPE_WEBHOOK_SECRET — set once Stripe products are created
     }
-    for k, v in _baked.items():
+    for k, v in _defaults.items():
         if v and not result.get(k):
             result[k] = v
 
@@ -111,11 +121,30 @@ HUBSPOT_TOKEN              = _ENV.get('HUBSPOT_TOKEN', '')  # Set via Railway en
 CANVA_CLIENT_ID            = _ENV.get('CANVA_CLIENT_ID', '')
 CANVA_CLIENT_SECRET        = _ENV.get('CANVA_CLIENT_SECRET', '')
 CANVA_REDIRECT_URI         = 'https://web-production-c959ce.up.railway.app/api/canva/callback'
+META_APP_ID                = _ENV.get('META_APP_ID', '')
+META_APP_SECRET            = _ENV.get('META_APP_SECRET', '')
+LINKEDIN_CLIENT_ID         = _ENV.get('LINKEDIN_CLIENT_ID', '')
+LINKEDIN_CLIENT_SECRET     = _ENV.get('LINKEDIN_CLIENT_SECRET', '')
+TWITTER_CLIENT_ID          = _ENV.get('TWITTER_CLIENT_ID', '')
+TWITTER_CLIENT_SECRET      = _ENV.get('TWITTER_CLIENT_SECRET', '')
 
-if not API_KEY:
-    print('\n⚠️  No API key found.')
-    print('Add your Anthropic API key to the .env file:')
-    print('  ANTHROPIC_API_KEY=sk-ant-...\n')
+_REQUIRED_SECRETS = [
+    ('ANTHROPIC_API_KEY',       'sk-ant-...'),
+    ('SUPABASE_URL',            'https://xxxx.supabase.co'),
+    ('SUPABASE_SERVICE_KEY',    'sbp_...'),
+    ('HQ_ADMIN_EMAIL',          'admin@yourdomain.com'),
+    ('HQ_ADMIN_PASS',           'strong-password-here'),
+    ('HQ_PARTNER_EMAIL',        'partner@yourdomain.com'),
+    ('HQ_PARTNER_PASS',         'strong-password-here'),
+    ('INTEGRATION_ENCRYPTION_KEY', 'run: python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"'),
+]
+_missing = [k for k, _ in _REQUIRED_SECRETS if not _ENV.get(k)]
+if _missing:
+    print('\n🚨  Missing required environment variables — set these in Railway → Variables:')
+    for k, example in _REQUIRED_SECRETS:
+        if k in _missing:
+            print(f'  {k}={example}')
+    print()
 
 # ── Agent system prompts ──────────────────────────────────────────────────────
 AGENT_PROMPTS = {
@@ -389,6 +418,115 @@ def _auto_migrate():
             "workspace_id text not null,company_name text default '',"
             "type text not null,detail text default '',"
             "timestamp timestamptz default now()"
+        ),
+        'crm_contacts': (
+            "id bigserial primary key,"
+            "workspace_id text not null,name text not null,email text,phone text,"
+            "company text,title text,tags text[],notes text,"
+            "deal_stage text default 'prospect',"
+            "deal_value numeric,ai_score int,next_action text,"
+            "last_contact timestamptz,created_at timestamptz default now()"
+        ),
+        'crm_activities': (
+            "id bigserial primary key,"
+            "workspace_id text not null,contact_id bigint,"
+            "type text,summary text,created_at timestamptz default now()"
+        ),
+        'reputation_reviews': (
+            "id bigserial primary key,"
+            "workspace_id text not null,platform text not null,"
+            "reviewer_name text,rating int,content text,review_date text,"
+            "response text,status text default 'pending',external_id text,"
+            "created_at timestamptz default now()"
+        ),
+        'local_listings': (
+            "id bigserial primary key,"
+            "workspace_id text not null,business_name text,address text,"
+            "city text,state text,postcode text,country text default 'AU',"
+            "phone text,website text,categories text[],description text,"
+            "hours jsonb default '{}',google_place_id text,"
+            "listing_status jsonb default '{}',last_audit text,"
+            "updated_at timestamptz default now()"
+        ),
+        'social_accounts': (
+            "id bigserial primary key,"
+            "workspace_id text not null,platform text not null,"
+            "account_name text,account_id text,page_id text,"
+            "encrypted_token text,token_type text default 'page',"
+            "expires_at timestamptz,status text default 'connected',"
+            "created_at timestamptz default now()"
+        ),
+        'social_posts': (
+            "id bigserial primary key,"
+            "workspace_id text not null,platforms text[] not null,"
+            "content text not null,media_urls text[],"
+            "scheduled_at timestamptz,published_at timestamptz,"
+            "status text default 'draft',"
+            "platform_ids jsonb default '{}',error text,"
+            "created_by text,created_at timestamptz default now()"
+        ),
+        # ── Auth / access tables ─────────────────────────────────────────────
+        'workspace_access': (
+            "id bigserial primary key,"
+            "workspace_id text not null,company_name text not null,"
+            "contact_name text default '',email text not null,"
+            "access_code text not null,partner_id text default null,"
+            "plan text default 'starter',active boolean default true,"
+            "last_login timestamptz,created_at timestamptz default now()"
+        ),
+        'partner_accounts': (
+            "id bigserial primary key,"
+            "partner_id text unique not null,name text not null,"
+            "agency_name text default '',email text unique not null,"
+            "password_hash text not null,website text default '',"
+            "commission_rate numeric default 0.20,"
+            "active boolean default true,created_at timestamptz default now()"
+        ),
+        'partner_reset_tokens': (
+            "id bigserial primary key,"
+            "email text not null,token text not null,"
+            "expires_at timestamptz not null,"
+            "used boolean default false,created_at timestamptz default now()"
+        ),
+        'portal_access': (
+            "id bigserial primary key,"
+            "client text not null,email text not null,"
+            "access_code text not null,workspace_id text default null,"
+            "active boolean default true,last_login timestamptz,"
+            "created_at timestamptz default now()"
+        ),
+        'agent_memories': (
+            "id bigserial primary key,"
+            "agent_key text not null,client text not null default 'General',"
+            "memory text not null,importance int default 5,"
+            "created_at timestamptz default now()"
+        ),
+        'client_reports': (
+            "id bigserial primary key,"
+            "client text not null,workspace_id text,"
+            "period text not null,health_score numeric,health_label text,"
+            "report_data jsonb default '{}',"
+            "generated_at timestamptz default now(),"
+            "status text default 'draft'"
+        ),
+        'integration_credentials': (
+            "id bigserial primary key,"
+            "integration_id text not null unique,"
+            "workspace_id text,platform text not null,"
+            "encrypted_token text not null,token_type text default 'oauth',"
+            "expires_at timestamptz,created_at timestamptz default now()"
+        ),
+        'platform_settings': (
+            "key text primary key,value text not null,"
+            "updated_at timestamptz default now()"
+        ),
+        'hq_messages': (
+            "id bigserial primary key,"
+            "thread_id text not null default gen_random_uuid()::text,"
+            "from_role text not null,from_email text not null,"
+            "partner_id text,subject text default '',"
+            "body text not null,read boolean default false,"
+            "created_at timestamptz default now()"
         ),
     }
 
@@ -1585,6 +1723,199 @@ def canva_auth_url(workspace_id: str = '') -> str:
     })
     return f'https://www.canva.com/api/oauth/authorize?{params}'
 
+# ── Social Publishing helpers ─────────────────────────────────────────────────
+
+def _social_publish_facebook(page_id: str, token: str, content: str, media_urls: list = None) -> str:
+    """POST to Facebook Graph API. Returns post_id string."""
+    params = {'message': content, 'access_token': token}
+    if media_urls:
+        params['link'] = media_urls[0]
+    url = f'https://graph.facebook.com/v19.0/{page_id}/feed'
+    data = urllib.parse.urlencode(params).encode()
+    req = urllib.request.Request(url, data=data, method='POST')
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        result = json.loads(resp.read())
+    return result.get('id', '')
+
+
+def _social_publish_instagram(page_id: str, token: str, content: str, media_url: str = None) -> str:
+    """Publish to Instagram via Graph API. Returns media_id string."""
+    if not media_url:
+        raise ValueError('Instagram requires an image URL')
+    # Step 1: create media container
+    container_url = (
+        f'https://graph.facebook.com/v19.0/{page_id}/media'
+        f'?image_url={urllib.parse.quote(media_url)}'
+        f'&caption={urllib.parse.quote(content)}'
+        f'&access_token={token}'
+    )
+    req = urllib.request.Request(container_url, data=b'', method='POST')
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        container = json.loads(resp.read())
+    creation_id = container.get('id', '')
+    if not creation_id:
+        raise ValueError(f'Instagram container creation failed: {container}')
+    # Step 2: publish
+    publish_url = (
+        f'https://graph.facebook.com/v19.0/{page_id}/media_publish'
+        f'?creation_id={creation_id}&access_token={token}'
+    )
+    req2 = urllib.request.Request(publish_url, data=b'', method='POST')
+    with urllib.request.urlopen(req2, timeout=20) as resp2:
+        result = json.loads(resp2.read())
+    return result.get('id', '')
+
+
+def _social_publish_linkedin(token: str, content: str) -> str:
+    """POST to LinkedIn UGC Posts API. Returns post URN string."""
+    # Get person ID
+    me_req = urllib.request.Request(
+        'https://api.linkedin.com/v2/me',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+    with urllib.request.urlopen(me_req, timeout=15) as resp:
+        me = json.loads(resp.read())
+    person_id = me.get('id', '')
+    if not person_id:
+        raise ValueError('Could not get LinkedIn person ID')
+    payload = json.dumps({
+        'author': f'urn:li:person:{person_id}',
+        'lifecycleState': 'PUBLISHED',
+        'specificContent': {
+            'com.linkedin.ugc.ShareContent': {
+                'shareCommentary': {'text': content},
+                'shareMediaCategory': 'NONE',
+            }
+        },
+        'visibility': {'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'},
+    }).encode()
+    post_req = urllib.request.Request(
+        'https://api.linkedin.com/v2/ugcPosts',
+        data=payload,
+        headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+        method='POST',
+    )
+    with urllib.request.urlopen(post_req, timeout=20) as resp:
+        result = json.loads(resp.read())
+    return result.get('id', '')
+
+
+def _social_publish_twitter(token: str, content: str) -> str:
+    """POST tweet via Twitter API v2. Returns tweet_id string."""
+    payload = json.dumps({'text': content[:280]}).encode()
+    req = urllib.request.Request(
+        'https://api.twitter.com/2/tweets',
+        data=payload,
+        headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+        method='POST',
+    )
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        result = json.loads(resp.read())
+    return result.get('data', {}).get('id', '')
+
+
+def _publish_post_to_platforms(post: dict, accounts: dict) -> tuple:
+    """
+    Publish a social post to all its platforms.
+    post: social_posts row dict
+    accounts: dict of {platform: account_row}
+    Returns (platform_ids: dict, failed: list)
+    """
+    platform_ids = {}
+    failed = []
+    for platform in (post.get('platforms') or []):
+        acct = accounts.get(platform)
+        if not acct:
+            failed.append({'platform': platform, 'error': 'No connected account'})
+            continue
+        raw_token = decrypt_token(acct.get('encrypted_token', ''))
+        if not raw_token:
+            failed.append({'platform': platform, 'error': 'Token missing or decrypt failed'})
+            continue
+        content = post.get('content', '')
+        media_urls = post.get('media_urls') or []
+        try:
+            if platform == 'facebook':
+                pid = _social_publish_facebook(acct.get('page_id', ''), raw_token, content, media_urls)
+                platform_ids['facebook'] = pid
+            elif platform == 'instagram':
+                pid = _social_publish_instagram(
+                    acct.get('page_id', ''), raw_token, content,
+                    media_urls[0] if media_urls else None
+                )
+                platform_ids['instagram'] = pid
+            elif platform == 'linkedin':
+                pid = _social_publish_linkedin(raw_token, content)
+                platform_ids['linkedin'] = pid
+            elif platform == 'twitter':
+                pid = _social_publish_twitter(raw_token, content)
+                platform_ids['twitter'] = pid
+            else:
+                failed.append({'platform': platform, 'error': f'Unsupported platform: {platform}'})
+        except Exception as e:
+            print(f'  [social] publish error {platform}: {e}')
+            failed.append({'platform': platform, 'error': str(e)})
+    return platform_ids, failed
+
+
+def _publish_due_social_posts():
+    """Query scheduled posts that are due and publish them."""
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        return
+    now_iso = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
+    try:
+        posts = _supabase_req(
+            'GET',
+            f'social_posts?status=eq.scheduled&scheduled_at=lte.{now_iso}&select=*'
+        )
+    except Exception as e:
+        print(f'  [social scheduler] query error: {e}')
+        return
+    for post in (posts or []):
+        post_id = post.get('id')
+        workspace_id = post.get('workspace_id', '')
+        try:
+            acct_rows = _supabase_req(
+                'GET',
+                f'social_accounts?workspace_id=eq.{urllib.parse.quote(workspace_id)}&status=eq.connected'
+            )
+            accounts = {r['platform']: r for r in (acct_rows or [])}
+            platform_ids, failed = _publish_post_to_platforms(post, accounts)
+            if platform_ids:
+                pub_iso = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+                _supabase_req('PATCH', f'social_posts?id=eq.{post_id}', {
+                    'status': 'published',
+                    'published_at': pub_iso,
+                    'platform_ids': platform_ids,
+                    'error': json.dumps(failed) if failed else None,
+                })
+                print(f'  [social scheduler] published post {post_id}: {list(platform_ids.keys())}')
+            else:
+                _supabase_req('PATCH', f'social_posts?id=eq.{post_id}', {
+                    'status': 'failed',
+                    'error': json.dumps(failed),
+                })
+                print(f'  [social scheduler] post {post_id} failed: {failed}')
+        except Exception as e:
+            print(f'  [social scheduler] post {post_id} error: {e}')
+            try:
+                _supabase_req('PATCH', f'social_posts?id=eq.{post_id}', {
+                    'status': 'failed', 'error': str(e)
+                })
+            except Exception:
+                pass
+
+
+def _social_scheduler_loop():
+    """Background daemon: publish due social posts every 60 seconds."""
+    while True:
+        time.sleep(60)
+        try:
+            _publish_due_social_posts()
+        except Exception as e:
+            print(f'  [social scheduler] error: {e}')
+
+
 # ── Anthropic API call ────────────────────────────────────────────────────────
 def call_anthropic(api_key, system_prompt, messages, max_tokens=2000):
     payload = json.dumps({
@@ -1616,13 +1947,16 @@ class AgentHandler(BaseHTTPRequestHandler):
 
     def send_cors_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type, X-User-Api-Key')
 
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_cors_headers()
         self.end_headers()
+
+    def _client_ip(self) -> str:
+        return (self.headers.get('X-Forwarded-For', '') or self.client_address[0]).split(',')[0].strip()
 
     def _effective_api_key(self):
         return self.headers.get('X-User-Api-Key', '').strip() or API_KEY
@@ -1648,7 +1982,9 @@ class AgentHandler(BaseHTTPRequestHandler):
                               '/api/integrations/connect', '/api/integrations/disconnect'],
             }).encode())
         elif self.path == '/api/env-check':
-            # Diagnostic — shows WHICH vars are set (booleans only, no values)
+            # Diagnostic — admin-only, shows WHICH vars are set (booleans only, no values)
+            if not self._is_admin():
+                self._json(403, {'error': 'Admin credentials required'}); return
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.send_cors_headers()
@@ -1677,15 +2013,23 @@ class AgentHandler(BaseHTTPRequestHandler):
         elif self.path.startswith('/api/portal'):
             self._handle_portal_get()
         elif self.path == '/api/workspaces':
+            if not self._is_admin():
+                self._json(403, {'error': 'Admin credentials required'}); return
             self._handle_workspaces_list()
         elif self.path == '/api/admin/migrate':
+            if not self._is_admin():
+                self._json(403, {'error': 'Admin credentials required'}); return
             self._handle_admin_migrate()
         elif self.path.startswith('/api/partner/clients'):
             self._handle_partner_clients()
         elif self.path.startswith('/api/partner/summary'):
             self._handle_partner_summary()
+        elif self.path.startswith('/api/partner/verify-reset'):
+            self._handle_partner_verify_reset()
         elif self.path.startswith('/api/partner/escalations'):
             self._handle_partner_escalations_get()
+        elif self.path.startswith('/api/hq/messages'):
+            self._handle_hq_messages_get()
         elif self.path.startswith('/api/escalation'):
             self._handle_workspace_escalations_get()
         elif self.path.startswith('/api/campaigns'):
@@ -1698,6 +2042,22 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_canva_callback()
         elif self.path.startswith('/api/brand-hub'):
             self._handle_brand_hub_get()
+        elif self.path.startswith('/api/crm/contacts'):
+            self._handle_crm_contacts_get()
+        elif self.path.startswith('/api/crm/activities'):
+            self._handle_crm_activities_get()
+        elif self.path.startswith('/api/reputation'):
+            self._handle_reputation_get()
+        elif self.path.startswith('/api/local-seo'):
+            self._handle_local_seo_get()
+        elif self.path.startswith('/api/social/accounts'):
+            self._handle_social_accounts_get()
+        elif self.path.startswith('/api/social/posts'):
+            self._handle_social_posts_get()
+        elif self.path.startswith('/api/social/auth/'):
+            self._handle_social_auth_get()
+        elif self.path.startswith('/api/social/callback/'):
+            self._handle_social_callback_get()
         else:
             # Serve static files from working directory
             import os as _os
@@ -1729,11 +2089,24 @@ class AgentHandler(BaseHTTPRequestHandler):
                 self.end_headers()
 
     def do_POST(self):
+        ip = self._client_ip()
+        _auth_paths = {'/api/hq/auth', '/api/portal/auth', '/api/workspace/auth',
+                       '/api/partner/register', '/api/partner/forgot-password',
+                       '/api/partner/reset-password', '/api/partner/verify-reset'}
+        if self.path in _auth_paths:
+            if not _login_limiter.allow(f'{ip}:{self.path}'):
+                self._error(429, 'Too many requests — please wait before trying again.'); return
+        if self.path in ('/api/agent', '/api/chain'):
+            if not _agent_limiter.allow(ip):
+                self._error(429, 'Rate limit exceeded — slow down your requests.'); return
+
         if self.path == '/api/agent':
             self._handle_single_agent()
         elif self.path == '/api/chain':
             self._handle_chain()
         elif self.path == '/api/agents/save':
+            if not self._is_admin():
+                self._json(403, {'error': 'Admin credentials required'}); return
             self._handle_agents_save()
         elif self.path == '/api/metrics/fetch':
             self._handle_metrics_fetch()
@@ -1777,6 +2150,10 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_partner_register()
         elif self.path == '/api/partner/forgot-password':
             self._handle_partner_forgot_password()
+        elif self.path == '/api/partner/reset-password':
+            self._handle_partner_reset_password()
+        elif self.path == '/api/hq/message':
+            self._handle_hq_message_post()
         elif self.path == '/api/workspace/resend-code':
             self._handle_workspace_resend_code()
         elif self.path == '/api/campaign/request':
@@ -1789,6 +2166,28 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_escalation_update()
         elif self.path.startswith('/api/brand-hub'):
             self._handle_brand_hub_post()
+        elif self.path == '/api/crm/contacts':
+            self._handle_crm_contacts_post()
+        elif self.path == '/api/crm/activities':
+            self._handle_crm_activities_post()
+        elif self.path == '/api/crm/ai-score':
+            self._handle_crm_ai_score()
+        elif self.path == '/api/reputation/reviews':
+            self._handle_reputation_reviews_post()
+        elif self.path == '/api/reputation/respond':
+            self._handle_reputation_respond()
+        elif self.path == '/api/reputation/request':
+            self._handle_reputation_request()
+        elif self.path == '/api/local-seo/nap':
+            self._handle_local_seo_nap()
+        elif self.path == '/api/local-seo/audit':
+            self._handle_local_seo_audit()
+        elif self.path == '/api/social/draft':
+            self._handle_social_draft()
+        elif self.path == '/api/social/posts':
+            self._handle_social_posts_post()
+        elif self.path == '/api/social/publish':
+            self._handle_social_publish()
         else:
             self.send_response(404)
             self.end_headers()
@@ -1796,6 +2195,17 @@ class AgentHandler(BaseHTTPRequestHandler):
     def do_PATCH(self):
         if self.path.startswith('/api/escalation/'):
             self._handle_escalation_update()
+        elif self.path == '/api/local-seo/listing':
+            self._handle_local_seo_listing_patch()
+        elif self.path == '/api/social/posts':
+            self._handle_social_posts_patch()
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def do_DELETE(self):
+        if self.path == '/api/crm/contacts':
+            self._handle_crm_contacts_delete()
         else:
             self.send_response(404)
             self.end_headers()
@@ -2987,7 +3397,7 @@ class AgentHandler(BaseHTTPRequestHandler):
         })
 
     def _handle_partner_forgot_password(self):
-        """Send password reset instructions to a partner email."""
+        """Send a real password-reset link to a partner email (token stored in DB)."""
         try:
             body = self._read_body()
         except Exception:
@@ -2995,9 +3405,54 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         email = body.get('email', '').strip().lower()
         if not email:
-            self._json(200, {'ok': True}); return  # Silent — don't reveal anything
+            self._json(200, {'ok': True}); return  # Silent
 
-        reset_html = f"""<!DOCTYPE html>
+        # Verify this email has a partner account before issuing a token
+        account_exists = False
+        if SUPABASE_URL and SUPABASE_SERVICE_KEY:
+            try:
+                import urllib.parse as _up_fp
+                qurl = (f"{SUPABASE_URL}/rest/v1/partner_accounts"
+                        f"?email=eq.{_up_fp.quote(email)}&active=eq.true&select=id&limit=1")
+                req = urllib.request.Request(qurl, headers={
+                    'apikey': SUPABASE_SERVICE_KEY,
+                    'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                })
+                with urllib.request.urlopen(req, timeout=6) as r:
+                    rows = json.loads(r.read())
+                account_exists = bool(rows)
+            except Exception as ex:
+                print(f'  ⚠️  forgot-password DB check: {ex}')
+        else:
+            account_exists = True  # Dev mode — always allow
+
+        if account_exists and SUPABASE_URL and SUPABASE_SERVICE_KEY:
+            import secrets as _sec
+            import datetime as _dt
+            token = _sec.token_urlsafe(32)
+            expires = (_dt.datetime.utcnow() + _dt.timedelta(hours=2)).isoformat() + 'Z'
+            try:
+                import urllib.parse as _up_fp2
+                # Expire any existing unused tokens for this email
+                del_url = (f"{SUPABASE_URL}/rest/v1/partner_reset_tokens"
+                           f"?email=eq.{_up_fp2.quote(email)}&used=eq.false")
+                del_req = urllib.request.Request(del_url, method='DELETE', headers={
+                    'apikey': SUPABASE_SERVICE_KEY,
+                    'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                    'Prefer': 'return=minimal',
+                })
+                urllib.request.urlopen(del_req, timeout=5)
+                # Store new token
+                _supabase_req('POST', 'partner_reset_tokens', {
+                    'email': email, 'token': token, 'expires_at': expires
+                }, service_role=True)
+            except Exception as ex:
+                print(f'  ⚠️  forgot-password token store: {ex}')
+                self._json(200, {'ok': True}); return
+
+            base_url = os.getenv('APP_BASE_URL', 'https://platform.clickpointconsulting.com.au')
+            reset_link = f"{base_url}/partner.html?action=reset&token={token}"
+            reset_html = f"""<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#F5F4EF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F4EF;padding:40px 20px;">
@@ -3005,22 +3460,26 @@ class AgentHandler(BaseHTTPRequestHandler):
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
   <tr><td style="background:#1C3A2E;padding:28px 36px;">
     <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:8px;">ClickPoint Partner Network</div>
-    <div style="font-size:22px;font-weight:800;color:#ffffff;margin-bottom:6px;">Password Reset Request</div>
+    <div style="font-size:22px;font-weight:800;color:#ffffff;margin-bottom:6px;">Reset Your Password</div>
   </td></tr>
   <tr><td style="padding:32px 36px;">
     <p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 20px;">Hi,</p>
     <p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 24px;">
       We received a password reset request for the partner account associated with <strong>{email}</strong>.
-      A member of our team will be in touch shortly to verify your identity and reset your access.
-    </p>
-    <p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 24px;">
-      If you didn't request this, you can safely ignore this email — your account remains secure.
+      Click the button below to set a new password — this link expires in <strong>2 hours</strong>.
     </p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
       <tr><td align="center">
-        <a href="https://platform.clickpointconsulting.com.au/partner.html" style="display:inline-block;background:#D4622A;color:#ffffff;text-decoration:none;padding:15px 36px;border-radius:12px;font-weight:700;font-size:15px;">Go to Partner Portal →</a>
+        <a href="{reset_link}" style="display:inline-block;background:#D4622A;color:#ffffff;text-decoration:none;padding:15px 36px;border-radius:12px;font-weight:700;font-size:15px;">Reset Password →</a>
       </td></tr>
     </table>
+    <p style="font-size:13px;color:#999;line-height:1.6;">
+      If the button doesn't work, copy this link:<br>
+      <a href="{reset_link}" style="color:#D4622A;word-break:break-all;">{reset_link}</a>
+    </p>
+    <p style="font-size:13px;color:#aaa;line-height:1.6;margin-top:20px;">
+      If you didn't request this, you can safely ignore this email — your account remains secure.
+    </p>
   </td></tr>
   <tr><td style="background:#F5F4EF;padding:20px 36px;border-top:1px solid #E2E1DB;">
     <div style="font-size:11px;color:#bbb;text-align:center;">ClickPoint Consulting · Partner Network</div>
@@ -3029,16 +3488,119 @@ class AgentHandler(BaseHTTPRequestHandler):
 </td></tr>
 </table>
 </body></html>"""
+            _send_email(email, 'ClickPoint — Reset your partner portal password', reset_html)
+            print(f'  🔑 Partner reset token issued for {email}')
+        elif not account_exists:
+            print(f'  ⚠️  forgot-password: no account for {email} — silent skip')
 
-        _send_email(email, 'ClickPoint — Password reset request received', reset_html)
-        # Notify HQ so team can action manually
-        notify_email = _ENV.get('NOTIFY_EMAIL', '')
-        if notify_email:
-            _send_email(notify_email, f'[ClickPoint] Partner password reset request — {email}',
-                        f'<p>Password reset requested for partner account: <strong>{email}</strong></p><p>Please verify and reset their access via the partner portal.</p>')
-
-        print(f'  🔑 Partner forgot-password: {email}')
         self._json(200, {'ok': True})
+
+    def _handle_partner_verify_reset(self):
+        """GET /api/partner/verify-reset?token=XXX — validate a reset token."""
+        import urllib.parse as _up_vr
+        qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        token = qs.get('token', [None])[0]
+        if not token:
+            self._json(200, {'valid': False, 'error': 'Missing token'}); return
+
+        if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+            self._json(200, {'valid': True, 'demo': True}); return
+
+        try:
+            import datetime as _dt
+            qurl = (f"{SUPABASE_URL}/rest/v1/partner_reset_tokens"
+                    f"?token=eq.{_up_vr.quote(token)}&used=eq.false&select=email,expires_at&limit=1")
+            req = urllib.request.Request(qurl, headers={
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            })
+            with urllib.request.urlopen(req, timeout=6) as r:
+                rows = json.loads(r.read())
+            if not rows:
+                self._json(200, {'valid': False, 'error': 'Invalid or expired token'}); return
+            row = rows[0]
+            expires_at = row.get('expires_at', '')
+            try:
+                exp = _dt.datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+                if exp < _dt.datetime.now(_dt.timezone.utc):
+                    self._json(200, {'valid': False, 'error': 'Token has expired'}); return
+            except Exception:
+                pass
+            self._json(200, {'valid': True, 'email': row.get('email', '')})
+        except Exception as ex:
+            print(f'  ⚠️  verify-reset error: {ex}')
+            self._json(200, {'valid': False, 'error': 'Server error'})
+
+    def _handle_partner_reset_password(self):
+        """POST /api/partner/reset-password — set a new password using a valid token."""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+
+        token       = body.get('token', '').strip()
+        new_password = body.get('password', '').strip()
+
+        if not token or not new_password:
+            self._json(200, {'ok': False, 'error': 'Token and password required'}); return
+        if len(new_password) < 8:
+            self._json(200, {'ok': False, 'error': 'Password must be at least 8 characters'}); return
+
+        if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+            self._json(200, {'ok': True, 'demo': True}); return
+
+        import urllib.parse as _up_rp
+        import datetime as _dt
+        try:
+            # Validate token
+            qurl = (f"{SUPABASE_URL}/rest/v1/partner_reset_tokens"
+                    f"?token=eq.{_up_rp.quote(token)}&used=eq.false&select=id,email,expires_at&limit=1")
+            req = urllib.request.Request(qurl, headers={
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            })
+            with urllib.request.urlopen(req, timeout=6) as r:
+                rows = json.loads(r.read())
+            if not rows:
+                self._json(200, {'ok': False, 'error': 'Invalid or expired token'}); return
+            row = rows[0]
+            try:
+                exp = _dt.datetime.fromisoformat(row['expires_at'].replace('Z', '+00:00'))
+                if exp < _dt.datetime.now(_dt.timezone.utc):
+                    self._json(200, {'ok': False, 'error': 'Token has expired'}); return
+            except Exception:
+                pass
+
+            email    = row['email']
+            token_id = row['id']
+            new_hash = _hash_password(new_password, email)
+
+            # Update partner_accounts password
+            pu_url = (f"{SUPABASE_URL}/rest/v1/partner_accounts"
+                      f"?email=eq.{_up_rp.quote(email)}")
+            pu_req = urllib.request.Request(pu_url,
+                data=json.dumps({'password_hash': new_hash}).encode(),
+                headers={'apikey': SUPABASE_SERVICE_KEY,
+                         'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                         'Content-Type': 'application/json', 'Prefer': 'return=minimal'},
+                method='PATCH')
+            urllib.request.urlopen(pu_req, timeout=6)
+
+            # Mark token as used
+            tu_url = f"{SUPABASE_URL}/rest/v1/partner_reset_tokens?id=eq.{token_id}"
+            tu_req = urllib.request.Request(tu_url,
+                data=json.dumps({'used': True}).encode(),
+                headers={'apikey': SUPABASE_SERVICE_KEY,
+                         'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                         'Content-Type': 'application/json', 'Prefer': 'return=minimal'},
+                method='PATCH')
+            urllib.request.urlopen(tu_req, timeout=5)
+
+            print(f'  🔑 Partner password reset complete for {email}')
+            self._json(200, {'ok': True})
+        except Exception as ex:
+            print(f'  ⚠️  reset-password error: {ex}')
+            self._json(200, {'ok': False, 'error': 'Server error'})
 
     def _handle_workspace_resend_code(self):
         """Resend a client's access code to their registered email."""
@@ -3108,10 +3670,8 @@ class AgentHandler(BaseHTTPRequestHandler):
         if not email or not password:
             self._json(200, {'success': False, 'error': 'Email and password are required'}); return
 
-        # Accept both the Railway env var credentials AND the baked-in defaults
-        # so admin login works regardless of whether Railway overrides the env vars
-        _admin_emails = {'admin@clickpointconsulting.com.au', HQ_ADMIN_EMAIL.lower()}
-        _admin_passes = {'admin_123!', HQ_ADMIN_PASS}
+        _admin_emails = {HQ_ADMIN_EMAIL.lower()} if HQ_ADMIN_EMAIL else set()
+        _admin_passes = {HQ_ADMIN_PASS} if HQ_ADMIN_PASS else set()
         _env_email    = os.getenv('HQ_ADMIN_EMAIL', '')
         _env_pass     = os.getenv('HQ_ADMIN_PASS',  '')
         if _env_email: _admin_emails.add(_env_email.lower())
@@ -3134,15 +3694,6 @@ class AgentHandler(BaseHTTPRequestHandler):
                     'name': 'Agency Partner', 'initials': 'AP',
                     'email': email, 'partnerId': 'partner-demo',
                 }); return
-        # Demo fallback — only when no env creds configured
-        if not _pt_email:
-            if email == 'partner@clickpoint.com.au' and password == 'demo1234':
-                self._json(200, {
-                    'success': True, 'role': 'partner',
-                    'name': 'Agency Partner', 'initials': 'AP',
-                    'email': email, 'partnerId': 'partner-demo',
-                }); return
-
         # ── Supabase partner_accounts lookup ─────────────────────────────────
         sb_url = os.getenv('SUPABASE_URL', '') or SUPABASE_URL
         sb_key = os.getenv('SUPABASE_SERVICE_KEY', '') or SUPABASE_SERVICE_KEY
@@ -3196,22 +3747,130 @@ class AgentHandler(BaseHTTPRequestHandler):
     ]
 
     def _handle_partner_clients(self):
-        """Return list of clients for the authenticated partner."""
-        # In production this would validate a session token and filter by partner_id.
-        # For now returns demo data so the portal works out of the box.
+        """Return list of clients for the authenticated partner, filtered by partner_id."""
+        import urllib.parse as _up_pc
+        qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        partner_id = qs.get('partnerId', [None])[0] or qs.get('partner_id', [None])[0]
+
+        # Try real DB first
+        if SUPABASE_URL and SUPABASE_SERVICE_KEY and partner_id and partner_id != 'partner-demo':
+            try:
+                qurl = (f"{SUPABASE_URL}/rest/v1/workspace_access"
+                        f"?partner_id=eq.{_up_pc.quote(partner_id)}"
+                        f"&select=workspace_id,company_name,contact_name,email,plan,active,last_login,created_at"
+                        f"&order=created_at.desc")
+                req = urllib.request.Request(qurl, headers={
+                    'apikey': SUPABASE_SERVICE_KEY,
+                    'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                })
+                with urllib.request.urlopen(req, timeout=8) as r:
+                    rows = json.loads(r.read())
+
+                # Enrich with campaign counts from campaigns table
+                clients = []
+                commission_rate = 0.20
+                plan_mrr = {'starter': 500, 'growth': 1200, 'scale': 2500, 'enterprise': 5000}
+                for row in rows:
+                    ws = row.get('workspace_id', '')
+                    # Count campaigns for this workspace
+                    cmpgn_count = 0
+                    try:
+                        curl = (f"{SUPABASE_URL}/rest/v1/campaigns"
+                                f"?client=eq.{_up_pc.quote(ws)}&select=id&status=eq.Active")
+                        creq = urllib.request.Request(curl, headers={
+                            'apikey': SUPABASE_SERVICE_KEY,
+                            'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                            'Prefer': 'count=exact',
+                        })
+                        with urllib.request.urlopen(creq, timeout=5) as cr:
+                            cmpgn_count = len(json.loads(cr.read()))
+                    except Exception:
+                        pass
+
+                    mrr = plan_mrr.get(row.get('plan', 'starter'), 500)
+                    last_login = row.get('last_login') or ''
+                    if last_login:
+                        try:
+                            import datetime as _dt
+                            then = _dt.datetime.fromisoformat(last_login.replace('Z', '+00:00'))
+                            now  = _dt.datetime.now(_dt.timezone.utc)
+                            diff = now - then
+                            if diff.days == 0:
+                                hrs = diff.seconds // 3600
+                                last_active = f'{hrs} hour{"s" if hrs != 1 else ""} ago'
+                            elif diff.days == 1:
+                                last_active = '1 day ago'
+                            else:
+                                last_active = f'{diff.days} days ago'
+                        except Exception:
+                            last_active = 'Recently'
+                    else:
+                        last_active = 'Never'
+
+                    clients.append({
+                        'id':         ws,
+                        'name':       row.get('company_name', ws),
+                        'email':      row.get('email', ''),
+                        'plan':       row.get('plan', 'starter'),
+                        'health':     7.0,   # placeholder — no health metric yet
+                        'mrr':        mrr,
+                        'commission': round(mrr * commission_rate, 2),
+                        'status':     'active' if row.get('active', True) else 'inactive',
+                        'lastActive': last_active,
+                        'campaigns':  cmpgn_count,
+                    })
+
+                self._json(200, {'success': True, 'clients': clients, 'total': len(clients), 'source': 'db'})
+                return
+            except Exception as ex:
+                print(f'  ⚠️  partner/clients DB error: {ex}')
+
+        # Fallback: demo data (used when Supabase not configured or partner_id is demo)
         commission_rate = 0.20
-        clients = []
-        for c in self._PARTNER_DEMO_CLIENTS:
-            clients.append({**c, 'commission': round(c['mrr'] * commission_rate, 2)})
-        self._json(200, {
-            'success': True,
-            'clients': clients,
-            'total': len(clients),
-        })
+        clients = [{**c, 'commission': round(c['mrr'] * commission_rate, 2)}
+                   for c in self._PARTNER_DEMO_CLIENTS]
+        self._json(200, {'success': True, 'clients': clients, 'total': len(clients), 'source': 'demo'})
 
     def _handle_partner_summary(self):
         """Return aggregate KPIs for the partner dashboard."""
-        clients = self._PARTNER_DEMO_CLIENTS
+        import urllib.parse as _up_ps
+        qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        partner_id = qs.get('partnerId', [None])[0] or qs.get('partner_id', [None])[0]
+
+        if SUPABASE_URL and SUPABASE_SERVICE_KEY and partner_id and partner_id != 'partner-demo':
+            try:
+                qurl = (f"{SUPABASE_URL}/rest/v1/workspace_access"
+                        f"?partner_id=eq.{_up_ps.quote(partner_id)}"
+                        f"&select=workspace_id,plan,active,last_login"
+                        f"&order=created_at.desc")
+                req = urllib.request.Request(qurl, headers={
+                    'apikey': SUPABASE_SERVICE_KEY,
+                    'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                })
+                with urllib.request.urlopen(req, timeout=8) as r:
+                    rows = json.loads(r.read())
+
+                commission_rate = 0.20
+                plan_mrr = {'starter': 500, 'growth': 1200, 'scale': 2500, 'enterprise': 5000}
+                total_mrr   = sum(plan_mrr.get(r.get('plan', 'starter'), 500) for r in rows)
+                active       = sum(1 for r in rows if r.get('active', True))
+                commission   = round(total_mrr * commission_rate, 2)
+                self._json(200, {
+                    'success':        True,
+                    'activeClients':  active,
+                    'totalClients':   len(rows),
+                    'totalMrr':       total_mrr,
+                    'commission':     commission,
+                    'avgHealth':      7.5,   # placeholder
+                    'totalCampaigns': 0,
+                    'source':         'db',
+                })
+                return
+            except Exception as ex:
+                print(f'  ⚠️  partner/summary DB error: {ex}')
+
+        # Fallback demo data
+        clients     = self._PARTNER_DEMO_CLIENTS
         total_mrr   = sum(c['mrr'] for c in clients)
         active      = sum(1 for c in clients if c['status'] == 'active')
         avg_health  = round(sum(c['health'] for c in clients) / len(clients), 1)
@@ -3225,7 +3884,118 @@ class AgentHandler(BaseHTTPRequestHandler):
             'commission':      commission,
             'avgHealth':       avg_health,
             'totalCampaigns':  total_cmpgn,
+            'source':          'demo',
         })
+
+    # ── HQ messaging (agency ↔ admin) ────────────────────────────────────────────
+
+    def _handle_hq_messages_get(self):
+        """GET /api/hq/messages?partnerId=X&role=partner|admin — fetch thread messages."""
+        import urllib.parse as _up_hm
+        qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        partner_id = qs.get('partnerId', [None])[0]
+        role       = qs.get('role', ['partner'])[0]
+        limit      = int(qs.get('limit', ['50'])[0])
+
+        if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+            self._json(200, {'success': True, 'messages': [], 'demo': True}); return
+
+        try:
+            filters = f"select=*&order=created_at.asc&limit={limit}"
+            if partner_id:
+                filters = f"partner_id=eq.{_up_hm.quote(partner_id)}&{filters}"
+            elif role != 'admin':
+                self._json(200, {'success': False, 'error': 'partnerId required'}); return
+
+            qurl = f"{SUPABASE_URL}/rest/v1/hq_messages?{filters}"
+            req = urllib.request.Request(qurl, headers={
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            })
+            with urllib.request.urlopen(req, timeout=8) as r:
+                messages = json.loads(r.read())
+
+            # Mark messages as read for the requesting role
+            if messages and partner_id:
+                try:
+                    unread_ids = [m['id'] for m in messages
+                                  if not m.get('read') and m.get('from_role') != role]
+                    for mid in unread_ids:
+                        ru_url = f"{SUPABASE_URL}/rest/v1/hq_messages?id=eq.{mid}"
+                        ru_req = urllib.request.Request(ru_url,
+                            data=json.dumps({'read': True}).encode(),
+                            headers={'apikey': SUPABASE_SERVICE_KEY,
+                                     'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                                     'Content-Type': 'application/json',
+                                     'Prefer': 'return=minimal'},
+                            method='PATCH')
+                        urllib.request.urlopen(ru_req, timeout=5)
+                except Exception:
+                    pass
+
+            self._json(200, {'success': True, 'messages': messages, 'total': len(messages)})
+        except Exception as ex:
+            print(f'  hq/messages GET error: {ex}')
+            self._json(200, {'success': False, 'error': str(ex)})
+
+    def _handle_hq_message_post(self):
+        """POST /api/hq/message — send a message in a partner<->admin thread."""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+
+        partner_id = body.get('partnerId', '').strip()
+        from_role  = body.get('fromRole', 'partner').strip()   # 'partner' | 'admin'
+        from_email = body.get('fromEmail', '').strip()
+        subject    = body.get('subject', '').strip()
+        msg_body   = body.get('body', '').strip()
+
+        if not msg_body or not from_email:
+            self._json(200, {'ok': False, 'error': 'body and fromEmail required'}); return
+        if from_role not in ('partner', 'admin'):
+            self._json(200, {'ok': False, 'error': 'fromRole must be partner or admin'}); return
+
+        if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+            self._json(200, {'ok': True, 'demo': True}); return
+
+        try:
+            row = {
+                'from_role':  from_role,
+                'from_email': from_email,
+                'partner_id': partner_id or None,
+                'subject':    subject,
+                'body':       msg_body,
+                'read':       False,
+            }
+            result = _supabase_req('POST', 'hq_messages', row, service_role=True)
+            print(f'  HQ message from {from_role}/{from_email} re partner {partner_id}')
+
+            # Email notification to admin when a partner sends a message
+            if from_role == 'partner':
+                notify_email = _ENV.get('NOTIFY_EMAIL', '')
+                if notify_email:
+                    notif_html = (
+                        f'<div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px;">'
+                        f'<div style="font-size:20px;font-weight:800;color:#1C3A2E;margin-bottom:4px;">ClickPoint HQ</div>'
+                        f'<div style="font-size:13px;color:#999;margin-bottom:24px;">New message from a partner</div>'
+                        f'<p style="color:#555;font-size:14px;">From: <strong>{from_email}</strong>'
+                        f'{" (Partner: " + partner_id + ")" if partner_id else ""}</p>'
+                        + (f'<p style="color:#555;font-size:14px;">Subject: <strong>{subject}</strong></p>' if subject else '')
+                        + f'<div style="background:#f5f7fa;border-radius:8px;padding:16px;margin:16px 0;'
+                          f'font-size:14px;color:#333;line-height:1.6;">{msg_body}</div>'
+                        f'<p style="font-size:12px;color:#aaa;">Reply via the Admin HQ portal.</p></div>'
+                    )
+                    _send_email(
+                        notify_email,
+                        f'[ClickPoint] Partner message{" — " + subject if subject else ""} from {from_email}',
+                        notif_html
+                    )
+
+            self._json(200, {'ok': True, 'id': result[0].get('id') if isinstance(result, list) and result else None})
+        except Exception as ex:
+            print(f'  hq/message POST error: {ex}')
+            self._json(200, {'ok': False, 'error': str(ex)})
 
     def _handle_workspace_auth(self):
         """Authenticate a workspace user. Falls back to demo mode."""
@@ -4271,6 +5041,804 @@ class AgentHandler(BaseHTTPRequestHandler):
             print(f'  ⚠️  Canva callback error: {e}')
             self._html(500, self._canva_result_page('error', str(e)))
 
+    # ── CRM handlers ──────────────────────────────────────────────────────────
+
+    def _handle_crm_contacts_get(self):
+        """GET /api/crm/contacts?workspaceId=X"""
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        workspace_id = params.get('workspaceId', [''])[0].strip()
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        try:
+            rows = _supabase_req(
+                'GET',
+                f'crm_contacts?workspace_id=eq.{urllib.parse.quote(workspace_id)}'
+                f'&order=created_at.desc'
+            )
+            self._json(200, {'contacts': rows or []})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_crm_contacts_post(self):
+        """POST /api/crm/contacts — upsert contact"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        name = (body.get('name') or '').strip()
+        if not workspace_id or not name:
+            self._error(400, 'workspaceId and name required'); return
+        contact_id = body.get('id')
+        payload = {
+            'workspace_id': workspace_id,
+            'name': name,
+            'email': body.get('email') or None,
+            'phone': body.get('phone') or None,
+            'company': body.get('company') or None,
+            'title': body.get('title') or None,
+            'tags': body.get('tags') or None,
+            'notes': body.get('notes') or None,
+            'deal_stage': body.get('deal_stage') or 'prospect',
+            'deal_value': body.get('deal_value') or None,
+        }
+        try:
+            if contact_id:
+                rows = _supabase_req('PATCH', f'crm_contacts?id=eq.{contact_id}', payload)
+            else:
+                rows = _supabase_req('POST', 'crm_contacts', payload)
+            contact = rows[0] if rows else payload
+            self._json(200, {'ok': True, 'contact': contact})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_crm_contacts_delete(self):
+        """DELETE /api/crm/contacts — body: {id}"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        contact_id = body.get('id')
+        if not contact_id:
+            self._error(400, 'id required'); return
+        try:
+            _supabase_req('DELETE', f'crm_contacts?id=eq.{contact_id}')
+            self._json(200, {'ok': True})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_crm_activities_get(self):
+        """GET /api/crm/activities?workspaceId=X&contactId=Y"""
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        workspace_id = params.get('workspaceId', [''])[0].strip()
+        contact_id = params.get('contactId', [''])[0].strip()
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        path = (f'crm_activities?workspace_id=eq.{urllib.parse.quote(workspace_id)}'
+                f'&order=created_at.desc')
+        if contact_id:
+            path += f'&contact_id=eq.{contact_id}'
+        try:
+            rows = _supabase_req('GET', path)
+            self._json(200, {'activities': rows or []})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_crm_activities_post(self):
+        """POST /api/crm/activities — log activity"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        contact_id = body.get('contactId')
+        activity_type = (body.get('type') or '').strip()
+        summary = (body.get('summary') or '').strip()
+        if not workspace_id or not contact_id or not activity_type:
+            self._error(400, 'workspaceId, contactId, and type required'); return
+        try:
+            rows = _supabase_req('POST', 'crm_activities', {
+                'workspace_id': workspace_id,
+                'contact_id': contact_id,
+                'type': activity_type,
+                'summary': summary,
+            })
+            # Update last_contact timestamp on the contact
+            now_iso = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+            try:
+                _supabase_req('PATCH', f'crm_contacts?id=eq.{contact_id}',
+                              {'last_contact': now_iso})
+            except Exception:
+                pass
+            self._json(200, {'ok': True, 'activity': rows[0] if rows else {}})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_crm_ai_score(self):
+        """POST /api/crm/ai-score — score a deal with Claude"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        contact_id = body.get('contactId')
+        if not workspace_id or not contact_id:
+            self._error(400, 'workspaceId and contactId required'); return
+        effective_key = self._effective_api_key()
+        if not effective_key:
+            self._error(500, 'ANTHROPIC_API_KEY not set'); return
+        try:
+            contacts = _supabase_req('GET', f'crm_contacts?id=eq.{contact_id}&select=*')
+            if not contacts:
+                self._error(404, 'Contact not found'); return
+            contact = contacts[0]
+            activities = _supabase_req(
+                'GET',
+                f'crm_activities?contact_id=eq.{contact_id}&order=created_at.desc&limit=10'
+            )
+            activity_summary = '\n'.join(
+                f'- [{a.get("type","note")}] {a.get("summary","")}'
+                for a in (activities or [])
+            ) or 'No activities recorded'
+            contact_info = (
+                f'Name: {contact.get("name","")}\n'
+                f'Company: {contact.get("company","")}\n'
+                f'Title: {contact.get("title","")}\n'
+                f'Deal Stage: {contact.get("deal_stage","prospect")}\n'
+                f'Deal Value: {contact.get("deal_value","")}\n'
+                f'Notes: {contact.get("notes","")}\n'
+                f'Tags: {", ".join(contact.get("tags") or [])}\n'
+                f'\nRecent Activities:\n{activity_summary}'
+            )
+            system = (
+                'You are Sarah Lin, CMO. Review this contact\'s deal stage, notes, and activity history. '
+                'Score the deal 1-10 (10=ready to close) and recommend one specific next action. '
+                'Respond as JSON only: {"score": <int>, "next_action": "<string>", "reasoning": "<string>"}'
+            )
+            raw = call_anthropic(effective_key, system,
+                                 [{'role': 'user', 'content': contact_info}], max_tokens=400)
+            cleaned = raw.replace('```json', '').replace('```', '').strip()
+            result = json.loads(cleaned)
+            score = int(result.get('score', 5))
+            next_action = str(result.get('next_action', ''))
+            reasoning = str(result.get('reasoning', ''))
+            # Save back to contact
+            _supabase_req('PATCH', f'crm_contacts?id=eq.{contact_id}',
+                          {'ai_score': score, 'next_action': next_action})
+            self._json(200, {'ok': True, 'score': score,
+                             'next_action': next_action, 'reasoning': reasoning})
+        except Exception as e:
+            print(f'  CRM AI score error: {e}')
+            self._error(500, str(e))
+
+    # ── Reputation Management handlers ────────────────────────────────────────
+
+    def _handle_reputation_get(self):
+        """GET /api/reputation?workspaceId=X"""
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        workspace_id = params.get('workspaceId', [''])[0].strip()
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        try:
+            reviews = _supabase_req(
+                'GET',
+                f'reputation_reviews?workspace_id=eq.{urllib.parse.quote(workspace_id)}'
+                f'&order=created_at.desc'
+            )
+            reviews = reviews or []
+            # Compute stats
+            total = len(reviews)
+            avg_rating = round(sum(r.get('rating', 0) for r in reviews) / max(1, total), 2)
+            by_platform = {}
+            pending_count = 0
+            for r in reviews:
+                plat = r.get('platform', 'other')
+                by_platform[plat] = by_platform.get(plat, 0) + 1
+                if r.get('status') == 'pending':
+                    pending_count += 1
+            stats = {
+                'total': total,
+                'avg_rating': avg_rating,
+                'by_platform': by_platform,
+                'pending_count': pending_count,
+            }
+            self._json(200, {'reviews': reviews, 'stats': stats})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_reputation_reviews_post(self):
+        """POST /api/reputation/reviews — add review"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        platform = (body.get('platform') or '').strip()
+        if not workspace_id or not platform:
+            self._error(400, 'workspaceId and platform required'); return
+        payload = {
+            'workspace_id': workspace_id,
+            'platform': platform,
+            'reviewer_name': body.get('reviewer_name') or None,
+            'rating': body.get('rating') or None,
+            'content': body.get('content') or None,
+            'review_date': body.get('review_date') or None,
+            'external_id': body.get('external_id') or None,
+            'status': 'pending',
+        }
+        try:
+            rows = _supabase_req('POST', 'reputation_reviews', payload)
+            self._json(200, {'ok': True, 'review': rows[0] if rows else payload})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_reputation_respond(self):
+        """POST /api/reputation/respond — AI-draft response and save"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        review_id = body.get('reviewId')
+        workspace_id = (body.get('workspaceId') or '').strip()
+        tone = (body.get('tone') or 'professional and warm').strip()
+        if not review_id or not workspace_id:
+            self._error(400, 'reviewId and workspaceId required'); return
+        effective_key = self._effective_api_key()
+        if not effective_key:
+            self._error(500, 'ANTHROPIC_API_KEY not set'); return
+        try:
+            reviews = _supabase_req('GET', f'reputation_reviews?id=eq.{review_id}&select=*')
+            if not reviews:
+                self._error(404, 'Review not found'); return
+            review = reviews[0]
+            rating = review.get('rating', 3)
+            content = review.get('content', '')
+            reviewer = review.get('reviewer_name', 'Customer')
+            system = (
+                f'You are a professional reputation manager. Write a concise, genuine, '
+                f'brand-appropriate response to this {rating}-star review. Tone: {tone}. '
+                f'Be specific to what they wrote. Don\'t be sycophantic. Under 80 words.'
+            )
+            user_msg = (
+                f'Reviewer: {reviewer}\nRating: {rating}/5\nReview: {content}'
+            )
+            response_text = call_anthropic(effective_key, system,
+                                           [{'role': 'user', 'content': user_msg}],
+                                           max_tokens=200)
+            # Save response and update status
+            _supabase_req('PATCH', f'reputation_reviews?id=eq.{review_id}', {
+                'response': response_text,
+                'status': 'responded',
+            })
+            self._json(200, {'ok': True, 'response': response_text})
+        except Exception as e:
+            print(f'  Reputation respond error: {e}')
+            self._error(500, str(e))
+
+    def _handle_reputation_request(self):
+        """POST /api/reputation/request — send review request email"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        customer_email = (body.get('customerEmail') or '').strip()
+        customer_name = (body.get('customerName') or 'Valued Customer').strip()
+        business_name = (body.get('businessName') or 'our business').strip()
+        review_url = (body.get('reviewUrl') or '').strip()
+        if not workspace_id or not customer_email:
+            self._error(400, 'workspaceId and customerEmail required'); return
+        link_html = (f'<a href="{review_url}" style="display:inline-block;margin-top:16px;'
+                     f'padding:12px 24px;background:#1C3A2E;color:#fff;border-radius:6px;'
+                     f'text-decoration:none;font-weight:600;">Leave a Review</a>'
+                     if review_url else '')
+        html = f"""<div style="font-family:-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:28px;">
+        <h2 style="color:#1C3A2E;margin-bottom:12px;">Hi {customer_name},</h2>
+        <p style="color:#444;line-height:1.7;font-size:15px;">
+            Thank you so much for choosing {business_name}. We really hope you had a great experience,
+            and we'd love to hear what you think.
+        </p>
+        <p style="color:#444;line-height:1.7;font-size:15px;">
+            If you have a moment, sharing your honest feedback helps others find us — and helps us keep
+            improving. It only takes a minute.
+        </p>
+        {link_html}
+        <p style="margin-top:24px;color:#888;font-size:13px;">
+            If you have any questions or concerns, just reply to this email. We're always happy to help.
+        </p>
+        <p style="color:#444;font-size:14px;">Warm regards,<br>The {business_name} team</p>
+        </div>"""
+        ok = _send_email(customer_email, f'How was your experience with {business_name}?', html)
+        self._json(200, {'ok': ok})
+
+    # ── Local SEO handlers ────────────────────────────────────────────────────
+
+    def _handle_local_seo_get(self):
+        """GET /api/local-seo?workspaceId=X"""
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        workspace_id = params.get('workspaceId', [''])[0].strip()
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        try:
+            rows = _supabase_req(
+                'GET',
+                f'local_listings?workspace_id=eq.{urllib.parse.quote(workspace_id)}&limit=1'
+            )
+            self._json(200, {'listing': rows[0] if rows else None})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_local_seo_nap(self):
+        """POST /api/local-seo/nap — upsert listing data"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        now_iso = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+        payload = {
+            'workspace_id': workspace_id,
+            'business_name': body.get('business_name') or None,
+            'address': body.get('address') or None,
+            'city': body.get('city') or None,
+            'state': body.get('state') or None,
+            'postcode': body.get('postcode') or None,
+            'phone': body.get('phone') or None,
+            'website': body.get('website') or None,
+            'categories': body.get('categories') or None,
+            'description': body.get('description') or None,
+            'hours': body.get('hours') or {},
+            'updated_at': now_iso,
+        }
+        try:
+            # Check existing
+            rows = _supabase_req(
+                'GET',
+                f'local_listings?workspace_id=eq.{urllib.parse.quote(workspace_id)}&limit=1'
+            )
+            if rows:
+                result = _supabase_req('PATCH',
+                    f'local_listings?workspace_id=eq.{urllib.parse.quote(workspace_id)}',
+                    payload)
+            else:
+                result = _supabase_req('POST', 'local_listings', payload)
+            listing = result[0] if result else payload
+            self._json(200, {'ok': True, 'listing': listing})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_local_seo_audit(self):
+        """POST /api/local-seo/audit — run AI audit on listing data"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        effective_key = self._effective_api_key()
+        if not effective_key:
+            self._error(500, 'ANTHROPIC_API_KEY not set'); return
+        try:
+            rows = _supabase_req(
+                'GET',
+                f'local_listings?workspace_id=eq.{urllib.parse.quote(workspace_id)}&limit=1'
+            )
+            listing = rows[0] if rows else {}
+            listing_text = (
+                f'Business Name: {listing.get("business_name","")}\n'
+                f'Address: {listing.get("address","")}, {listing.get("city","")}, '
+                f'{listing.get("state","")} {listing.get("postcode","")}\n'
+                f'Phone: {listing.get("phone","")}\n'
+                f'Website: {listing.get("website","")}\n'
+                f'Categories: {", ".join(listing.get("categories") or [])}\n'
+                f'Description: {listing.get("description","")}\n'
+                f'Hours: {json.dumps(listing.get("hours") or {})}\n'
+                f'Listing Status: {json.dumps(listing.get("listing_status") or {})}'
+            )
+            system = (
+                'You are Raj Nair, SEO & Analytics Specialist. Audit this local business listing data '
+                'for completeness and local SEO best practice. '
+                'Return JSON only: {"score": <int 1-10>, "issues": [{"severity": "high"|"medium"|"low", '
+                '"issue": "<string>", "fix": "<string>"}], "opportunities": ["<string>"], '
+                '"next_steps": ["<string>"]}'
+            )
+            raw = call_anthropic(effective_key, system,
+                                 [{'role': 'user', 'content': listing_text}], max_tokens=800)
+            cleaned = raw.replace('```json', '').replace('```', '').strip()
+            audit = json.loads(cleaned)
+            # Save last_audit timestamp
+            now_iso = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+            try:
+                if rows:
+                    _supabase_req('PATCH',
+                        f'local_listings?workspace_id=eq.{urllib.parse.quote(workspace_id)}',
+                        {'last_audit': now_iso})
+            except Exception:
+                pass
+            self._json(200, {'ok': True, 'audit': audit})
+        except Exception as e:
+            print(f'  Local SEO audit error: {e}')
+            self._error(500, str(e))
+
+    def _handle_local_seo_listing_patch(self):
+        """PATCH /api/local-seo/listing — update a platform's listing status"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        platform = (body.get('platform') or '').strip()
+        status = (body.get('status') or '').strip()
+        valid_platforms = {'google', 'bing', 'apple_maps', 'yelp', 'facebook',
+                           'yellow_pages', 'foursquare', 'true_local'}
+        valid_statuses = {'claimed', 'unclaimed', 'pending', 'na'}
+        if not workspace_id or not platform or not status:
+            self._error(400, 'workspaceId, platform, and status required'); return
+        if platform not in valid_platforms:
+            self._error(400, f'Invalid platform. Must be one of: {", ".join(valid_platforms)}'); return
+        if status not in valid_statuses:
+            self._error(400, f'Invalid status. Must be one of: {", ".join(valid_statuses)}'); return
+        try:
+            rows = _supabase_req(
+                'GET',
+                f'local_listings?workspace_id=eq.{urllib.parse.quote(workspace_id)}&limit=1'
+            )
+            if not rows:
+                self._error(404, 'Listing not found'); return
+            current_status = rows[0].get('listing_status') or {}
+            current_status[platform] = status
+            _supabase_req('PATCH',
+                f'local_listings?workspace_id=eq.{urllib.parse.quote(workspace_id)}',
+                {'listing_status': current_status})
+            self._json(200, {'ok': True, 'listing_status': current_status})
+        except Exception as e:
+            self._error(500, str(e))
+
+    # ── Social Publishing handlers ────────────────────────────────────────────
+
+    def _handle_social_accounts_get(self):
+        """GET /api/social/accounts?workspaceId=X"""
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        workspace_id = params.get('workspaceId', [''])[0].strip()
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        try:
+            rows = _supabase_req(
+                'GET',
+                f'social_accounts?workspace_id=eq.{urllib.parse.quote(workspace_id)}'
+                f'&select=id,workspace_id,platform,account_name,account_id,page_id,'
+                f'token_type,expires_at,status,created_at'
+            )
+            self._json(200, {'accounts': rows or []})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_social_posts_get(self):
+        """GET /api/social/posts?workspaceId=X&status=X"""
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        workspace_id = params.get('workspaceId', [''])[0].strip()
+        status_filter = params.get('status', [''])[0].strip()
+        if not workspace_id:
+            self._error(400, 'workspaceId required'); return
+        path = (f'social_posts?workspace_id=eq.{urllib.parse.quote(workspace_id)}'
+                f'&order=created_at.desc')
+        if status_filter:
+            path += f'&status=eq.{urllib.parse.quote(status_filter)}'
+        try:
+            rows = _supabase_req('GET', path)
+            self._json(200, {'posts': rows or []})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_social_auth_get(self):
+        """GET /api/social/auth/:platform?workspaceId=X — return OAuth URL"""
+        parsed = urllib.parse.urlparse(self.path)
+        params = urllib.parse.parse_qs(parsed.query)
+        workspace_id = params.get('workspaceId', [''])[0].strip()
+        # Extract platform from path: /api/social/auth/facebook
+        parts = parsed.path.rstrip('/').split('/')
+        platform = parts[-1] if parts else ''
+        callback_base = PLATFORM_URL
+        if platform == 'facebook' or platform == 'instagram':
+            if not META_APP_ID:
+                self._error(503, 'META_APP_ID not configured'); return
+            callback = f'{callback_base}/api/social/callback/facebook'
+            params_str = urllib.parse.urlencode({
+                'client_id': META_APP_ID,
+                'redirect_uri': callback,
+                'scope': 'pages_manage_posts,pages_read_engagement,instagram_basic,instagram_content_publish',
+                'state': workspace_id,
+                'response_type': 'code',
+            })
+            auth_url = f'https://www.facebook.com/dialog/oauth?{params_str}'
+        elif platform == 'linkedin':
+            if not LINKEDIN_CLIENT_ID:
+                self._error(503, 'LINKEDIN_CLIENT_ID not configured'); return
+            callback = f'{callback_base}/api/social/callback/linkedin'
+            params_str = urllib.parse.urlencode({
+                'response_type': 'code',
+                'client_id': LINKEDIN_CLIENT_ID,
+                'redirect_uri': callback,
+                'scope': 'w_member_social,r_liteprofile',
+                'state': workspace_id,
+            })
+            auth_url = f'https://www.linkedin.com/oauth/v2/authorization?{params_str}'
+        elif platform == 'twitter':
+            if not TWITTER_CLIENT_ID:
+                self._error(503, 'TWITTER_CLIENT_ID not configured'); return
+            callback = f'{callback_base}/api/social/callback/twitter'
+            params_str = urllib.parse.urlencode({
+                'response_type': 'code',
+                'client_id': TWITTER_CLIENT_ID,
+                'redirect_uri': callback,
+                'scope': 'tweet.write tweet.read users.read',
+                'state': workspace_id,
+                'code_challenge': 'challenge',
+                'code_challenge_method': 'plain',
+            })
+            auth_url = f'https://twitter.com/i/oauth2/authorize?{params_str}'
+        else:
+            self._error(400, f'Unsupported platform: {platform}'); return
+        self._json(200, {'auth_url': auth_url, 'platform': platform})
+
+    def _handle_social_callback_get(self):
+        """GET /api/social/callback/:platform — handle OAuth callback"""
+        parsed = urllib.parse.urlparse(self.path)
+        params = urllib.parse.parse_qs(parsed.query)
+        parts = parsed.path.rstrip('/').split('/')
+        platform = parts[-1] if parts else ''
+        code = params.get('code', [''])[0]
+        workspace_id = params.get('state', [''])[0]
+        error = params.get('error', [''])[0]
+        if error:
+            self._html(400, f'<html><body>OAuth error: {error}</body></html>'); return
+        if not code:
+            self._html(400, '<html><body>No code received.</body></html>'); return
+        callback_base = PLATFORM_URL
+        callback = f'{callback_base}/api/social/callback/{platform}'
+        try:
+            if platform == 'facebook':
+                token_url = (
+                    f'https://graph.facebook.com/v19.0/oauth/access_token'
+                    f'?client_id={META_APP_ID}&redirect_uri={urllib.parse.quote(callback)}'
+                    f'&client_secret={META_APP_SECRET}&code={code}'
+                )
+                with urllib.request.urlopen(token_url, timeout=15) as r:
+                    token_data = json.loads(r.read())
+                access_token = token_data.get('access_token', '')
+                # Get page info
+                pages_url = (f'https://graph.facebook.com/v19.0/me/accounts'
+                             f'?access_token={access_token}')
+                with urllib.request.urlopen(pages_url, timeout=15) as r:
+                    pages_data = json.loads(r.read())
+                pages = pages_data.get('data', [])
+                if pages:
+                    page = pages[0]
+                    encrypted = encrypt_token(page.get('access_token', access_token))
+                    _supabase_req('POST', 'social_accounts', {
+                        'workspace_id': workspace_id,
+                        'platform': 'facebook',
+                        'account_name': page.get('name', ''),
+                        'page_id': page.get('id', ''),
+                        'encrypted_token': encrypted,
+                        'token_type': 'page',
+                        'status': 'connected',
+                    })
+            elif platform == 'linkedin':
+                token_data_raw = urllib.parse.urlencode({
+                    'grant_type': 'authorization_code',
+                    'code': code,
+                    'redirect_uri': callback,
+                    'client_id': LINKEDIN_CLIENT_ID,
+                    'client_secret': LINKEDIN_CLIENT_SECRET,
+                }).encode()
+                req = urllib.request.Request(
+                    'https://www.linkedin.com/oauth/v2/accessToken',
+                    data=token_data_raw,
+                    headers={'Content-Type': 'application/x-www-form-urlencoded'},
+                    method='POST',
+                )
+                with urllib.request.urlopen(req, timeout=15) as r:
+                    token_data = json.loads(r.read())
+                access_token = token_data.get('access_token', '')
+                me_req = urllib.request.Request(
+                    'https://api.linkedin.com/v2/me',
+                    headers={'Authorization': f'Bearer {access_token}'},
+                )
+                with urllib.request.urlopen(me_req, timeout=15) as r:
+                    me_data = json.loads(r.read())
+                encrypted = encrypt_token(access_token)
+                _supabase_req('POST', 'social_accounts', {
+                    'workspace_id': workspace_id,
+                    'platform': 'linkedin',
+                    'account_name': f'{me_data.get("localizedFirstName","")} {me_data.get("localizedLastName","")}'.strip(),
+                    'account_id': me_data.get('id', ''),
+                    'encrypted_token': encrypted,
+                    'token_type': 'user',
+                    'status': 'connected',
+                })
+            elif platform == 'twitter':
+                token_data_raw = urllib.parse.urlencode({
+                    'grant_type': 'authorization_code',
+                    'code': code,
+                    'redirect_uri': callback,
+                    'client_id': TWITTER_CLIENT_ID,
+                    'code_verifier': 'challenge',
+                }).encode()
+                req = urllib.request.Request(
+                    'https://api.twitter.com/2/oauth2/token',
+                    data=token_data_raw,
+                    headers={
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': 'Basic ' + __import__('base64').b64encode(
+                            f'{TWITTER_CLIENT_ID}:{TWITTER_CLIENT_SECRET}'.encode()
+                        ).decode(),
+                    },
+                    method='POST',
+                )
+                with urllib.request.urlopen(req, timeout=15) as r:
+                    token_data = json.loads(r.read())
+                access_token = token_data.get('access_token', '')
+                encrypted = encrypt_token(access_token)
+                _supabase_req('POST', 'social_accounts', {
+                    'workspace_id': workspace_id,
+                    'platform': 'twitter',
+                    'account_name': 'Twitter Account',
+                    'encrypted_token': encrypted,
+                    'token_type': 'user',
+                    'status': 'connected',
+                })
+            redirect_url = f'{PLATFORM_URL}/workspace.html?social={platform}&connected=1'
+            self._html(200, (
+                f'<html><head><meta http-equiv="refresh" content="2;url={redirect_url}"></head>'
+                f'<body style="font-family:sans-serif;text-align:center;padding:40px;">'
+                f'<h2>Connected!</h2><p>Returning to your workspace...</p></body></html>'
+            ))
+        except Exception as e:
+            print(f'  Social callback error ({platform}): {e}')
+            self._html(500, f'<html><body>Connection error: {e}</body></html>')
+
+    def _handle_social_draft(self):
+        """POST /api/social/draft — generate platform-optimized copy via Claude (Cleo)"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        brief = (body.get('brief') or '').strip()
+        platforms = body.get('platforms') or ['facebook', 'instagram', 'linkedin', 'twitter']
+        tone = (body.get('tone') or 'engaging and brand-appropriate').strip()
+        if not workspace_id or not brief:
+            self._error(400, 'workspaceId and brief required'); return
+        effective_key = self._effective_api_key()
+        if not effective_key:
+            self._error(500, 'ANTHROPIC_API_KEY not set'); return
+        system = AGENT_PROMPTS.get('cleo', (
+            'You are Cleo Chan, Social Media Specialist. You write platform-native social copy. '
+            'Twitter: max 280 chars, punchy and direct. '
+            'LinkedIn: professional, insight-led, no hashtag spam. '
+            'Instagram: visual storytelling, 3-5 relevant hashtags. '
+            'Facebook: conversational, community-focused.'
+        ))
+        platforms_list = ', '.join(platforms)
+        user_msg = (
+            f'Brief: {brief}\nTone: {tone}\n'
+            f'Write optimized post copy for these platforms: {platforms_list}\n\n'
+            f'Return JSON only with platform keys: '
+            f'{{"facebook": "...", "instagram": "...", "linkedin": "...", "twitter": "..."}}\n'
+            f'Only include platforms that were requested: {platforms_list}'
+        )
+        try:
+            raw = call_anthropic(effective_key, system,
+                                 [{'role': 'user', 'content': user_msg}], max_tokens=800)
+            cleaned = raw.replace('```json', '').replace('```', '').strip()
+            # Find JSON object
+            start = cleaned.find('{')
+            end = cleaned.rfind('}') + 1
+            if start >= 0 and end > start:
+                drafts = json.loads(cleaned[start:end])
+            else:
+                drafts = {}
+            self._json(200, {'ok': True, 'drafts': drafts})
+        except Exception as e:
+            print(f'  Social draft error: {e}')
+            self._error(500, str(e))
+
+    def _handle_social_posts_post(self):
+        """POST /api/social/posts — create a post"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        workspace_id = (body.get('workspaceId') or '').strip()
+        platforms = body.get('platforms') or []
+        content = (body.get('content') or '').strip()
+        if not workspace_id or not platforms or not content:
+            self._error(400, 'workspaceId, platforms, and content required'); return
+        scheduled_at = body.get('scheduled_at') or None
+        status = 'scheduled' if scheduled_at else 'draft'
+        payload = {
+            'workspace_id': workspace_id,
+            'platforms': platforms,
+            'content': content,
+            'media_urls': body.get('media_urls') or None,
+            'scheduled_at': scheduled_at,
+            'status': status,
+            'created_by': body.get('created_by') or None,
+        }
+        try:
+            rows = _supabase_req('POST', 'social_posts', payload)
+            self._json(200, {'ok': True, 'post': rows[0] if rows else payload})
+        except Exception as e:
+            self._error(500, str(e))
+
+    def _handle_social_publish(self):
+        """POST /api/social/publish — immediately publish a post"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        post_id = body.get('postId')
+        workspace_id = (body.get('workspaceId') or '').strip()
+        if not post_id or not workspace_id:
+            self._error(400, 'postId and workspaceId required'); return
+        try:
+            posts = _supabase_req('GET', f'social_posts?id=eq.{post_id}&select=*')
+            if not posts:
+                self._error(404, 'Post not found'); return
+            post = posts[0]
+            acct_rows = _supabase_req(
+                'GET',
+                f'social_accounts?workspace_id=eq.{urllib.parse.quote(workspace_id)}&status=eq.connected'
+            )
+            accounts = {r['platform']: r for r in (acct_rows or [])}
+            platform_ids, failed = _publish_post_to_platforms(post, accounts)
+            pub_iso = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+            new_status = 'published' if platform_ids else 'failed'
+            _supabase_req('PATCH', f'social_posts?id=eq.{post_id}', {
+                'status': new_status,
+                'published_at': pub_iso if platform_ids else None,
+                'platform_ids': platform_ids,
+                'error': json.dumps(failed) if failed else None,
+            })
+            self._json(200, {
+                'ok': bool(platform_ids),
+                'platform_ids': platform_ids,
+                'failed': failed,
+            })
+        except Exception as e:
+            print(f'  Social publish error: {e}')
+            self._error(500, str(e))
+
+    def _handle_social_posts_patch(self):
+        """PATCH /api/social/posts — update post (cancel, reschedule, edit draft)"""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        post_id = body.get('id')
+        if not post_id:
+            self._error(400, 'id required'); return
+        update = {}
+        if 'status' in body:
+            update['status'] = body['status']
+        if 'content' in body:
+            update['content'] = body['content']
+        if 'scheduled_at' in body:
+            update['scheduled_at'] = body['scheduled_at']
+            if body['scheduled_at'] and update.get('status') not in ('cancelled', 'draft'):
+                update['status'] = 'scheduled'
+        if not update:
+            self._error(400, 'Nothing to update'); return
+        try:
+            rows = _supabase_req('PATCH', f'social_posts?id=eq.{post_id}', update)
+            self._json(200, {'ok': True, 'post': rows[0] if rows else {}})
+        except Exception as e:
+            self._error(500, str(e))
+
     def _canva_result_page(self, result: str, detail: str = '') -> str:
         """Return an HTML page that redirects back to the platform after OAuth."""
         if result == 'success':
@@ -4319,6 +5887,21 @@ class AgentHandler(BaseHTTPRequestHandler):
     def _error(self, code, msg):
         self._json(code, {'error': msg})
 
+    def _is_admin(self) -> bool:
+        """
+        Check that the request carries valid admin credentials.
+        Accepts either:
+          - X-Admin-Key header matching HQ_ADMIN_PASS env var, or
+          - Authorization: Bearer <HQ_ADMIN_PASS>
+        Falls back to True in dev mode (no SUPABASE_URL configured).
+        """
+        admin_pass = os.getenv('HQ_ADMIN_PASS', '') or HQ_ADMIN_PASS
+        if not admin_pass:
+            return True  # dev/unconfigured — allow all
+        supplied = (self.headers.get('X-Admin-Key', '')
+                    or self.headers.get('Authorization', '').removeprefix('Bearer ').strip())
+        return supplied == admin_pass
+
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def _run_db_migrations():
@@ -4348,6 +5931,10 @@ if __name__ == '__main__':
     _run_db_migrations()   # add partner_id column etc.
     _auto_migrate()        # ensure all required tables exist
     load_db_agents()       # merge Supabase agent overrides/additions into AGENT_PROMPTS
+    # Start social post scheduler daemon
+    _sched_thread = threading.Thread(target=_social_scheduler_loop, daemon=True, name='social-scheduler')
+    _sched_thread.start()
+    print('  ✅ Social post scheduler started (60s interval)')
     server = HTTPServer(('0.0.0.0', PORT), AgentHandler)
     print(f'\n🎯 ClickPoint Agent API')
     print(f'   Running on http://0.0.0.0:{PORT}')

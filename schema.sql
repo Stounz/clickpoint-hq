@@ -148,15 +148,17 @@ alter table cmd_messages     enable row level security;
 alter table cmd_escalations  enable row level security;
 alter table campaigns        enable row level security;
 
--- Allow anon full access (you can tighten this later with auth)
-create policy "anon_all" on clients          for all using (true) with check (true);
-create policy "anon_all" on deliverables     for all using (true) with check (true);
-create policy "anon_all" on team_members     for all using (true) with check (true);
-create policy "anon_all" on schedule_events  for all using (true) with check (true);
-create policy "anon_all" on cmd_feed         for all using (true) with check (true);
-create policy "anon_all" on cmd_threads      for all using (true) with check (true);
-create policy "anon_all" on cmd_messages     for all using (true) with check (true);
-create policy "anon_all" on cmd_escalations  for all using (true) with check (true);
+-- Block all direct anon/public access. The server uses the service_role key
+-- which bypasses RLS entirely, so these policies have no effect on the server.
+-- They prevent anyone with the anon key from reading/writing data directly.
+create policy "deny_anon" on clients          for all using (false);
+create policy "deny_anon" on deliverables     for all using (false);
+create policy "deny_anon" on team_members     for all using (false);
+create policy "deny_anon" on schedule_events  for all using (false);
+create policy "deny_anon" on cmd_feed         for all using (false);
+create policy "deny_anon" on cmd_threads      for all using (false);
+create policy "deny_anon" on cmd_messages     for all using (false);
+create policy "deny_anon" on cmd_escalations  for all using (false);
 
 -- ── Seed: Clients ─────────────────────────────────────────────────────────────
 
@@ -251,3 +253,251 @@ create table if not exists workspace_activity (
   detail       text default '',
   timestamp    timestamptz default now()
 );
+
+-- ── CRM tables ───────────────────────────────────────────────────────────────
+
+create table if not exists crm_contacts (
+  id          bigserial primary key,
+  workspace_id text not null,
+  name        text not null,
+  email       text,
+  phone       text,
+  company     text,
+  title       text,
+  tags        text[],
+  notes       text,
+  deal_stage  text default 'prospect' check (deal_stage in ('prospect','qualified','proposal','negotiation','won','lost')),
+  deal_value  numeric,
+  ai_score    int,
+  next_action text,
+  last_contact timestamptz,
+  created_at  timestamptz default now()
+);
+create table if not exists crm_activities (
+  id           bigserial primary key,
+  workspace_id text not null,
+  contact_id   bigint references crm_contacts(id) on delete cascade,
+  type         text check (type in ('call','email','meeting','note','task')),
+  summary      text,
+  created_at   timestamptz default now()
+);
+alter table crm_contacts enable row level security;
+alter table crm_activities enable row level security;
+create policy "deny_anon" on crm_contacts for all using (false);
+create policy "deny_anon" on crm_activities for all using (false);
+
+-- ── Reputation Management tables ─────────────────────────────────────────────
+
+create table if not exists reputation_reviews (
+  id           bigserial primary key,
+  workspace_id text not null,
+  platform     text not null,
+  reviewer_name text,
+  rating       int check (rating between 1 and 5),
+  content      text,
+  review_date  text,
+  response     text,
+  status       text default 'pending' check (status in ('pending','responded','ignored')),
+  external_id  text,
+  created_at   timestamptz default now()
+);
+alter table reputation_reviews enable row level security;
+create policy "deny_anon" on reputation_reviews for all using (false);
+
+-- ── Local SEO tables ──────────────────────────────────────────────────────────
+
+create table if not exists local_listings (
+  id           bigserial primary key,
+  workspace_id text not null,
+  business_name text,
+  address      text,
+  city         text,
+  state        text,
+  postcode     text,
+  country      text default 'AU',
+  phone        text,
+  website      text,
+  categories   text[],
+  description  text,
+  hours        jsonb default '{}',
+  google_place_id text,
+  listing_status jsonb default '{}',
+  last_audit   text,
+  updated_at   timestamptz default now()
+);
+alter table local_listings enable row level security;
+create policy "deny_anon" on local_listings for all using (false);
+
+-- ── Social Publishing tables ──────────────────────────────────────────────────
+
+create table if not exists social_accounts (
+  id           bigserial primary key,
+  workspace_id text not null,
+  platform     text not null check (platform in ('facebook','instagram','linkedin','twitter','tiktok')),
+  account_name text,
+  account_id   text,
+  page_id      text,
+  encrypted_token text,
+  token_type   text default 'page',
+  expires_at   timestamptz,
+  status       text default 'connected',
+  created_at   timestamptz default now(),
+  unique(workspace_id, platform)
+);
+create table if not exists social_posts (
+  id           bigserial primary key,
+  workspace_id text not null,
+  platforms    text[] not null,
+  content      text not null,
+  media_urls   text[],
+  scheduled_at timestamptz,
+  published_at timestamptz,
+  status       text default 'draft' check (status in ('draft','scheduled','published','failed','cancelled')),
+  platform_ids jsonb default '{}',
+  error        text,
+  created_by   text,
+  created_at   timestamptz default now()
+);
+alter table social_accounts enable row level security;
+alter table social_posts enable row level security;
+create policy "deny_anon" on social_accounts for all using (false);
+create policy "deny_anon" on social_posts for all using (false);
+
+-- ── Auth & access tables (CRITICAL — breaks all login if missing) ─────────────
+
+create table if not exists workspace_access (
+  id           bigserial primary key,
+  workspace_id text not null,
+  company_name text not null,
+  contact_name text default '',
+  email        text not null,
+  access_code  text not null,
+  partner_id   text default null,   -- null = direct agency client
+  plan         text default 'starter',
+  active       boolean default true,
+  last_login   timestamptz,
+  created_at   timestamptz default now(),
+  unique(workspace_id, email)
+);
+alter table workspace_access enable row level security;
+create policy "deny_anon" on workspace_access for all using (false);
+
+create table if not exists partner_accounts (
+  id            bigserial primary key,
+  partner_id    text unique not null,
+  name          text not null,
+  agency_name   text default '',
+  email         text unique not null,
+  password_hash text not null,
+  website       text default '',
+  commission_rate numeric default 0.20,
+  active        boolean default true,
+  created_at    timestamptz default now()
+);
+alter table partner_accounts enable row level security;
+create policy "deny_anon" on partner_accounts for all using (false);
+
+create table if not exists partner_reset_tokens (
+  id         bigserial primary key,
+  email      text not null,
+  token      text not null,
+  expires_at timestamptz not null,
+  used       boolean default false,
+  created_at timestamptz default now()
+);
+alter table partner_reset_tokens enable row level security;
+create policy "deny_anon" on partner_reset_tokens for all using (false);
+
+create table if not exists portal_access (
+  id           bigserial primary key,
+  client       text not null,
+  email        text not null,
+  access_code  text not null,
+  workspace_id text default null,
+  active       boolean default true,
+  last_login   timestamptz,
+  created_at   timestamptz default now(),
+  unique(client, email)
+);
+alter table portal_access enable row level security;
+create policy "deny_anon" on portal_access for all using (false);
+
+create table if not exists agent_memories (
+  id          bigserial primary key,
+  agent_key   text not null,
+  client      text not null default 'General',
+  memory      text not null,
+  importance  int default 5 check (importance between 1 and 10),
+  created_at  timestamptz default now()
+);
+alter table agent_memories enable row level security;
+create policy "deny_anon" on agent_memories for all using (false);
+
+create table if not exists client_reports (
+  id            bigserial primary key,
+  client        text not null,
+  workspace_id  text,
+  period        text not null,
+  health_score  numeric,
+  health_label  text,
+  report_data   jsonb default '{}',
+  generated_at  timestamptz default now(),
+  status        text default 'draft' check (status in ('draft','sent','approved'))
+);
+alter table client_reports enable row level security;
+create policy "deny_anon" on client_reports for all using (false);
+
+create table if not exists integration_credentials (
+  id              bigserial primary key,
+  integration_id  text not null,
+  workspace_id    text,
+  platform        text not null,
+  encrypted_token text not null,
+  token_type      text default 'oauth',
+  expires_at      timestamptz,
+  created_at      timestamptz default now(),
+  unique(integration_id)
+);
+alter table integration_credentials enable row level security;
+create policy "deny_anon" on integration_credentials for all using (false);
+
+create table if not exists platform_settings (
+  key        text primary key,
+  value      text not null,
+  updated_at timestamptz default now()
+);
+alter table platform_settings enable row level security;
+create policy "deny_anon" on platform_settings for all using (false);
+
+-- ── HQ message threads (agency ↔ admin comms) ────────────────────────────────
+
+create table if not exists hq_messages (
+  id          bigserial primary key,
+  thread_id   text not null default gen_random_uuid()::text,
+  from_role   text not null check (from_role in ('partner','admin')),
+  from_email  text not null,
+  partner_id  text,
+  subject     text default '',
+  body        text not null,
+  read        boolean default false,
+  created_at  timestamptz default now()
+);
+alter table hq_messages enable row level security;
+create policy "deny_anon" on hq_messages for all using (false);
+
+-- ── RLS migration: drop open anon policies and replace with deny ──────────────
+-- Run this block in Supabase SQL Editor on existing databases.
+do $$
+declare
+  t text;
+begin
+  foreach t in array array['clients','deliverables','team_members','schedule_events',
+                            'cmd_feed','cmd_threads','cmd_messages','cmd_escalations',
+                            'campaigns','client_integrations','client_metrics',
+                            'agents','workspace_activity'] loop
+    execute format('drop policy if exists "anon_all" on %I', t);
+    execute format('drop policy if exists "deny_anon" on %I', t);
+    execute format('create policy "deny_anon" on %I for all using (false)', t);
+    execute format('alter table %I enable row level security', t);
+  end loop;
+end $$;

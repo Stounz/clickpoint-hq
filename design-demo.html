@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClickPoint — Design Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #f5f7fa; color: #1a2332; -webkit-font-smoothing: antialiased; }
+
+  /* ── Tokens ─────────────────────────────────────────── */
+  :root {
+    --teal:    #1C3A2E;
+    --orange:  #D4622A;
+    --bg:      #f5f7fa;
+    --surface: #ffffff;
+    --border:  #e3e8ef;
+    --text:    #1a2332;
+    --muted:   #6b7a8d;
+    --green:   #00a67e;
+    --amber:   #f5a623;
+    --red:     #e53e3e;
+    --blue:    #0073ae;
+    --radius:  6px;
+  }
+
+  /* ── Topbar ─────────────────────────────────────────── */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 100;
+    background: var(--teal); display: flex; align-items: center; padding: 0 20px; gap: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .topbar-logo { display: flex; align-items: center; gap: 10px; }
+  .topbar-logo img { height: 28px; width: auto; }
+  .topbar-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.18); }
+  .topbar-workspace { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85); }
+  .topbar-spacer { flex: 1; }
+  .topbar-search {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px; padding: 6px 14px; color: rgba(255,255,255,0.6); font-size: 13px;
+    width: 220px; cursor: pointer;
+  }
+  .topbar-search svg { opacity: 0.5; }
+  .topbar-meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255,255,255,0.5); }
+  .topbar-dot { width: 7px; height: 7px; border-radius: 50%; background: #30D158; }
+  .topbar-btn {
+    padding: 5px 14px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18);
+    color: rgba(255,255,255,0.8); border-radius: 5px; font-size: 12px; font-weight: 600; cursor: pointer;
+    font-family: inherit; transition: all 0.15s;
+  }
+  .topbar-btn:hover { background: rgba(255,255,255,0.18); color: #fff; }
+
+  /* ── Sidebar ─────────────────────────────────────────── */
+  .sidebar {
+    position: fixed; top: 56px; left: 0; bottom: 0; width: 216px;
+    background: #1e2d3d; overflow-y: auto; padding: 10px 0 24px;
+    border-right: 1px solid rgba(0,0,0,0.2);
+  }
+  .sidebar-section {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(255,255,255,0.3); padding: 16px 16px 5px;
+  }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 9px; padding: 8px 12px; margin: 1px 6px;
+    font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.65);
+    cursor: pointer; transition: all 0.12s; border-radius: 5px;
+  }
+  .sidebar-item:hover { color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.07); }
+  .sidebar-item.active { color: #fff; background: rgba(255,255,255,0.12); font-weight: 600; }
+  .sidebar-item svg { flex-shrink: 0; opacity: 0.7; }
+  .sidebar-item.active svg { opacity: 1; }
+  .sidebar-badge {
+    margin-left: auto; background: var(--orange); color: #fff;
+    font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px;
+  }
+  .sidebar-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 8px 12px; }
+
+  /* ── Layout ─────────────────────────────────────────── */
+  .layout { display: flex; padding-top: 56px; min-height: 100vh; }
+  .main { margin-left: 216px; flex: 1; padding: 28px 32px; max-width: 1200px; }
+
+  /* ── Trial banner ─────────────────────────────────────── */
+  .trial-banner {
+    display: flex; align-items: center; gap: 10px; background: #fff8f0;
+    border: 1px solid rgba(212,98,42,0.25); border-radius: var(--radius);
+    padding: 11px 16px; margin-bottom: 24px; font-size: 13px; font-weight: 500; color: #7a3a10;
+  }
+  .trial-banner-spacer { flex: 1; }
+  .btn-orange {
+    padding: 6px 14px; background: var(--orange); color: #fff; border: none;
+    border-radius: var(--radius); font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+
+  /* ── Page header ─────────────────────────────────────── */
+  .page-header {
+    display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px;
+  }
+  .page-title { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+  .page-sub { font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .page-actions { display: flex; gap: 8px; align-items: center; }
+  .btn-outline {
+    padding: 7px 14px; background: #fff; border: 1px solid var(--border);
+    color: var(--text); border-radius: var(--radius); font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: all 0.12s;
+  }
+  .btn-outline:hover { border-color: #b0bbc8; background: #f8fafc; }
+  .btn-primary {
+    padding: 7px 14px; background: var(--teal); border: none;
+    color: #fff; border-radius: var(--radius); font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: inherit; transition: background 0.12s;
+  }
+  .btn-primary:hover { background: #254d3a; }
+
+  /* ── KPI grid ─────────────────────────────────────────── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 20px;
+  }
+  .kpi-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 8px; }
+  .kpi-val { font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -1px; line-height: 1; }
+  .kpi-delta { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; margin-top: 8px; padding: 2px 7px; border-radius: 3px; }
+  .kpi-delta.up { color: #027a55; background: #e6f6f1; }
+  .kpi-delta.down { color: #9e1c15; background: #fce8e8; }
+  .kpi-delta.neutral { color: var(--muted); background: #f0f3f6; }
+
+  /* ── Two col ─────────────────────────────────────────── */
+  .two-col { display: grid; grid-template-columns: 1fr 320px; gap: 16px; margin-bottom: 16px; }
+
+  /* ── Card ─────────────────────────────────────────── */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+  }
+  .card-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .card-link { font-size: 12px; font-weight: 600; color: var(--blue); text-decoration: none; }
+  .card-link:hover { text-decoration: underline; }
+  .card-body { padding: 0; }
+
+  /* ── Underline tabs ─────────────────────────────────── */
+  .tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 18px; gap: 0; }
+  .tab {
+    padding: 10px 14px; font-size: 13px; font-weight: 600; color: var(--muted);
+    cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: all 0.12s; white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+  /* ── Campaign table ─────────────────────────────────── */
+  .camp-table { width: 100%; }
+  .camp-row {
+    display: flex; align-items: center; gap: 12px; padding: 11px 18px;
+    border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s;
+  }
+  .camp-row:last-child { border-bottom: none; }
+  .camp-row:hover { background: #f8fafc; }
+  .camp-icon {
+    width: 34px; height: 34px; border-radius: 4px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; background: #f0f3f6;
+  }
+  .camp-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .camp-meta { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .camp-status { margin-left: auto; display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .status-dot.active { background: #30d158; }
+  .status-dot.pending { background: var(--amber); }
+  .status-dot.paused { background: #c4cdd6; }
+
+  /* ── Health card ─────────────────────────────────────── */
+  .health-score { font-size: 42px; font-weight: 800; color: var(--text); letter-spacing: -2px; line-height: 1; }
+  .health-label { font-size: 12px; font-weight: 600; color: var(--green); margin-top: 4px; }
+  .health-bar-wrap { height: 6px; background: #e3e8ef; border-radius: 3px; overflow: hidden; margin: 14px 0 8px; }
+  .health-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #00a67e, #30d158); width: 78%; }
+  .health-sub { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── Quick actions ─────────────────────────────────── */
+  .qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 16px 18px; }
+  .qa-btn {
+    display: flex; flex-direction: column; padding: 14px 14px 12px;
+    background: #f8fafc; border: 1px solid var(--border);
+    border-radius: var(--radius); cursor: pointer; transition: all 0.12s; text-align: left;
+  }
+  .qa-btn:hover { border-color: #b0bbc8; background: #f0f3f6; }
+  .qa-btn-icon { font-size: 16px; margin-bottom: 6px; }
+  .qa-btn-label { font-size: 12px; font-weight: 700; color: var(--text); }
+  .qa-btn-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .qa-btn.primary-action { background: var(--teal); border-color: var(--teal); }
+  .qa-btn.primary-action .qa-btn-label,
+  .qa-btn.primary-action .qa-btn-sub { color: rgba(255,255,255,0.9); }
+
+  /* ── Activity ─────────────────────────────────────── */
+  .activity-item { display: flex; gap: 10px; padding: 11px 18px; border-bottom: 1px solid var(--border); }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-av {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    background: var(--teal); color: #fff; font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .activity-text { font-size: 12px; color: var(--text); line-height: 1.5; }
+  .activity-text strong { font-weight: 700; }
+  .activity-time { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ── Empty state ─────────────────────────────────────── */
+  .empty-state { padding: 48px 20px; text-align: center; }
+  .empty-state-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .empty-state-sub { font-size: 13px; color: var(--muted); line-height: 1.55; }
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <img src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/cropped-clickpoint-logo-header-2x.png" alt="ClickPoint">
+  </div>
+  <div class="topbar-divider"></div>
+  <div class="topbar-workspace">Apex Dynamics</div>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-search">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/></svg>
+    Find or ask...
+  </div>
+  <div class="topbar-meta"><div class="topbar-dot"></div> Synced with agency</div>
+  <button class="topbar-btn">Sign out</button>
+</div>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div style="padding: 12px 12px 4px;">
+    <div class="sidebar-item active">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
+      Dashboard
+    </div>
+  </div>
+
+  <div class="sidebar-section">Marketing</div>
+  <div class="sidebar-item">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M11 5.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5zm-3.5 0A.5.5 0 0 1 8 5h.5a.5.5 0 0 1 0 1H8a.5.5 0 0 1-.5-.5zM2 5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5z"/></svg>
+    Campaigns
+    <span class="sidebar-badge">2</span>
+  </div>
+  <div class="sidebar-item">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/></svg>
+    Analytics
+  </div>
+  <div class="sidebar-item">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M9.5 0a.5.5 0 0 1 .5.5.5.5 0 0 0 .5.5.5.5 0 0 1 .5.5V2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-.5a.5.5 0 0 1 .5-.5.5.5 0 0 0 .5-.5.5.5 0 0 1 .5-.5h3z"/><path d="M1.5 3A1.5 1.5 0 0 0 0 4.5v8A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-8A1.5 1.5 0 0 0 14.5 3h-13z"/></svg>
+    Reports
+  </div>
+  <div class="sidebar-item">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/></svg>
+    Library
+  </div>
+
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section">Growth Tools</div>
+  <div class="sidebar-item">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path fill-rule="evenodd" d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z"/><path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></svg>
+    CRM
+  </div>
+  <div class="sidebar-item">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.950l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.950l-3.522 3.356.83 4.73c.078.443-.36.790-.746.592L8 13.187l-4.389 2.256z"/></svg>
+    Reputation
+  </div>
+  <div class="sidebar-item">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94z"/><path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
+    Local SEO
+  </div>
+  <div class="sidebar-item">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146z"/></svg>
+    Social
+  </div>
+
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section">AI & Support</div>
+  <div class="sidebar-item">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062z"/></svg>
+    Your CMO
+  </div>
+  <div class="sidebar-item">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/></svg>
+    Support
+  </div>
+
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section">Account</div>
+  <div class="sidebar-item">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.892 3.433-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.892-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319z"/></svg>
+    Settings
+  </div>
+</div>
+
+<!-- Main -->
+<div class="layout">
+  <div class="main">
+
+    <!-- Trial banner -->
+    <div class="trial-banner">
+      🎉 You're on a free 14-day trial — 14 days left. Full access to all features included.
+      <div class="trial-banner-spacer"></div>
+      <button class="btn-orange">Choose a plan →</button>
+    </div>
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">Good afternoon, Steve</div>
+        <div class="page-sub">Here's what's happening with your marketing this week.</div>
+      </div>
+    </div>
+
+    <!-- KPI grid -->
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Active Campaigns</div>
+        <div class="kpi-val">4</div>
+        <div class="kpi-delta up">↑ 2 this month</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Monthly Ad Spend</div>
+        <div class="kpi-val">$3,240</div>
+        <div class="kpi-delta neutral">— Same as last month</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Leads This Month</div>
+        <div class="kpi-val">28</div>
+        <div class="kpi-delta up">↑ 12% vs last month</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Avg. ROAS</div>
+        <div class="kpi-val">3.8×</div>
+        <div class="kpi-delta down">↓ 0.2 vs last month</div>
+      </div>
+    </div>
+
+    <!-- Two col -->
+    <div class="two-col">
+
+      <!-- Campaigns card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Active Campaigns</div>
+          <a class="card-link" href="#">View all →</a>
+        </div>
+        <div class="tabs">
+          <div class="tab active">All</div>
+          <div class="tab">Running</div>
+          <div class="tab">Paused</div>
+          <div class="tab">Draft</div>
+        </div>
+        <div class="camp-table">
+          <div class="camp-row">
+            <div class="camp-icon">🔍</div>
+            <div>
+              <div class="camp-name">Google Search — Brand</div>
+              <div class="camp-meta">Google Ads · $1,200/mo</div>
+            </div>
+            <div class="camp-status">
+              <div class="status-dot active"></div>
+              <span style="font-size:12px;font-weight:600;color:#027a55;">Active</span>
+            </div>
+          </div>
+          <div class="camp-row">
+            <div class="camp-icon">📘</div>
+            <div>
+              <div class="camp-name">Meta Lead Generation</div>
+              <div class="camp-meta">Meta Ads · $800/mo</div>
+            </div>
+            <div class="camp-status">
+              <div class="status-dot active"></div>
+              <span style="font-size:12px;font-weight:600;color:#027a55;">Active</span>
+            </div>
+          </div>
+          <div class="camp-row">
+            <div class="camp-icon">💼</div>
+            <div>
+              <div class="camp-name">LinkedIn Awareness</div>
+              <div class="camp-meta">LinkedIn Ads · $600/mo</div>
+            </div>
+            <div class="camp-status">
+              <div class="status-dot paused"></div>
+              <span style="font-size:12px;font-weight:600;color:#6b7a8d;">Paused</span>
+            </div>
+          </div>
+          <div class="camp-row">
+            <div class="camp-icon">✍️</div>
+            <div>
+              <div class="camp-name">SEO Content Push</div>
+              <div class="camp-meta">SEO / Organic</div>
+            </div>
+            <div class="camp-status">
+              <div class="status-dot active"></div>
+              <span style="font-size:12px;font-weight:600;color:#027a55;">Active</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right col -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- Account health -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Account Health</div>
+          </div>
+          <div style="padding:16px 18px;">
+            <div class="health-score">78<span style="font-size:20px;font-weight:600;color:var(--muted)">/100</span></div>
+            <div class="health-label">Good standing</div>
+            <div class="health-bar-wrap"><div class="health-bar"></div></div>
+            <div class="health-sub">SEO and paid search are your strongest channels. LinkedIn needs attention.</div>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Quick Actions</div>
+          </div>
+          <div class="qa-grid">
+            <div class="qa-btn primary-action">
+              <div class="qa-btn-icon">🤖</div>
+              <div class="qa-btn-label">Ask your CMO</div>
+              <div class="qa-btn-sub">Get instant strategy advice</div>
+            </div>
+            <div class="qa-btn">
+              <div class="qa-btn-icon">🚀</div>
+              <div class="qa-btn-label">New Campaign</div>
+              <div class="qa-btn-sub">Launch in minutes</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent activity -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Recent Activity</div>
+        <a class="card-link" href="#">See all</a>
+      </div>
+      <div class="activity-item">
+        <div class="activity-av">DW</div>
+        <div>
+          <div class="activity-text"><strong>Derek</strong> updated Google Ads bids — Smart Bidding CPA adjusted to $38.</div>
+          <div class="activity-time">5 hours ago</div>
+        </div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-av" style="background:#D4622A;">SA</div>
+        <div>
+          <div class="activity-text"><strong>Sarah</strong> completed Q2 content calendar — 18 posts scheduled across channels.</div>
+          <div class="activity-time">Yesterday at 2:14 PM</div>
+        </div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-av" style="background:#0073ae;">JK</div>
+        <div>
+          <div class="activity-text"><strong>Jess</strong> published monthly performance report — 3.8× ROAS across paid channels.</div>
+          <div class="activity-time">2 days ago</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
