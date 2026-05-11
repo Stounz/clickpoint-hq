@@ -5044,19 +5044,22 @@ async function wsDisconnectIntegration(integrationId, platformId) {
     } catch(e) {}
   }
 
-  // Partner self-signup mode — show signup form with partner branding
+  // Signup mode — open Create Workspace tab
   if (params.get('signup') === '1') {
     wsShowTab('signup');
-    // Hide the Sign In tab — this link is for new clients only
-    document.getElementById('tabSignIn').style.display = 'none';
-    document.getElementById('tabSignUp').style.display = 'none';
-    // Customise copy with agency name if present
-    const _pt = window._ptTheme || {};
-    const _agencyName = _pt.agencyName || params.get('agencyName') || 'ClickPoint';
-    const titleEl = document.querySelector('#panelSignUp .login-title');
-    const subEl   = document.querySelector('#panelSignUp .login-sub');
-    if (titleEl) titleEl.textContent = `Get started with ${_agencyName}`;
-    if (subEl)   subEl.textContent   = `Your dedicated marketing workspace will be ready in seconds. No credit card required.`;
+    const _partnerId = params.get('partnerId') || (window._ptTheme && window._ptTheme.partnerId);
+    if (_partnerId) {
+      // Partner self-signup: hide tab switcher — this link is for new clients of that agency only
+      document.getElementById('tabSignIn').style.display = 'none';
+      document.getElementById('tabSignUp').style.display = 'none';
+      const _pt = window._ptTheme || {};
+      const _agencyName = _pt.agencyName || params.get('agencyName') || 'ClickPoint';
+      const titleEl = document.querySelector('#panelSignUp .login-title');
+      const subEl   = document.querySelector('#panelSignUp .login-sub');
+      if (titleEl) titleEl.textContent = `Get started with ${_agencyName}`;
+      if (subEl)   subEl.textContent   = `Your dedicated marketing workspace will be ready in seconds. No credit card required.`;
+    }
+    // Direct CTA (no partner): just open the tab, keep Sign In visible
   }
 
   // Pre-fill workspace from URL
