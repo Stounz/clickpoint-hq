@@ -2485,7 +2485,7 @@
 // No DOMContentLoaded override needed — it would race and blank the screen.
 
 // ── Config ──────────────────────────────────────────────────────────────────
-const WS_API = 'https://web-production-c959ce.up.railway.app';
+const WS_API = 'https://platform.clickpointconsulting.com.au';
 
 // ── Resend access code ───────────────────────────────────────────────────────
 function wsShowResend() {
@@ -3466,7 +3466,7 @@ async function wsLoadEscalations() {
 async function _wsFetchIntegrationStatus() {
   if (!wsSession || !wsSession.workspaceId) return;
   try {
-    const r = await fetch(`/api/integrations/list?workspaceId=${encodeURIComponent(wsSession.workspaceId)}`);
+    const r = await fetch(`${WS_API}/api/integrations/list?workspaceId=${encodeURIComponent(wsSession.workspaceId)}`);
     const d = await r.json();
     window._wsIntegrations = d.integrations || [];
   } catch(e) {
@@ -4584,7 +4584,7 @@ async function wsLoadIntegrations() {
     const wid = wsSession && wsSession.workspaceId ? wsSession.workspaceId : '';
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
-    const r = await fetch(`/api/integrations/list?workspaceId=${encodeURIComponent(wid)}`, { signal: controller.signal });
+    const r = await fetch(`${WS_API}/api/integrations/list?workspaceId=${encodeURIComponent(wid)}`, { signal: controller.signal });
     clearTimeout(timeoutId);
     const d = await r.json();
     connected = d.integrations || [];
@@ -4725,7 +4725,7 @@ async function wsSaveOtherIntegration(category) {
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
 
   try {
-    const resp = await fetch('/api/integrations/connect', {
+    const resp = await fetch(`${WS_API}/api/integrations/connect`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -4887,7 +4887,7 @@ async function wsSaveApiKeyIntegration(platformId) {
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
 
   try {
-    const resp = await fetch('/api/integrations/connect', {
+    const resp = await fetch(`${WS_API}/api/integrations/connect`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -4924,7 +4924,7 @@ async function wsSaveOAuthRequest(platformId) {
   if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
 
   try {
-    const resp = await fetch('/api/integrations/connect', {
+    const resp = await fetch(`${WS_API}/api/integrations/connect`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -4983,7 +4983,7 @@ async function wsSaveIntegration(platformId) {
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
 
   try {
-    const resp = await fetch('/api/integrations/connect', {
+    const resp = await fetch(`${WS_API}/api/integrations/connect`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -5018,7 +5018,7 @@ async function wsDisconnectIntegration(integrationId, platformId) {
   if (row) row.style.opacity = '0.4';
 
   try {
-    const resp = await fetch('/api/integrations/disconnect', {
+    const resp = await fetch(`${WS_API}/api/integrations/disconnect`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: integrationId }),
