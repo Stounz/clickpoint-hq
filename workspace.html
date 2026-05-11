@@ -2460,13 +2460,9 @@
 </div>
 
 <script>
-// ── BUG-01: Enforce auth gate via JS on DOMContentLoaded ─────────────────────
-document.addEventListener('DOMContentLoaded', function() {
-  // Always hide the app shell immediately — only reveal after session confirmed
-  var shell = document.getElementById('appShell');
-  if (shell) shell.style.display = 'none';
-  // loginScreen is shown by default; no action needed
-});
+// appShell starts hidden via CSS (display:none in #appShell rule).
+// Session restore IIFE below shows it after confirming a valid session.
+// No DOMContentLoaded override needed — it would race and blank the screen.
 
 // ── Config ──────────────────────────────────────────────────────────────────
 const WS_API = 'https://web-production-c959ce.up.railway.app';
