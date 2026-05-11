@@ -821,6 +821,7 @@
         <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="obChTikTok" style="accent-color:var(--teal);"> TikTok Ads</label>
         <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="obChSEO" style="accent-color:var(--teal);"> SEO / Organic</label>
         <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="obChEmail" style="accent-color:var(--teal);"> Email</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="obChSocial" style="accent-color:var(--teal);"> Social / Organic</label>
       </div>
       <button class="ws-onboard-btn" onclick="wsOnboardNext(3)">Continue →</button>
     </div>
@@ -1181,6 +1182,7 @@
                 <option>YouTube Ads</option>
                 <option>TikTok Ads</option>
                 <option>SEO / Organic</option>
+                <option>Social / Organic</option>
                 <option>Organic Social Media</option>
                 <option>Email</option>
               </select>
@@ -3132,7 +3134,7 @@ function wsLoadCampaigns() {
   const channelIcons = {
     'Google Ads':'🔍','Meta Ads (Facebook / Instagram)':'📘','LinkedIn Ads':'💼',
     'Google Display':'🖥','YouTube Ads':'▶️','TikTok Ads':'🎵',
-    'SEO / Organic':'🌱','Email':'📧',
+    'SEO / Organic':'🌱','Social / Organic':'📱','Email':'📧',
   };
 
   const statusBadge = (s, sarahReply) => {
@@ -3740,8 +3742,8 @@ function wsOnboardComplete() {
     goal:     document.getElementById('obGoal').value,
     budget:   document.getElementById('obBudget').value,
     peak:     document.getElementById('obPeak').value,
-    channels: ['Google','Meta','LinkedIn','TikTok','SEO','Email'].filter((_,i) =>
-      document.getElementById(['obChGoogle','obChMeta','obChLinkedIn','obChTikTok','obChSEO','obChEmail'][i]).checked),
+    channels: ['Google','Meta','LinkedIn','TikTok','SEO','Email','Social'].filter((_,i) =>
+      document.getElementById(['obChGoogle','obChMeta','obChLinkedIn','obChTikTok','obChSEO','obChEmail','obChSocial'][i]).checked),
     notes:    document.getElementById('obNotes').value,
     completedAt: new Date().toISOString(),
   };
