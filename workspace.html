@@ -328,7 +328,7 @@
   .ws-lib-item-title { font-size:14px; font-weight:700; color:var(--text); flex:1; }
   .ws-lib-item-date { font-size:11px; color:var(--muted); }
   .ws-lib-item-preview { font-size:13px; color:#444; line-height:1.7; margin-bottom:14px; max-height:90px; overflow:hidden; position:relative; }
-  .ws-lib-item-preview::after { content:''; position:absolute; bottom:0; left:0; right:0; height:36px; background:linear-gradient(transparent,#fff); pointer-events:none; }
+  .ws-lib-item-preview::after { content:''; position:absolute; bottom:0; left:0; right:0; height:36px; background:linear-gradient(transparent,var(--card)); pointer-events:none; }
   .ws-lib-item-preview.expanded { max-height:none; overflow:visible; }
   .ws-lib-item-preview.expanded::after { display:none; }
   /* Markdown rendering styles */
@@ -617,6 +617,62 @@
   .listening-effort.low    { background:rgba(48,209,88,0.10); color:#1a8a3c; }
   .listening-effort.medium { background:rgba(255,159,10,0.12); color:#B86E00; }
   .listening-effort.high   { background:rgba(255,69,58,0.10); color:#C0392B; }
+
+  /* ── Nav Section Labels ── */
+  .ws-nav-section-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    padding: 14px 20px 4px;
+    display: flex;
+    align-items: center;
+  }
+  .ws-nav-collapsible {
+    cursor: pointer;
+    user-select: none;
+    padding-right: 12px;
+  }
+  .ws-nav-collapsible:hover { color: var(--text); }
+  .ws-nav-group {
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+    max-height: 400px;
+  }
+  .ws-nav-group.collapsed {
+    max-height: 0;
+  }
+
+  /* ── Demo Banner ── */
+  #wsDemoBanner { display: none; background: #FF9F0A; color: #1A1A1A; font-size: 13px; font-weight: 600; text-align: center; padding: 8px 16px; letter-spacing: 0.01em; }
+
+  /* ── Mobile Sidebar ── */
+  @media (max-width: 768px) {
+    #wsSidebarToggle { display: flex !important; align-items: center; }
+    .ws-sidebar {
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+      z-index: 200;
+    }
+    .ws-sidebar.mobile-open {
+      transform: translateX(0);
+    }
+    .ws-main {
+      margin-left: 0 !important;
+    }
+    .ws-topbar {
+      left: 0 !important;
+    }
+    #wsMobileOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 199;
+    }
+    #wsMobileOverlay.visible { display: block; }
+  }
 
   /* ── Budget Pacing ── */
   .ws-pacing-wrap { margin-top:16px; }
@@ -937,8 +993,12 @@
 
 <!-- ── App Shell ── -->
 <div id="appShell">
+  <div id="wsDemoBanner" style="display:none;background:#FF9F0A;color:#1A1A1A;font-size:13px;font-weight:600;text-align:center;padding:8px 16px;letter-spacing:0.01em;">
+    ⚠️ Demo mode — you are viewing sample data. Some features may be unavailable.
+  </div>
   <!-- Topbar -->
   <div class="ws-topbar">
+    <button id="wsSidebarToggle" onclick="wsToggleSidebar()" aria-label="Toggle navigation" style="display:none;background:none;border:none;color:rgba(255,255,255,0.8);cursor:pointer;padding:8px;font-size:20px;line-height:1;margin-right:8px;">☰</button>
     <img id="wsTopbarLogoImg" src="https://clickpointconsulting.com.au/wp-content/uploads/2026/04/Click-point-logo-white-e1775452337427.png" alt="ClickPoint" style="height:28px;width:auto;display:block;">
     <div class="ws-topbar-divider"></div>
     <div class="ws-topbar-workspace" id="wsTopbarName">Workspace</div>
@@ -948,32 +1008,43 @@
     <button class="ws-topbar-signout" onclick="wsSignOut()">Sign out</button>
   </div>
 
+  <div id="wsMobileOverlay" onclick="wsCloseSidebar()"></div>
   <div class="ws-layout">
     <!-- Sidebar -->
     <div class="ws-sidebar">
-      <div class="ws-sidebar-label">Client Portal</div>
-      <div class="ws-nav-section">Overview</div>
-      <div class="ws-nav-item active" data-view="dashboard" onclick="wsSetView('dashboard')">📊 &nbsp;Dashboard</div>
-      <div class="ws-nav-section">Marketing</div>
-      <div class="ws-nav-item" data-view="campaigns" onclick="wsSetView('campaigns')">🚀 &nbsp;Campaigns <span class="ws-nav-badge" id="wsNavCampaignBadge" style="display:none"></span></div>
-      <div class="ws-nav-item" data-view="analytics" onclick="wsSetView('analytics')">📈 &nbsp;Analytics</div>
-      <div class="ws-nav-item" data-view="reports" onclick="wsSetView('reports')">📊 &nbsp;Status Report</div>
-      <div class="ws-nav-item" data-view="library" onclick="wsSetView('library')">📁 &nbsp;Library <span class="ws-nav-badge" id="wsNavLibBadge" style="display:none"></span></div>
-      <div class="ws-nav-section">Agency Staff</div>
-      <div class="ws-nav-item" data-view="ai" onclick="wsSetView('ai')">🎯 &nbsp;Your CMO</div>
-      <div class="ws-nav-section">Support</div>
-      <div class="ws-nav-item" data-view="escalations" onclick="wsSetView('escalations')">🚨 &nbsp;Support <span class="ws-nav-badge" id="wsNavEscBadge" style="display:none"></span></div>
-      <div class="ws-nav-section">Account</div>
-      <div class="ws-nav-item" data-view="brand" onclick="wsSetView('brand')">🎨 &nbsp;Brand Hub</div>
-      <div class="ws-nav-section">Growth Tools</div>
-      <div class="ws-nav-item" data-view="crm" onclick="wsSetView('crm')">👥 &nbsp;CRM</div>
-      <div class="ws-nav-item" data-view="reputation" onclick="wsSetView('reputation')">⭐ &nbsp;Reputation</div>
-      <div class="ws-nav-item" data-view="local-seo" onclick="wsSetView('local-seo')">📍 &nbsp;Local SEO</div>
-      <div class="ws-nav-item" data-view="social" onclick="wsSetView('social')">📣 &nbsp;Social</div>
-      <div class="ws-nav-item" data-view="geo" onclick="wsSetView('geo')">🧠 &nbsp;AI Visibility</div>
-      <div class="ws-nav-item" data-view="content" onclick="wsSetView('content')">✍️ &nbsp;Content</div>
-      <div class="ws-nav-item" data-view="listening" onclick="wsSetView('listening')">👂 &nbsp;Listening</div>
-      <div class="ws-nav-item" data-view="settings" onclick="wsSetView('settings')">⚙️ &nbsp;Settings</div>
+      <!-- Home -->
+      <div class="ws-nav-item active" data-view="dashboard" onclick="wsSetView('dashboard')" title="Dashboard">🏠 &nbsp;Dashboard</div>
+
+      <!-- Marketing section -->
+      <div class="ws-nav-section-label">Marketing</div>
+      <div class="ws-nav-item" data-view="campaigns" onclick="wsSetView('campaigns')" title="Campaigns">🚀 &nbsp;Campaigns <span class="ws-nav-badge" id="wsNavCampaignBadge" style="display:none"></span></div>
+      <div class="ws-nav-item" data-view="analytics" onclick="wsSetView('analytics')" title="Analytics">📈 &nbsp;Analytics</div>
+      <div class="ws-nav-item" data-view="reports" onclick="wsSetView('reports')" title="Status Reports">📋 &nbsp;Reports</div>
+      <div class="ws-nav-item" data-view="library" onclick="wsSetView('library')" title="Asset Library">📁 &nbsp;Library <span class="ws-nav-badge" id="wsNavLibBadge" style="display:none"></span></div>
+
+      <!-- Growth Tools section — collapsible -->
+      <div class="ws-nav-section-label ws-nav-collapsible" id="growthToolsToggle" onclick="wsToggleGrowthTools()" title="Growth Tools">
+        Growth Tools <span id="growthToolsChevron" style="margin-left:auto;font-size:10px;transition:transform 0.2s;">▼</span>
+      </div>
+      <div id="growthToolsNav" class="ws-nav-group">
+        <div class="ws-nav-item" data-view="crm" onclick="wsSetView('crm')" title="CRM">👥 &nbsp;CRM</div>
+        <div class="ws-nav-item" data-view="reputation" onclick="wsSetView('reputation')" title="Reputation Management">⭐ &nbsp;Reputation</div>
+        <div class="ws-nav-item" data-view="local-seo" onclick="wsSetView('local-seo')" title="Local SEO &amp; Listings">📍 &nbsp;Local SEO</div>
+        <div class="ws-nav-item" data-view="social" onclick="wsSetView('social')" title="Social Publishing">📣 &nbsp;Social</div>
+        <div class="ws-nav-item" data-view="geo" onclick="wsSetView('geo')" title="AI Search Visibility">🧠 &nbsp;AI Visibility</div>
+        <div class="ws-nav-item" data-view="content" onclick="wsSetView('content')" title="Content Pipeline">✍️ &nbsp;Content</div>
+        <div class="ws-nav-item" data-view="listening" onclick="wsSetView('listening')" title="Social Listening">👂 &nbsp;Listening</div>
+      </div>
+
+      <!-- AI & Support section -->
+      <div class="ws-nav-section-label">AI &amp; Support</div>
+      <div class="ws-nav-item" data-view="ai" onclick="wsSetView('ai')" title="Your CMO">🎯 &nbsp;Your CMO</div>
+      <div class="ws-nav-item" data-view="escalations" onclick="wsSetView('escalations')" title="Support">🚨 &nbsp;Support <span class="ws-nav-badge" id="wsNavEscBadge" style="display:none"></span></div>
+
+      <!-- Account section -->
+      <div class="ws-nav-section-label">Account</div>
+      <div class="ws-nav-item" data-view="brand" onclick="wsSetView('brand')" title="Brand Hub">🎨 &nbsp;Brand Hub</div>
+      <div class="ws-nav-item" data-view="settings" onclick="wsSetView('settings')" title="Settings">⚙️ &nbsp;Settings</div>
     </div>
 
     <!-- Main -->
@@ -1081,11 +1152,11 @@
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
             <div>
               <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Campaign Name *</label>
-              <input id="wsCmpName" type="text" placeholder="e.g. Summer Sale Push" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+              <input id="wsCmpName" type="text" placeholder="e.g. Summer Sale Push" required style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
             </div>
             <div>
               <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Campaign Type *</label>
-              <select id="wsCmpType" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
+              <select id="wsCmpType" required style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
                 <option value="">Select type…</option>
                 <option>Lead Generation</option>
                 <option>Brand Awareness</option>
@@ -1101,7 +1172,7 @@
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
             <div>
               <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Primary Channel *</label>
-              <select id="wsCmpChannel" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
+              <select id="wsCmpChannel" required style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
                 <option value="">Select channel…</option>
                 <option>Google Ads</option>
                 <option>Meta Ads (Facebook / Instagram)</option>
@@ -1160,8 +1231,23 @@
 
       <!-- ── Reports View ── -->
       <div class="ws-view" id="view-reports">
-        <div class="ws-page-title">📊 Status Report</div>
+        <div class="ws-page-title">📋 Status Reports</div>
         <div class="ws-page-sub">Live snapshot of your campaigns, deliverables, and account health.</div>
+        <div id="ws-reports-loading" style="display:none;text-align:center;padding:48px;color:var(--muted);">
+          <div class="ws-spinner" style="margin:0 auto 12px;"></div>
+          <div>Loading your reports…</div>
+        </div>
+        <div id="ws-reports-empty" style="display:none;text-align:center;padding:48px;">
+          <div style="font-size:40px;margin-bottom:12px;">📋</div>
+          <div style="font-weight:700;margin-bottom:6px;">No reports yet</div>
+          <div style="color:var(--muted);font-size:13px;">Your monthly status reports will appear here once generated by your account team.</div>
+        </div>
+        <div id="ws-reports-error" style="display:none;text-align:center;padding:48px;">
+          <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
+          <div style="font-weight:700;margin-bottom:6px;">Couldn't load reports</div>
+          <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Check your connection and try again.</div>
+          <button class="ws-btn-secondary" onclick="wsLoadReports()">Retry</button>
+        </div>
         <div class="ws-card" id="wsReportsList"></div>
       </div>
 
@@ -1250,7 +1336,7 @@
             <div class="ws-settings-title">Access</div>
             <div class="ws-settings-row">
               <div class="ws-settings-label">Signed in as <span class="ws-settings-sub" id="wsSettingsEmail">—</span></div>
-              <button class="ws-copy-btn" style="background:#FF453A;" onclick="wsSignOut()">Sign Out</button>
+              <button class="ws-copy-btn" style="background:#FF453A;" onclick="if(confirm('Sign out of your workspace?')) wsSignOut()">Sign Out</button>
             </div>
           </div>
         </div>
@@ -1361,6 +1447,21 @@
           </div>
           <button onclick="wsOpenEscalationModal()" style="padding:10px 20px;background:var(--orange);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">+ Raise an issue</button>
         </div>
+        <div id="ws-escalations-loading" style="display:none;text-align:center;padding:48px;color:var(--muted);">
+          <div class="ws-spinner" style="margin:0 auto 12px;"></div>
+          <div>Loading support tickets…</div>
+        </div>
+        <div id="ws-escalations-empty" style="display:none;text-align:center;padding:48px;">
+          <div style="font-size:40px;margin-bottom:12px;">🎉</div>
+          <div style="font-weight:700;margin-bottom:6px;">No support tickets — all good!</div>
+          <div style="color:var(--muted);font-size:13px;">Everything looks good. Raise an issue if you need help.</div>
+        </div>
+        <div id="ws-escalations-error" style="display:none;text-align:center;padding:48px;">
+          <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
+          <div style="font-weight:700;margin-bottom:6px;">Couldn't load support tickets</div>
+          <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Check your connection and try again.</div>
+          <button class="ws-btn-secondary" onclick="wsLoadEscalations()">Retry</button>
+        </div>
         <div id="wsEscalationsList"></div>
       </div>
 
@@ -1394,7 +1495,7 @@
               <div class="ws-bh-grid">
                 <div class="ws-bh-field">
                   <label class="ws-brand-label">Brand Name</label>
-                  <input class="ws-brand-input" id="bBrandName" placeholder="e.g. Apex Dynamics" />
+                  <input class="ws-brand-input" id="bBrandName" placeholder="e.g. Apex Dynamics" required />
                 </div>
                 <div class="ws-bh-field">
                   <label class="ws-brand-label">Tagline / Slogan</label>
@@ -1777,7 +1878,7 @@
             <div class="ws-card" id="crm-form-card">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
                 <div style="font-size:14px;font-weight:700;color:var(--text);" id="crm-form-title">Add Contact</div>
-                <button class="ws-modal-close" style="position:static;" onclick="crmCloseDetail()">✕</button>
+                <button class="ws-modal-close" aria-label="Close" style="position:static;" onclick="crmCloseDetail()">✕</button>
               </div>
               <label class="ws-field-label">Full Name *</label>
               <input class="ws-field-input" id="crm-f-name" placeholder="e.g. Jane Smith">
@@ -2070,7 +2171,7 @@
           <!-- Score + summary -->
           <div class="ws-card" style="margin-bottom:16px;">
             <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
-              <div id="geo-score-ring" class="geo-score-ring medium">
+              <div id="geo-score-ring" class="geo-score-ring">
                 <span id="geo-score-val">—</span>
                 <small>/10</small>
               </div>
@@ -2212,7 +2313,10 @@
         <!-- Mentions tab -->
         <div id="listening-tab-mentions">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-            <div style="font-size:13px;color:var(--muted);">Simulated mentions from Reddit, Twitter, and LinkedIn</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="font-size:13px;color:var(--muted);">Simulated mentions from Reddit, Twitter, and LinkedIn</div>
+              <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,159,10,0.15);color:#B86E00;">⚡ AI Simulated</span>
+            </div>
             <button class="ws-btn-primary" id="listening-sim-btn" onclick="listeningSimulateMentions()">Simulate Mentions</button>
           </div>
           <div id="listening-mentions-loading" style="display:none;text-align:center;padding:32px;">
@@ -2292,7 +2396,7 @@
       <div style="font-size:17px;font-weight:800;color:var(--text);">🚨 Raise an issue</div>
       <div style="font-size:12px;color:var(--muted);margin-top:3px;">Your agency team will be notified and respond within 24 hours.</div>
     </div>
-    <button onclick="wsCloseEscalationModal()" style="width:28px;height:28px;border-radius:8px;background:#F5F4EF;border:none;cursor:pointer;font-size:15px;color:#888;">✕</button>
+    <button onclick="wsCloseEscalationModal()" aria-label="Close" style="width:28px;height:28px;border-radius:8px;background:#F5F4EF;border:none;cursor:pointer;font-size:15px;color:#888;">✕</button>
   </div>
   <div id="wsEscForm">
     <label style="font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;">What's the issue? <span style="color:#D4622A;">*</span></label>
@@ -2328,7 +2432,7 @@
 <div class="ws-cmp-drawer-overlay" id="wsCmpDrawerOverlay" onclick="wsCloseCampaignDrawer()"></div>
 <div class="ws-cmp-drawer" id="wsCmpDrawer">
   <div class="ws-cmp-drawer-head">
-    <button class="ws-cmp-drawer-close" onclick="wsCloseCampaignDrawer()">✕</button>
+    <button class="ws-cmp-drawer-close" aria-label="Close" onclick="wsCloseCampaignDrawer()">✕</button>
     <div id="wsCmpDrawerStatus" style="margin-bottom:8px;"></div>
     <div class="ws-cmp-drawer-title" id="wsCmpDrawerTitle"></div>
     <div style="font-size:12px;color:var(--muted);" id="wsCmpDrawerMeta"></div>
@@ -2510,6 +2614,7 @@ function wsLogin() {
   })
   .catch(() => {
     // Offline/demo fallback
+    document.getElementById('wsDemoBanner').style.display = 'block';
     wsStartSession({ workspaceId: id, companyName: wsIdToName(id), contactName: '', email, isAdmin, createdAt: new Date().toISOString() });
   });
 }
@@ -3065,6 +3170,7 @@ function wsLoadCampaigns() {
       <div style="font-size:32px;margin-bottom:12px;">🚀</div>
       <div style="font-weight:700;color:var(--text);margin-bottom:6px;">No campaigns yet</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Request a new campaign and your CMO will review and launch it.</div>
+      <button class="ws-btn-primary" onclick="wsNewCampaignOpen()">+ New Campaign</button>
     </div>
   `;
 
@@ -3896,7 +4002,7 @@ function wsLibViewPosts(id) {
   overlay.innerHTML = `<div class="ws-social-modal">
     <div class="ws-social-modal-hd">
       <h3>${platformIcon} ${posts.length} Social Post${posts.length !== 1 ? 's' : ''}</h3>
-      <button class="ws-social-modal-close" onclick="document.getElementById('wsSocialOverlay').remove()">✕</button>
+      <button class="ws-social-modal-close" aria-label="Close" onclick="document.getElementById('wsSocialOverlay').remove()">✕</button>
     </div>
     ${cards || '<p style="text-align:center;color:var(--muted);padding:32px 0;">No individual posts found in this deliverable.</p>'}
   </div>`;
@@ -5601,7 +5707,7 @@ async function crmAiScore(contactId) {
   overlay.className = 'ws-modal-overlay';
   overlay.id = 'crm-ai-modal';
   overlay.innerHTML = `<div class="ws-modal-box" style="max-width:420px;">
-    <button class="ws-modal-close" onclick="document.getElementById('crm-ai-modal').remove()">✕</button>
+    <button class="ws-modal-close" aria-label="Close" onclick="document.getElementById('crm-ai-modal').remove()">✕</button>
     <div class="ws-modal-title">AI Lead Score</div>
     <div class="ws-modal-sub">Analysing this contact…</div>
     <div style="text-align:center;padding:28px;"><div class="ws-spinner" style="width:32px;height:32px;border-width:3px;"></div></div>
@@ -5616,7 +5722,7 @@ async function crmAiScore(contactId) {
     const score = data.score || data.ai_score || 5;
     const scoreColor = score >= 7 ? '#30D158' : score >= 4 ? '#FF9F0A' : '#FF453A';
     const box = overlay.querySelector('.ws-modal-box');
-    box.innerHTML = `<button class="ws-modal-close" onclick="document.getElementById('crm-ai-modal').remove()">✕</button>
+    box.innerHTML = `<button class="ws-modal-close" aria-label="Close" onclick="document.getElementById('crm-ai-modal').remove()">✕</button>
       <div class="ws-modal-title">AI Lead Score</div>
       <div style="display:flex;align-items:center;gap:20px;margin:20px 0;">
         <div style="width:80px;height:80px;border-radius:50%;background:${scoreColor};display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;flex-shrink:0;">${score}</div>
@@ -5631,7 +5737,7 @@ async function crmAiScore(contactId) {
     const c = _crmContacts.find(x => x.id === contactId);
     if (c) { c.ai_score = score; crmFilterRender(); }
   } catch(e) {
-    overlay.querySelector('.ws-modal-box').innerHTML = `<button class="ws-modal-close" onclick="document.getElementById('crm-ai-modal').remove()">✕</button><div class="ws-modal-title">AI Lead Score</div><div style="color:var(--red);padding:20px 0;">Failed to score contact. Please try again.</div>`;
+    overlay.querySelector('.ws-modal-box').innerHTML = `<button class="ws-modal-close" aria-label="Close" onclick="document.getElementById('crm-ai-modal').remove()">✕</button><div class="ws-modal-title">AI Lead Score</div><div style="color:var(--red);padding:20px 0;">Failed to score contact. Please try again.</div>`;
   }
 }
 
@@ -5795,7 +5901,7 @@ function repOpenAddModal() {
   overlay.className = 'ws-modal-overlay';
   overlay.id = 'rep-add-modal';
   overlay.innerHTML = `<div class="ws-modal-box">
-    <button class="ws-modal-close" onclick="document.getElementById('rep-add-modal').remove()">✕</button>
+    <button class="ws-modal-close" aria-label="Close" onclick="document.getElementById('rep-add-modal').remove()">✕</button>
     <div class="ws-modal-title">Add Review</div>
     <div class="ws-modal-sub">Manually add a review to track it in your reputation dashboard.</div>
     <label class="ws-field-label">Platform</label>
@@ -5851,7 +5957,7 @@ function repOpenRequestModal() {
   overlay.className = 'ws-modal-overlay';
   overlay.id = 'rep-req-modal';
   overlay.innerHTML = `<div class="ws-modal-box">
-    <button class="ws-modal-close" onclick="document.getElementById('rep-req-modal').remove()">✕</button>
+    <button class="ws-modal-close" aria-label="Close" onclick="document.getElementById('rep-req-modal').remove()">✕</button>
     <div class="ws-modal-title">Request Reviews</div>
     <div class="ws-modal-sub">Send a review request email to a customer.</div>
     <label class="ws-field-label">Customer Email *</label>
@@ -6226,7 +6332,7 @@ function socialOpenDraftModal() {
   overlay.className = 'ws-modal-overlay';
   overlay.id = 'social-draft-modal';
   overlay.innerHTML = `<div class="ws-modal-box">
-    <button class="ws-modal-close" onclick="document.getElementById('social-draft-modal').remove()">✕</button>
+    <button class="ws-modal-close" aria-label="Close" onclick="document.getElementById('social-draft-modal').remove()">✕</button>
     <div class="ws-modal-title">✨ AI Draft Posts</div>
     <div class="ws-modal-sub">Tell the AI what you want to post about and it will generate platform-specific copy.</div>
     <label class="ws-field-label">What do you want to post about? *</label>
@@ -6930,6 +7036,78 @@ function listeningSaveAlerts() {
   const toast = document.getElementById('alerts-saved-toast');
   if (toast) { toast.style.display = 'inline'; setTimeout(() => { toast.style.display = 'none'; }, 2000); }
 }
+
+// ── QW6: Escape key handler for campaign drawer and modals ────────────────────
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const drawer = document.getElementById('wsCmpDrawer');
+    if (drawer && drawer.classList.contains('open')) wsCloseCampaignDrawer();
+    // Also close any open modal overlays
+    document.querySelectorAll('.ws-modal-overlay').forEach(m => {
+      if (m.style.display !== 'none' && m.style.display !== '') m.style.display = 'none';
+    });
+  }
+});
+
+// ── Sidebar: Growth Tools collapsible ────────────────────────────────────────
+function wsToggleGrowthTools() {
+  const nav = document.getElementById('growthToolsNav');
+  const chevron = document.getElementById('growthToolsChevron');
+  nav.classList.toggle('collapsed');
+  chevron.style.transform = nav.classList.contains('collapsed') ? 'rotate(-90deg)' : 'rotate(0deg)';
+  localStorage.setItem('wsGrowthToolsCollapsed', nav.classList.contains('collapsed'));
+}
+// Restore collapsed state on load
+(function() {
+  if (localStorage.getItem('wsGrowthToolsCollapsed') === 'true') {
+    const nav = document.getElementById('growthToolsNav');
+    const chevron = document.getElementById('growthToolsChevron');
+    if (nav) { nav.classList.add('collapsed'); }
+    if (chevron) { chevron.style.transform = 'rotate(-90deg)'; }
+  }
+})();
+
+// ── Mobile sidebar ────────────────────────────────────────────────────────────
+function wsToggleSidebar() {
+  const sidebar = document.querySelector('.ws-sidebar');
+  const overlay = document.getElementById('wsMobileOverlay');
+  if (!sidebar) return;
+  const isOpen = sidebar.classList.contains('mobile-open');
+  if (isOpen) {
+    sidebar.classList.remove('mobile-open');
+    overlay.classList.remove('visible');
+  } else {
+    sidebar.classList.add('mobile-open');
+    overlay.classList.add('visible');
+  }
+}
+function wsCloseSidebar() {
+  document.querySelector('.ws-sidebar')?.classList.remove('mobile-open');
+  document.getElementById('wsMobileOverlay')?.classList.remove('visible');
+}
+// Close sidebar when a nav item is clicked on mobile
+document.querySelectorAll('.ws-nav-item').forEach(item => {
+  item.addEventListener('click', function() {
+    if (window.innerWidth <= 768) wsCloseSidebar();
+  });
+});
+
+// ── MF5: Social publisher platform check ─────────────────────────────────────
+const _origSocialSubmitPost = typeof socialSubmitPost === 'function' ? socialSubmitPost : null;
+// Wrap socialSubmitPost to add platform check
+(function() {
+  const origFn = window.socialSubmitPost;
+  if (typeof origFn === 'function') {
+    window.socialSubmitPost = function(isSchedule) {
+      const checkedPlatforms = document.querySelectorAll('input[id^="soc-ch-"]:checked');
+      if (checkedPlatforms.length === 0) {
+        alert('Please select at least one platform to publish to.');
+        return;
+      }
+      origFn.call(this, isSchedule);
+    };
+  }
+})();
 </script>
 </body>
 </html>

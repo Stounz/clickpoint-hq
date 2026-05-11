@@ -473,7 +473,7 @@
         <div class="pt-modal-title">Invite a new client</div>
         <div class="pt-modal-sub">Generate a white-label workspace link and access code for your client.</div>
       </div>
-      <button class="pt-modal-close" onclick="ptCloseInvite()">✕</button>
+      <button class="pt-modal-close" aria-label="Close" onclick="ptCloseInvite()">✕</button>
     </div>
 
     <!-- Form -->
@@ -660,6 +660,8 @@
       <div class="pt-view" id="pt-view-clients">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
           <div>
+            <div class="pt-page-title">Your Clients</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:2px;">Manage and monitor all client accounts</div>
           </div>
           <button class="pt-topbar-invite" onclick="ptOpenInvite()">+ Invite Client</button>
         </div>
@@ -742,8 +744,8 @@
           </div>
           <!-- Input -->
           <div style="display:flex;gap:10px;padding-top:16px;border-top:1px solid var(--border);margin-top:16px;">
-            <textarea id="ptAiInput" placeholder="Ask anything about your clients, agency growth, or marketing strategy…" rows="1" style="flex:1;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;resize:none;line-height:1.5;transition:border 0.15s;" onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();ptAiSend()}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-            <button onclick="ptAiSend()" style="padding:11px 20px;background:var(--green);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.15s;white-space:nowrap;" onmouseover="this.style.background='#254d3a'" onmouseout="this.style.background='var(--green)'">Send</button>
+            <textarea id="ptAiInput" placeholder="Ask anything about your clients, agency growth, or marketing strategy…" rows="1" style="flex:1;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;resize:none;line-height:1.5;transition:border 0.15s;" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='var(--border)'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();ptAiSend()}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+            <button onclick="ptAiSend()" style="padding:11px 20px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.15s;white-space:nowrap;" onmouseover="this.style.background='var(--teal-md)'" onmouseout="this.style.background='var(--teal)'">Send</button>
           </div>
         </div>
       </div>
@@ -776,7 +778,7 @@
       <div id="ptEscRespondModal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:20px;padding:32px;max-width:520px;width:calc(100% - 40px);box-shadow:0 24px 80px rgba(0,0,0,0.2);z-index:3001;">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
           <div style="font-size:16px;font-weight:800;color:var(--text);" id="ptEscRespondTitle">Respond to escalation</div>
-          <button onclick="ptCloseEscRespond()" style="width:28px;height:28px;border-radius:8px;background:var(--bg);border:none;cursor:pointer;font-size:15px;color:#888;">✕</button>
+          <button onclick="ptCloseEscRespond()" aria-label="Close" style="width:28px;height:28px;border-radius:8px;background:var(--bg);border:none;cursor:pointer;font-size:15px;color:#888;">✕</button>
         </div>
         <div id="ptEscRespondDetails" style="background:#F9F8F4;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:var(--muted);line-height:1.5;"></div>
         <label style="font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;">Your response</label>

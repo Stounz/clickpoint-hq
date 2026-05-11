@@ -467,6 +467,17 @@ footer {
 .footer-bottom { display: flex; justify-content: space-between; align-items: center; }
 .footer-copy { font-size: 12px; color: rgba(255,255,255,0.3); }
 .footer-address { font-size: 12px; color: rgba(255,255,255,0.3); text-align: right; }
+@media (max-width: 768px) {
+  .hero { flex-direction: column; padding: 60px 24px 40px; }
+  .hero-text { max-width: 100%; text-align: center; }
+  .hero-visual { display: none; }
+  .features-grid, .steps-grid { grid-template-columns: 1fr !important; }
+  .problem-grid { grid-template-columns: 1fr !important; }
+  .nav-links, .nav-right { display: none; }
+  .section { padding: 60px 24px; }
+  .footer-top { grid-template-columns: 1fr !important; }
+  .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
+}
 </style>
 </head>
 <body>
@@ -479,12 +490,12 @@ footer {
   <div class="nav-links">
     <a href="https://clickpointconsulting.com.au/about">About Click Point</a>
     <a href="https://clickpointconsulting.com.au/what-we-build">What We Build</a>
-    <a href="http://localhost:3001/platform.html" class="active">Platform</a>
+    <a href="https://platform.clickpointconsulting.com.au/platform.html" class="active">Platform</a>
     <a href="https://clickpointconsulting.com.au/blog">Blog</a>
   </div>
   <div class="nav-right">
     <a class="btn-ghost-nav" href="https://clickpointconsulting.com.au/free-consultation">Free Consultation</a>
-    <a class="btn-nav-cta" href="http://localhost:3001/pricing.html">See Pricing</a>
+    <a class="btn-nav-cta" href="https://platform.clickpointconsulting.com.au/pricing.html">See Pricing</a>
   </div>
 </nav>
 
@@ -496,7 +507,7 @@ footer {
     <h1>The operating system for <em>modern marketing agencies.</em></h1>
     <p>Run your whole agency from one dashboard. Give every client their own self-service workspace. Sell the platform to other agencies. You profit on every layer.</p>
     <div class="hero-btns">
-      <a class="btn-primary" href="http://localhost:3001/pricing.html">Start free trial</a>
+      <a class="btn-primary" href="https://platform.clickpointconsulting.com.au/pricing.html">Start free trial</a>
       <a class="btn-secondary" href="https://clickpointconsulting.com.au/free-consultation">Book a demo</a>
     </div>
     <div class="hero-stats">
@@ -635,7 +646,7 @@ footer {
           <li>Platform integrations — Google Ads, Meta, LinkedIn</li>
           <li>Workspace management — create and monitor all client portals</li>
         </ul>
-        <a class="btn-primary" href="http://localhost:3001/pricing.html">Start free trial →</a>
+        <a class="btn-primary" href="https://platform.clickpointconsulting.com.au/pricing.html">Start free trial →</a>
       </div>
       <div class="screen-mock">
         <div class="screen-bar">
@@ -689,7 +700,7 @@ footer {
           <li>Direct CMO AI — clients ask questions, get strategic answers instantly</li>
           <li>Agency activity feed — clients see what your team is doing for them</li>
         </ul>
-        <a class="btn-primary" href="http://localhost:3001/pricing.html">See workspace plans →</a>
+        <a class="btn-primary" href="https://platform.clickpointconsulting.com.au/pricing.html">See workspace plans →</a>
       </div>
       <div class="screen-mock">
         <div class="screen-bar">
@@ -821,7 +832,7 @@ footer {
         <div class="p-desc">For smaller agencies just getting started with the platform.</div>
         <div class="p-price"><span>A$</span>499</div>
         <div class="p-per">per month · up to 10 client workspaces</div>
-        <a class="p-btn outline" href="http://localhost:3001/pricing.html">Start free trial</a>
+        <a class="p-btn outline" href="https://platform.clickpointconsulting.com.au/pricing.html">Start free trial</a>
       </div>
       <div class="p-card featured">
         <div class="p-tag">Agency · Most popular</div>
@@ -829,7 +840,7 @@ footer {
         <div class="p-desc">Unlimited workspaces, full AI team, all integrations.</div>
         <div class="p-price" style="color:#fff;"><span>A$</span>1,299</div>
         <div class="p-per">per month · unlimited client workspaces</div>
-        <a class="p-btn light" href="http://localhost:3001/pricing.html">Start free trial</a>
+        <a class="p-btn light" href="https://platform.clickpointconsulting.com.au/pricing.html">Start free trial</a>
       </div>
       <div class="p-card">
         <div class="p-tag">Client Workspace</div>
@@ -837,11 +848,11 @@ footer {
         <div class="p-desc">Full self-service access for your clients. Add to any plan.</div>
         <div class="p-price"><span>A$</span>399</div>
         <div class="p-per">per client / month · you set the retail price</div>
-        <a class="p-btn outline" href="http://localhost:3001/pricing.html">See all plans</a>
+        <a class="p-btn outline" href="https://platform.clickpointconsulting.com.au/pricing.html">See all plans</a>
       </div>
     </div>
     <div style="text-align:center;margin-top:24px;font-size:13px;color:var(--muted);">
-      14-day free trial · No credit card required · Cancel anytime · <a href="http://localhost:3001/pricing.html" style="color:var(--orange);font-weight:600;">View full pricing →</a>
+      14-day free trial · No credit card required · Cancel anytime · <a href="https://platform.clickpointconsulting.com.au/pricing.html" style="color:var(--orange);font-weight:600;">View full pricing →</a>
     </div>
   </div>
 </div>
@@ -851,7 +862,7 @@ footer {
   <h2>Ready to build a second<br>revenue stream?</h2>
   <p>Join agencies using ClickPoint to deliver more, retain clients longer, and earn beyond the hourly rate.</p>
   <div class="cta-btns">
-    <a class="btn-primary" href="http://localhost:3001/pricing.html">Start free trial — no card needed</a>
+    <a class="btn-primary" href="https://platform.clickpointconsulting.com.au/pricing.html">Start free trial — no card needed</a>
     <a class="btn-secondary" href="https://clickpointconsulting.com.au/free-consultation">Talk to us first</a>
   </div>
 </div>
@@ -868,7 +879,7 @@ footer {
       <ul class="footer-links-list">
         <li><a href="#">Agency HQ</a></li>
         <li><a href="#">Client Workspaces</a></li>
-        <li><a href="http://localhost:3001/pricing.html">Pricing</a></li>
+        <li><a href="https://platform.clickpointconsulting.com.au/pricing.html">Pricing</a></li>
         <li><a href="#">Integrations</a></li>
       </ul>
     </div>

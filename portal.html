@@ -210,6 +210,10 @@
     .portal-header { padding: 0 16px; }
     .portal-body { padding: 20px 14px 40px; }
   }
+  @media (max-width: 768px) {
+    .portal-sidebar { display: none; }
+    .portal-header, .portal-body { margin-left: 0 !important; }
+  }
 </style>
 </head>
 <body>
@@ -236,7 +240,7 @@
   <aside class="portal-sidebar">
     <div class="portal-sidebar-head">
       <div class="portal-sidebar-logo">✦ Click<span>Point</span></div>
-      <div class="portal-sidebar-label">Admin</div>
+      <div class="portal-sidebar-label">Client Portal</div>
     </div>
     <nav class="portal-nav">
       <div class="portal-nav-section">Overview</div>
@@ -303,7 +307,7 @@
 </div>
 
 <script>
-const PORTAL_API  = 'http://localhost:3001';
+const PORTAL_API  = 'https://platform.clickpointconsulting.com.au';
 const SUPA_URL    = 'https://banelvzjttdqkwmbvybm.supabase.co';
 const SUPA_KEY    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhbmVsdnpqdHRkcWt3bWJ2eWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4NjM2NzQsImV4cCI6MjA5MjQzOTY3NH0.zPqWFy8-Rw4c_t-i-RRWh-CNMUD0PCGE4HOeh-g7pQE';
 const db          = supabase.createClient(SUPA_URL, SUPA_KEY);
