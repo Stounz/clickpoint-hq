@@ -2771,12 +2771,45 @@ class AgentHandler(BaseHTTPRequestHandler):
             ok = _send_slack('✅ *ClickPoint test notification* — Slack alerts are working!', webhook)
             self._json(200, {'ok': ok, 'channel': 'slack'})
         elif channel == 'email':
+            import smtplib, ssl as _ssl_diag
+            smtp_host = os.getenv('SMTP_HOST', '') or SMTP_HOST
+            smtp_user = os.getenv('SMTP_USER', '') or SMTP_USER
+            smtp_pass = os.getenv('SMTP_PASS', '') or SMTP_PASS
+            smtp_port = int(os.getenv('SMTP_PORT', '') or SMTP_PORT or 465)
+            diag = {
+                'smtp_host': smtp_host or '(not set)',
+                'smtp_user': smtp_user or '(not set)',
+                'smtp_pass_set': bool(smtp_pass),
+                'smtp_port': smtp_port,
+                'resend_set': bool(os.getenv('RESEND_API_KEY', '') or RESEND_API_KEY),
+            }
+            # Try SMTP_SSL and capture exact error
+            smtp_error = None
+            starttls_error = None
+            if smtp_host and smtp_user and smtp_pass:
+                try:
+                    ctx = _ssl_diag.create_default_context()
+                    with smtplib.SMTP_SSL(smtp_host, smtp_port, context=ctx, timeout=8) as srv:
+                        srv.login(smtp_user, smtp_pass)
+                    diag['smtp_ssl_login'] = 'ok'
+                except Exception as e:
+                    smtp_error = str(e)
+                    diag['smtp_ssl_error'] = smtp_error
+                    try:
+                        ctx2 = _ssl_diag.create_default_context()
+                        with smtplib.SMTP(smtp_host, 587, timeout=8) as srv:
+                            srv.ehlo(); srv.starttls(context=ctx2)
+                            srv.login(smtp_user, smtp_pass)
+                        diag['starttls_login'] = 'ok'
+                    except Exception as e2:
+                        starttls_error = str(e2)
+                        diag['starttls_error'] = starttls_error
             ok = _send_email(
                 email or NOTIFY_EMAIL,
                 'ClickPoint — Test Notification',
                 '<div style="font-family:sans-serif;padding:24px;"><b>✅ ClickPoint test email</b><p style="color:#555;margin-top:12px;">Email notifications are working correctly.</p></div>',
             )
-            self._json(200, {'ok': ok, 'channel': 'email'})
+            self._json(200, {'ok': ok, 'channel': 'email', 'diag': diag})
         else:
             self._error(400, 'channel must be slack or email')
 
