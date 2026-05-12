@@ -875,7 +875,7 @@ def _send_slack(text: str, webhook: str = '') -> bool:
         return False
 
 def _send_email(to: str, subject: str, html: str) -> bool:
-    """Send email — prefers cPanel SMTP when configured, falls back to Resend."""
+    """Send email — prefers Resend when configured, falls back to SMTP."""
     import smtplib, ssl as _ssl
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
@@ -884,7 +884,36 @@ def _send_email(to: str, subject: str, html: str) -> bool:
         print('  ⚠️  _send_email: no recipient — skipped')
         return False
 
-    # ── SMTP (primary when credentials are set) ───────────────────────────────
+    # ── Resend (primary when API key is set — avoids SMTP firewall issues) ────
+    api_key   = os.getenv('RESEND_API_KEY', '') or RESEND_API_KEY
+    from_addr = os.getenv('RESEND_FROM', '') or RESEND_FROM
+    if api_key:
+        print(f'  📧 Resend → {to} | from={from_addr} | subject={subject[:60]}')
+        try:
+            payload = json.dumps({'from': from_addr, 'to': [to], 'subject': subject, 'html': html}).encode()
+            req = urllib.request.Request(
+                'https://api.resend.com/emails', data=payload,
+                headers={
+                    'Authorization': f'Bearer {api_key}',
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'ClickPoint-HQ/2.6 (marketing platform)',
+                },
+            )
+            with urllib.request.urlopen(req, timeout=15) as r:
+                resp_body = r.read().decode()
+                print(f'  ✅ Email sent via Resend → {to} (status={r.status}) {resp_body[:120]}')
+                return r.status in (200, 201)
+        except urllib.error.HTTPError as e:
+            err_body = ''
+            try: err_body = e.read().decode()
+            except Exception: pass
+            print(f'  ❌ Resend HTTP {e.code} → {to}: {err_body[:200]}')
+        except Exception as e:
+            print(f'  ❌ Resend error → {to}: {e}')
+        # Resend failed — fall through to SMTP
+        print(f'  ⚠️  Resend failed, trying SMTP fallback...')
+
+    # ── SMTP fallback (when Resend not configured or failed) ─────────────────
     smtp_host = os.getenv('SMTP_HOST', '') or SMTP_HOST
     smtp_user = os.getenv('SMTP_USER', '') or SMTP_USER
     smtp_pass = os.getenv('SMTP_PASS', '') or SMTP_PASS
@@ -916,33 +945,6 @@ def _send_email(to: str, subject: str, html: str) -> bool:
                 return True
             except Exception as e2:
                 print(f'  ⚠️  SMTP also failed → {to}: {e2} — trying Resend fallback')
-
-    # ── Resend fallback ───────────────────────────────────────────────────────
-    api_key   = os.getenv('RESEND_API_KEY', '') or RESEND_API_KEY
-    from_addr = os.getenv('RESEND_FROM', '') or RESEND_FROM
-    if api_key:
-        print(f'  📧 Resend fallback → {to} | from={from_addr} | subject={subject[:60]}')
-        try:
-            payload = json.dumps({'from': from_addr, 'to': [to], 'subject': subject, 'html': html}).encode()
-            req = urllib.request.Request(
-                'https://api.resend.com/emails', data=payload,
-                headers={
-                    'Authorization': f'Bearer {api_key}',
-                    'Content-Type': 'application/json',
-                    'User-Agent': 'ClickPoint-HQ/2.6 (marketing platform)',
-                },
-            )
-            with urllib.request.urlopen(req, timeout=15) as r:
-                resp_body = r.read().decode()
-                print(f'  ✅ Email sent via Resend → {to} (status={r.status}) {resp_body[:120]}')
-                return r.status in (200, 201)
-        except urllib.error.HTTPError as e:
-            err_body = ''
-            try: err_body = e.read().decode()
-            except Exception: pass
-            print(f'  ❌ Resend HTTP {e.code} → {to}: {err_body[:200]}')
-        except Exception as e:
-            print(f'  ❌ Resend error → {to}: {e}')
 
     print(f'  ❌ _send_email: all methods failed for {to}')
     return False
