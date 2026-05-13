@@ -121,6 +121,9 @@ HUBSPOT_TOKEN              = _ENV.get('HUBSPOT_TOKEN', '')  # Set via Railway en
 CANVA_CLIENT_ID            = _ENV.get('CANVA_CLIENT_ID', '')
 CANVA_CLIENT_SECRET        = _ENV.get('CANVA_CLIENT_SECRET', '')
 CANVA_REDIRECT_URI         = 'https://web-production-c959ce.up.railway.app/api/canva/callback'
+GOOGLE_CLIENT_ID           = _ENV.get('GOOGLE_CLIENT_ID', '')
+GOOGLE_CLIENT_SECRET       = _ENV.get('GOOGLE_CLIENT_SECRET', '')
+GOOGLE_REDIRECT_URI        = _ENV.get('PLATFORM_URL', 'https://platform.clickpointconsulting.com.au') + '/api/google/callback'
 META_APP_ID                = _ENV.get('META_APP_ID', '')
 META_APP_SECRET            = _ENV.get('META_APP_SECRET', '')
 LINKEDIN_CLIENT_ID         = _ENV.get('LINKEDIN_CLIENT_ID', '')
@@ -788,10 +791,12 @@ def _fetch_ga4(property_id: str, token: str, days: int) -> dict:
                 conv_rate=round(v(5)/max(1,sessions)*100, 2),
                 revenue=round(v(6), 2), trend=trend)
 
-def fetch_platform_metrics(client: str, platform: str, days: int, budget: float = 10000) -> dict:
+def fetch_platform_metrics(client: str, platform: str, days: int, budget: float = 10000,
+                           workspace_id: str = '') -> dict:
     """
     Main entry point: try cache → try real API → fall back to demo data.
     Always returns a dict with is_demo flag.
+    workspace_id: if provided, also try Google OAuth tokens for Google platforms.
     """
     # 1. Check 1-hour cache
     cached = _get_cached(client, platform, days)
@@ -801,6 +806,11 @@ def fetch_platform_metrics(client: str, platform: str, days: int, budget: float 
 
     # 2. Try real API (requires stored credentials)
     account_id, token = _get_credential(client, platform)
+
+    # 2b. Fall back to Google OAuth token for Google platforms
+    if not token and workspace_id and platform in ('google_ads', 'ga4', 'search_console'):
+        token = google_get_access_token(workspace_id)
+
     if account_id and token:
         try:
             if platform == 'google_ads':
@@ -1725,6 +1735,146 @@ def canva_auth_url(workspace_id: str = '') -> str:
     })
     return f'https://www.canva.com/api/oauth/authorize?{params}'
 
+# ── Google OAuth helpers ──────────────────────────────────────────────────────
+
+import secrets as _gsec
+_google_state_store: dict = {}   # state → workspace_id  (in-memory; survives restarts via DB)
+
+_GOOGLE_SCOPES = ' '.join([
+    'openid',
+    'email',
+    'profile',
+    'https://www.googleapis.com/auth/adwords',
+    'https://www.googleapis.com/auth/analytics.readonly',
+    'https://www.googleapis.com/auth/webmasters.readonly',
+])
+
+def google_auth_url(workspace_id: str = '') -> str:
+    """Return Google OAuth authorization URL. Stores state → workspace_id in memory."""
+    if not GOOGLE_CLIENT_ID:
+        return ''
+    state = _gsec.token_urlsafe(24)
+    _google_state_store[state] = workspace_id or ''
+    params = urllib.parse.urlencode({
+        'client_id':     GOOGLE_CLIENT_ID,
+        'redirect_uri':  GOOGLE_REDIRECT_URI,
+        'response_type': 'code',
+        'scope':         _GOOGLE_SCOPES,
+        'access_type':   'offline',   # get refresh_token
+        'prompt':        'consent',   # always return refresh_token
+        'state':         state,
+    })
+    return f'https://accounts.google.com/o/oauth2/v2/auth?{params}'
+
+def google_exchange_code(code: str, state: str) -> tuple[dict, str]:
+    """Exchange auth code for tokens. Returns (tokens_dict, workspace_id)."""
+    workspace_id = _google_state_store.pop(state, '')
+    body = urllib.parse.urlencode({
+        'code':          code,
+        'client_id':     GOOGLE_CLIENT_ID,
+        'client_secret': GOOGLE_CLIENT_SECRET,
+        'redirect_uri':  GOOGLE_REDIRECT_URI,
+        'grant_type':    'authorization_code',
+    }).encode()
+    req = urllib.request.Request(
+        'https://oauth2.googleapis.com/token',
+        data=body,
+        headers={'Content-Type': 'application/x-www-form-urlencoded'},
+    )
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        tokens = json.loads(resp.read())
+    return tokens, workspace_id
+
+def google_refresh_token(refresh_token_val: str) -> dict:
+    """Get a fresh access token using a refresh token."""
+    body = urllib.parse.urlencode({
+        'refresh_token': refresh_token_val,
+        'client_id':     GOOGLE_CLIENT_ID,
+        'client_secret': GOOGLE_CLIENT_SECRET,
+        'grant_type':    'refresh_token',
+    }).encode()
+    req = urllib.request.Request(
+        'https://oauth2.googleapis.com/token',
+        data=body,
+        headers={'Content-Type': 'application/x-www-form-urlencoded'},
+    )
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        return json.loads(resp.read())
+
+def google_persist_tokens(workspace_id: str, tokens: dict):
+    """Store Google OAuth tokens encrypted in integration_credentials."""
+    if not workspace_id or not tokens:
+        return
+    payload = json.dumps(tokens)
+    encrypted = encrypt_token(payload)
+    try:
+        # Upsert into client_integrations (platform='google_oauth')
+        existing = _supabase_req(
+            'GET',
+            f'client_integrations?workspace_id=eq.{urllib.parse.quote(workspace_id)}&platform=eq.google_oauth&select=id'
+        )
+        if existing:
+            iid = existing[0]['id']
+            _supabase_req('PATCH', f'client_integrations?id=eq.{iid}', {
+                'status': 'connected', 'encrypted_token': encrypted,
+            })
+        else:
+            rows = _supabase_req('POST', 'client_integrations', {
+                'workspace_id':    workspace_id,
+                'platform':        'google_oauth',
+                'status':          'connected',
+                'encrypted_token': encrypted,
+            })
+            iid = rows[0]['id']
+        # Also save to integration_credentials
+        try:
+            _supabase_req('POST', 'integration_credentials', {
+                'integration_id':  str(iid),
+                'platform':        'google_oauth',
+                'encrypted_token': encrypted,
+            })
+        except Exception:
+            pass
+    except Exception as e:
+        print(f'  ⚠️  google_persist_tokens error: {e}')
+
+def google_load_tokens(workspace_id: str) -> dict:
+    """Load and decrypt Google OAuth tokens for a workspace."""
+    if not workspace_id:
+        return {}
+    try:
+        rows = _supabase_req(
+            'GET',
+            f'client_integrations?workspace_id=eq.{urllib.parse.quote(workspace_id)}&platform=eq.google_oauth&select=encrypted_token'
+        )
+        if not rows:
+            return {}
+        raw = decrypt_token(rows[0]['encrypted_token'])
+        return json.loads(raw) if raw else {}
+    except Exception as e:
+        print(f'  ⚠️  google_load_tokens error: {e}')
+        return {}
+
+def google_get_access_token(workspace_id: str) -> str:
+    """Return a valid Google access token, refreshing if needed."""
+    tokens = google_load_tokens(workspace_id)
+    if not tokens:
+        return ''
+    access_token  = tokens.get('access_token', '')
+    refresh_tok   = tokens.get('refresh_token', '')
+    expires_at    = tokens.get('expires_at', 0)
+    # Refresh if within 5 min of expiry or already expired
+    if refresh_tok and (not expires_at or time.time() > expires_at - 300):
+        try:
+            new_tokens = google_refresh_token(refresh_tok)
+            new_tokens['refresh_token'] = refresh_tok          # keep original refresh token
+            new_tokens['expires_at']    = time.time() + new_tokens.get('expires_in', 3600)
+            google_persist_tokens(workspace_id, new_tokens)
+            access_token = new_tokens.get('access_token', '')
+        except Exception as e:
+            print(f'  ⚠️  Google token refresh error: {e}')
+    return access_token
+
 # ── Social Publishing helpers ─────────────────────────────────────────────────
 
 def _social_publish_facebook(page_id: str, token: str, content: str, media_urls: list = None) -> str:
@@ -2038,6 +2188,10 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_campaigns_list()
         elif self.path.startswith('/api/campaign/updates'):
             self._handle_campaign_updates_get()
+        elif self.path.startswith('/api/google/auth'):
+            self._handle_google_auth()
+        elif self.path.startswith('/api/google/callback'):
+            self._handle_google_callback()
         elif self.path.startswith('/api/canva/auth'):
             self._handle_canva_auth()
         elif self.path.startswith('/api/canva/callback'):
@@ -5051,6 +5205,62 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._error(400, 'data must be an object'); return
         ok = _save_brand_hub(workspace_id, data)
         self._json(200, {'ok': ok})
+
+    def _handle_google_auth(self):
+        """GET /api/google/auth?workspace_id=X — return Google OAuth URL."""
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        workspace_id = params.get('workspace_id', [''])[0].strip()
+        url = google_auth_url(workspace_id)
+        if not url:
+            self._error(503, 'Google OAuth not configured — set GOOGLE_CLIENT_ID'); return
+        self._json(200, {'auth_url': url})
+
+    def _handle_google_callback(self):
+        """GET /api/google/callback — exchange code, store tokens, close popup."""
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        code  = params.get('code',  [''])[0]
+        state = params.get('state', [''])[0]
+        error = params.get('error', [''])[0]
+
+        def _result_page(status: str, detail: str = '') -> str:
+            colour = '#22c55e' if status == 'success' else '#ef4444'
+            msg    = 'Google connected successfully!' if status == 'success' else f'Connection failed: {detail}'
+            return f"""<!DOCTYPE html><html><head><title>Google OAuth</title>
+<style>body{{font-family:sans-serif;display:flex;align-items:center;justify-content:center;
+height:100vh;margin:0;background:#0f172a;color:#fff}}
+.box{{text-align:center;padding:2rem;border-radius:12px;background:#1e293b;max-width:400px}}
+.icon{{font-size:3rem;margin-bottom:1rem}}
+.msg{{color:{colour};font-size:1.1rem;margin-bottom:1.5rem}}
+button{{background:#6366f1;color:#fff;border:none;padding:.75rem 2rem;border-radius:8px;
+cursor:pointer;font-size:1rem}}
+</style></head><body><div class="box">
+<div class="icon">{'✅' if status == 'success' else '❌'}</div>
+<div class="msg">{msg}</div>
+<button onclick="window.close()">Close</button>
+</div><script>
+if('{status}'==='success'){{
+  setTimeout(()=>{{
+    if(window.opener){{window.opener.postMessage({{type:'google_oauth_success',
+      workspace:'{detail}'}}, '*');}}
+    window.close();
+  }}, 1500);
+}}
+</script></body></html>"""
+
+        if error:
+            self._html(400, _result_page('error', error)); return
+        if not code:
+            self._html(400, _result_page('error', 'No authorisation code received.')); return
+        try:
+            tokens, workspace_id = google_exchange_code(code, state)
+            # Add expiry timestamp
+            tokens['expires_at'] = time.time() + tokens.get('expires_in', 3600)
+            google_persist_tokens(workspace_id, tokens)
+            print(f'  ✅ Google OAuth complete for workspace: {workspace_id or "unknown"}')
+            self._html(200, _result_page('success', workspace_id))
+        except Exception as e:
+            print(f'  ⚠️  Google callback error: {e}')
+            self._html(500, _result_page('error', str(e)))
 
     def _handle_canva_auth(self):
         """Return the Canva OAuth authorization URL for a workspace."""

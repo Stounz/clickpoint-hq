@@ -4529,13 +4529,13 @@ function wsUpdateBudgetTotal() {} // stub for campaign form budget input
 //   'oauth'         — client clicks Authorise → OAuth flow → token stored securely
 const WS_PLATFORMS = [
   // ── Paid & Analytics ──
-  { id: 'google_ads',       label: 'Google Ads',       icon: '🟦', category: 'paid',   conn: 'agency_access',
+  { id: 'google_ads',       label: 'Google Ads',       icon: '🟦', category: 'paid',   conn: 'google_oauth',
     hint: 'e.g. 123-456-7890',                   idLabel: 'Customer ID' },
   { id: 'meta_ads',         label: 'Meta Ads',          icon: '🟣', category: 'paid',   conn: 'agency_access',
     hint: 'e.g. 123456789012345',                idLabel: 'Ad Account ID' },
-  { id: 'google_analytics', label: 'Google Analytics',  icon: '📊', category: 'paid',   conn: 'agency_access',
-    hint: 'e.g. G-XXXXXXXXXX',                   idLabel: 'Property / Measurement ID' },
-  { id: 'search_console',   label: 'Search Console',    icon: '🔍', category: 'paid',   conn: 'agency_access',
+  { id: 'google_analytics', label: 'Google Analytics',  icon: '📊', category: 'paid',   conn: 'google_oauth',
+    hint: 'e.g. G-XXXXXXXXXX or numeric property ID', idLabel: 'Property ID' },
+  { id: 'search_console',   label: 'Search Console',    icon: '🔍', category: 'paid',   conn: 'google_oauth',
     hint: 'e.g. sc-domain:example.com',          idLabel: 'Property URL or domain' },
   { id: 'linkedin_ads',     label: 'LinkedIn Ads',      icon: '🔷', category: 'paid',   conn: 'agency_access',
     hint: 'e.g. 123456789',                      idLabel: 'Account ID' },
@@ -4621,13 +4621,13 @@ async function wsLoadIntegrations() {
       const isConnected = !!(c && c.status === 'connected');
       const accountDisplay = isConnected && c.account_id ? `${p.idLabel || 'ID'}: ${c.account_id}` :
                              isPending                   ? 'Awaiting authorisation' : 'Not connected';
-      const connBadge = p.conn === 'api_key' ? ' · API Key' : p.conn === 'oauth' ? ' · OAuth' : '';
+      const connBadge = p.conn === 'api_key' ? ' · API Key' : (p.conn === 'oauth' || p.conn === 'google_oauth' || p.conn === 'canva_oauth') ? ' · OAuth' : '';
       const statusHtml = isConnected
         ? `<span class="ws-integration-status connected">● Connected${connBadge}</span>`
         : isPending
           ? `<span class="ws-integration-status pending">⏳ Pending</span>`
           : `<span class="ws-integration-status disconnected">Not connected</span>`;
-      const connectLabel = p.conn === 'api_key' ? 'Add API Key' : p.conn === 'canva_oauth' ? '🎨 Connect Canva' : p.conn === 'oauth' ? 'Authorise' : 'Connect';
+      const connectLabel = p.conn === 'api_key' ? 'Add API Key' : p.conn === 'canva_oauth' ? '🎨 Connect Canva' : p.conn === 'google_oauth' ? '🔑 Connect Google' : p.conn === 'oauth' ? 'Authorise' : 'Connect';
       const btnHtml = (isConnected || isPending)
         ? `<button class="ws-integration-btn disconnect" onclick="wsDisconnectIntegration('${c.id}','${p.id}')">Remove</button>`
         : `<button class="ws-integration-btn connect" onclick="wsConnectIntegration('${p.id}')">${connectLabel}</button>`;
@@ -4808,6 +4808,37 @@ function wsConnectIntegration(platformId) {
     backdrop.addEventListener('click', wsCloseIntModal);
     document.body.appendChild(backdrop);
     setTimeout(() => document.getElementById('wsIntApiKey')?.focus(), 60);
+
+  // ── GOOGLE OAUTH — one-click popup flow ─────────────────────────────────
+  } else if (p.conn === 'google_oauth') {
+    (async () => {
+      const wid = wsSession && wsSession.workspaceId ? wsSession.workspaceId : '';
+      try {
+        const resp     = await fetch(`${WS_API}/api/google/auth?workspace_id=${encodeURIComponent(wid)}`);
+        const authData = await resp.json();
+        const authUrl  = authData.auth_url;
+        if (!authUrl) throw new Error(authData.error || 'Google OAuth not configured yet');
+        // Open in popup so user stays on workspace page
+        const popup = window.open(authUrl, 'googleOAuth', 'width=500,height=650,toolbar=0,menubar=0');
+        // Listen for success message from callback page
+        const onMsg = (e) => {
+          if (e.data && e.data.type === 'google_oauth_success') {
+            window.removeEventListener('message', onMsg);
+            popup && popup.close();
+            _wsToast('✅ Google connected! Ads, Analytics & Search Console are now live.');
+            _wsFetchIntegrationStatus();
+          }
+        };
+        window.addEventListener('message', onMsg);
+        // Fallback: if popup is blocked, redirect
+        if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+          window.location.href = authUrl;
+        }
+      } catch(err) {
+        _wsToast('❌ Google: ' + err.message, 'error');
+      }
+    })();
+    return;
 
   // ── CANVA OAUTH — one-click popup flow ──────────────────────────────────
   } else if (p.conn === 'canva_oauth') {
