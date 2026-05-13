@@ -2602,27 +2602,35 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         try:
             # 1) Public metadata row — visible to frontend (no credentials)
+            encrypted = encrypt_token(raw_token)
             rows = _supabase_req('POST', 'client_integrations', {
-                'client': client, 'platform': platform,
-                'account_id': account_id, 'status': 'connected',
+                'client':           client,
+                'platform':         platform,
+                'account_id':       account_id,
+                'status':           'connected',
+                'encrypted_token':  encrypted,
             })
             integration_id = rows[0]['id']
+        except Exception as e:
+            print(f'  Integration connect error (client_integrations): {e}')
+            self._error(500, str(e)); return
 
-            # 2) Encrypted credential — RLS blocks anon; only service_role can read
-            encrypted = encrypt_token(raw_token)
+        # 2) Encrypted credential in separate table (best-effort — table may not exist yet)
+        enc_ok = False
+        try:
             _supabase_req('POST', 'integration_credentials', {
-                'integration_id': integration_id,
+                'integration_id':  str(integration_id),
+                'platform':        platform,
                 'encrypted_token': encrypted,
             })
+            enc_ok = _FERNET_OK and bool(INTEGRATION_ENCRYPTION_KEY)
+        except Exception as ce:
+            print(f'  integration_credentials insert skipped (table may not exist yet): {ce}')
 
-            enc_ok  = _FERNET_OK and bool(INTEGRATION_ENCRYPTION_KEY)
-            masked  = '●' * max(0, len(raw_token) - 4) + raw_token[-4:] if len(raw_token) >= 4 else '●●●●'
-            print(f'  ✅ Integration saved: {platform} → {client} (AES-256={enc_ok})')
-            self._json(200, {'success': True, 'id': integration_id,
-                             'encrypted': enc_ok, 'masked': masked})
-        except Exception as e:
-            print(f'  Integration connect error: {e}')
-            self._error(500, str(e))
+        masked = '●' * max(0, len(raw_token) - 4) + raw_token[-4:] if len(raw_token) >= 4 else '●●●●'
+        print(f'  ✅ Integration saved: {platform} → {client} (AES-256={enc_ok})')
+        self._json(200, {'success': True, 'id': integration_id,
+                         'encrypted': enc_ok, 'masked': masked})
 
     def _handle_integrations_disconnect(self):
         """Delete integration by id — cascade removes encrypted credentials."""

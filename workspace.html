@@ -850,7 +850,7 @@
       <div style="background:#F0F8F4;border:1.5px solid #C8E6D4;border-radius:10px;padding:14px;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
         <span style="font-size:20px;">🔍</span>
         <div style="flex:1;font-size:12px;color:#555;">Connecting GSC lets Raj track your keyword rankings, impressions, and clicks per article automatically.</div>
-        <button style="padding:7px 14px;background:var(--teal);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;" onclick="alert('GSC OAuth integration will be available shortly. Your account manager will reach out to connect it for you.')">Connect GSC</button>
+        <button style="padding:7px 14px;background:var(--teal);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;" onclick="wsOnboardComplete();setTimeout(()=>wsConnectIntegration('search_console'),400);">Connect GSC</button>
       </div>
       <button class="ws-onboard-btn" onclick="wsOnboardComplete()">🚀 Take me to my workspace</button>
     </div>
