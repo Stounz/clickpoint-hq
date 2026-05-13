@@ -2037,31 +2037,33 @@ def google_refresh_token(refresh_token_val: str) -> dict:
         return json.loads(resp.read())
 
 def google_persist_tokens(workspace_id: str, tokens: dict):
-    """Store Google OAuth tokens encrypted in integration_credentials."""
+    """Store Google OAuth tokens encrypted in client_integrations (uses 'client' column)."""
     if not workspace_id or not tokens:
         return
-    payload = json.dumps(tokens)
+    payload   = json.dumps(tokens)
     encrypted = encrypt_token(payload)
+    enc_ws    = urllib.parse.quote(workspace_id)
     try:
-        # Upsert into client_integrations (platform='google_oauth')
+        # Upsert — filter by 'client' column (matches rest of the codebase)
         existing = _supabase_req(
             'GET',
-            f'client_integrations?workspace_id=eq.{urllib.parse.quote(workspace_id)}&platform=eq.google_oauth&select=id'
+            f'client_integrations?client=eq.{enc_ws}&platform=eq.google_oauth&select=id'
         )
         if existing:
             iid = existing[0]['id']
             _supabase_req('PATCH', f'client_integrations?id=eq.{iid}', {
                 'status': 'connected', 'encrypted_token': encrypted,
+                'last_synced': datetime.datetime.utcnow().isoformat(),
             })
         else:
             rows = _supabase_req('POST', 'client_integrations', {
-                'workspace_id':    workspace_id,
+                'client':          workspace_id,
                 'platform':        'google_oauth',
                 'status':          'connected',
                 'encrypted_token': encrypted,
             })
             iid = rows[0]['id']
-        # Also save to integration_credentials
+        # Mirror to integration_credentials (best-effort)
         try:
             _supabase_req('POST', 'integration_credentials', {
                 'integration_id':  str(iid),
@@ -2070,6 +2072,7 @@ def google_persist_tokens(workspace_id: str, tokens: dict):
             })
         except Exception:
             pass
+        print(f'  ✅ Google tokens persisted for {workspace_id}')
     except Exception as e:
         print(f'  ⚠️  google_persist_tokens error: {e}')
 
@@ -2077,11 +2080,19 @@ def google_load_tokens(workspace_id: str) -> dict:
     """Load and decrypt Google OAuth tokens for a workspace."""
     if not workspace_id:
         return {}
+    enc_ws = urllib.parse.quote(workspace_id)
     try:
+        # Primary lookup via 'client' column
         rows = _supabase_req(
             'GET',
-            f'client_integrations?workspace_id=eq.{urllib.parse.quote(workspace_id)}&platform=eq.google_oauth&select=encrypted_token'
+            f'client_integrations?client=eq.{enc_ws}&platform=eq.google_oauth&select=encrypted_token&status=eq.connected'
         )
+        if not rows:
+            # Fallback: old rows may have been saved under workspace_id column
+            rows = _supabase_req(
+                'GET',
+                f'client_integrations?workspace_id=eq.{enc_ws}&platform=eq.google_oauth&select=encrypted_token'
+            )
         if not rows:
             return {}
         raw = decrypt_token(rows[0]['encrypted_token'])
