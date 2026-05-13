@@ -3186,7 +3186,7 @@ function wsLoadCampaigns() {
         ${statusBadge(c.status, c.sarah_reply)}
         ${c.channel === 'Google Ads' && c.ads_build_status === 'live'   ? '<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(48,209,88,0.1);color:#1a7a3a;">✅ Live in Ads</span>' : ''}
         ${c.channel === 'Google Ads' && c.ads_build_status === 'queued' ? '<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(255,159,10,0.12);color:#996000;">⏳ Building…</span>' : ''}
-        ${c.channel === 'Google Ads' && c.ads_build_status === 'error'  ? '<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(255,69,58,0.1);color:#c0392b;" title="${(c.ads_build_detail||'').replace(/"/g,\'\')}">⚠️ Build Failed</span>' : ''}
+        ${c.channel === 'Google Ads' && c.ads_build_status === 'error'  ? `<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(255,69,58,0.1);color:#c0392b;" title="${(c.ads_build_detail||'').replace(/"/g,'')}">⚠️ Build Failed</span>` : ''}
         ${c.channel === 'Google Ads' && !c.ads_build_status             ? '<span style="font-size:10px;padding:3px 8px;border-radius:20px;background:#F4F3EE;color:var(--muted);">Ads: Not built</span>' : ''}
         <button onclick="event.stopPropagation();wsOpenEscalationModal('${(c.name||'').replace(/'/g,"\\'")}');" title="Raise an issue" style="padding:4px 8px;border-radius:7px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);font-family:inherit;white-space:nowrap;">🚨 Issue</button>
         <div style="font-size:11px;color:#aaa;">→</div>
