@@ -124,6 +124,7 @@ CANVA_REDIRECT_URI         = 'https://web-production-c959ce.up.railway.app/api/c
 GOOGLE_CLIENT_ID           = _ENV.get('GOOGLE_CLIENT_ID', '')
 GOOGLE_CLIENT_SECRET       = _ENV.get('GOOGLE_CLIENT_SECRET', '')
 GOOGLE_REDIRECT_URI        = _ENV.get('PLATFORM_URL', 'https://platform.clickpointconsulting.com.au') + '/api/google/callback'
+GOOGLE_ADS_DEVELOPER_TOKEN = _ENV.get('GOOGLE_ADS_DEVELOPER_TOKEN', '')
 META_APP_ID                = _ENV.get('META_APP_ID', '')
 META_APP_SECRET            = _ENV.get('META_APP_SECRET', '')
 LINKEDIN_CLIENT_ID         = _ENV.get('LINKEDIN_CLIENT_ID', '')
@@ -736,6 +737,238 @@ def _fetch_google_ads(account_id: str, token: str, days: int) -> dict:
                 ctr=round(cl/max(1,im)*100,2), cpc=round(sp/max(1,cl),2),
                 conversions=round(t['conversions'],1), conv_value=round(t['cv'],2),
                 roas=round(t['cv']/max(0.01,sp),2), trend=trend)
+
+# ── Google Ads geo target constants (AU) ─────────────────────────────────────
+_AU_GEO_TARGETS = {
+    'sydney':              1000073, 'melbourne':       1000695,
+    'brisbane':            1000079, 'perth':           1000898,
+    'adelaide':            1000018, 'canberra':        1000080,
+    'gold coast':          1000348, 'newcastle':       1000802,
+    'wollongong':          1001037, 'geelong':         1000319,
+    'townsville':          1000988, 'cairns':          1000100,
+    'darwin':              1000180, 'hobart':          1000416,
+    'nsw':                 21496,   'new south wales':  21496,
+    'victoria':            21503,   'vic':             21503,
+    'qld':                 21479,   'queensland':      21479,
+    'wa':                  21504,   'western australia': 21504,
+    'sa':                  21500,   'south australia': 21500,
+    'act':                 21497,   'tasmania':        21501,
+    'tas':                 21501,   'nt':              21498,
+    'northern territory':  21498,   'australia':       2036,
+}
+
+def _resolve_geo_targets(locations_str: str) -> list:
+    """Parse a location string and return list of geoTargetConstant resource names."""
+    if not locations_str:
+        return ['geoTargetConstants/2036']  # Australia fallback
+    parts = [p.strip().lower() for p in locations_str.replace(',', ';').replace('/', ';').split(';')]
+    found = []
+    for part in parts:
+        for key, gid in _AU_GEO_TARGETS.items():
+            if key in part and gid not in found:
+                found.append(gid)
+    return [f'geoTargetConstants/{g}' for g in found] if found else ['geoTargetConstants/2036']
+
+def _ads_req(method: str, path: str, payload: dict, access_token: str, developer_token: str) -> dict:
+    """Make a Google Ads REST API v17 request."""
+    import urllib.request as _ur
+    url  = f'https://googleads.googleapis.com/v17/{path.lstrip("/")}'
+    data = json.dumps(payload).encode() if payload else None
+    req  = _ur.Request(url, data=data, method=method, headers={
+        'Authorization':  f'Bearer {access_token}',
+        'Content-Type':   'application/json',
+        'developer-token': developer_token,
+    })
+    with _ur.urlopen(req, timeout=30) as resp:
+        return json.loads(resp.read())
+
+def _create_google_ads_campaign_live(
+    workspace_id:     str,
+    campaign_data:    dict,
+    access_token:     str,
+    customer_id:      str,
+    developer_token:  str,
+) -> tuple:
+    """Create a complete Google Ads Search campaign via REST API v17.
+
+    Returns (resource_name, None) on success or (None, error_message) on failure.
+    Campaign is created PAUSED — the client activates it after review.
+
+    campaign_data keys used:
+      name, budget (monthly AUD), url (final URL), bid_strategy,
+      target_cpa (float opt), headlines (list), descriptions (list),
+      usps (list), services (multiline str), locations (str),
+      biz_name, offer, competitors
+    """
+    if not access_token or not customer_id or not developer_token:
+        return None, 'Missing access_token, customer_id, or developer_token'
+
+    cid = customer_id.replace('-', '').strip()
+
+    try:
+        # ── 1. Campaign Budget ────────────────────────────────────────────────
+        monthly = float(campaign_data.get('budget') or 30)
+        daily_micros = int((monthly / 30.44) * 1_000_000)
+
+        bud_resp = _ads_req('POST', f'customers/{cid}/campaignBudgets:mutate', {
+            'operations': [{'create': {
+                'name':           f"Budget for {campaign_data['name']}",
+                'amountMicros':   str(daily_micros),
+                'deliveryMethod': 'STANDARD',
+            }}]
+        }, access_token, developer_token)
+        budget_rn = bud_resp['results'][0]['resourceName']
+        print(f'  💰 Google Ads budget created: {budget_rn}')
+
+        # ── 2. Bid strategy config ────────────────────────────────────────────
+        strat = campaign_data.get('bid_strategy', 'recommend')
+        target_cpa_val = campaign_data.get('target_cpa', '')
+        if strat == 'target_cpa' and target_cpa_val:
+            bidding = {'targetCpa': {'targetCpaMicros': str(int(float(target_cpa_val) * 1_000_000))}}
+        elif strat == 'max_clicks':
+            bidding = {'maximizeClicks': {}}
+        elif strat == 'manual_cpc':
+            bidding = {'manualCpc': {'enhancedCpcEnabled': True}}
+        else:
+            bidding = {'maximizeConversions': {}}
+
+        # ── 3. Campaign ───────────────────────────────────────────────────────
+        geo_targets = _resolve_geo_targets(campaign_data.get('locations', ''))
+        cmp_create = {
+            'name':                    campaign_data['name'],
+            'advertisingChannelType':  'SEARCH',
+            'status':                  'PAUSED',
+            'campaignBudget':          budget_rn,
+            'networkSettings': {
+                'targetGoogleSearch':   True,
+                'targetSearchNetwork':  True,
+                'targetContentNetwork': False,
+            },
+            'geoTargetTypeSetting': {
+                'positiveGeoTargetType': 'PRESENCE_OR_INTEREST',
+            },
+        }
+        cmp_create.update(bidding)
+        cmp_resp = _ads_req('POST', f'customers/{cid}/campaigns:mutate', {
+            'operations': [{'create': cmp_create}]
+        }, access_token, developer_token)
+        campaign_rn = cmp_resp['results'][0]['resourceName']
+        print(f'  📋 Google Ads campaign created: {campaign_rn}')
+
+        # ── 4. Geo targeting criteria ─────────────────────────────────────────
+        geo_ops = [{'create': {'campaign': campaign_rn,
+                               'location': {'geoTargetConstant': g}}}
+                   for g in geo_targets]
+        if geo_ops:
+            _ads_req('POST', f'customers/{cid}/campaignCriteria:mutate',
+                     {'operations': geo_ops}, access_token, developer_token)
+
+        # ── 5. Ad Group ───────────────────────────────────────────────────────
+        services_raw  = campaign_data.get('services', '') or campaign_data['name']
+        service_lines = [l.strip() for l in services_raw.splitlines() if l.strip()]
+        ad_group_name = service_lines[0] if service_lines else campaign_data['name']
+
+        ag_resp = _ads_req('POST', f'customers/{cid}/adGroups:mutate', {
+            'operations': [{'create': {
+                'name':           ad_group_name,
+                'campaign':       campaign_rn,
+                'status':         'ENABLED',
+                'type':           'SEARCH_STANDARD',
+                'cpcBidMicros':   '2000000',   # $2 default CPC
+            }}]
+        }, access_token, developer_token)
+        ag_rn = ag_resp['results'][0]['resourceName']
+        print(f'  📁 Google Ads ad group created: {ag_rn}')
+
+        # ── 6. Keywords ───────────────────────────────────────────────────────
+        # Use provided services + USPs as phrase-match keywords
+        usps     = campaign_data.get('usps', [])
+        kw_texts = list({s.lower() for s in service_lines if s})
+        for u in (usps or []):
+            if u and len(u) <= 80:
+                kw_texts.append(u.lower())
+        # Dedupe and cap at 20
+        kw_texts = list(dict.fromkeys(kw_texts))[:20]
+        if kw_texts:
+            kw_ops = [{'create': {
+                'adGroup':  ag_rn,
+                'status':   'ENABLED',
+                'keyword':  {'text': kw, 'matchType': 'PHRASE'},
+            }} for kw in kw_texts]
+            _ads_req('POST', f'customers/{cid}/adGroupCriteria:mutate',
+                     {'operations': kw_ops}, access_token, developer_token)
+            print(f'  🔑 {len(kw_ops)} keywords added')
+
+        # ── 7. Negative keywords (competitors) ───────────────────────────────
+        competitors_str = campaign_data.get('competitors', '')
+        if competitors_str:
+            neg_texts = [c.strip().lower() for c in competitors_str.replace(',', ';').split(';') if c.strip()][:10]
+            if neg_texts:
+                neg_ops = [{'create': {
+                    'adGroup':  ag_rn,
+                    'status':   'ENABLED',
+                    'keyword':  {'text': n, 'matchType': 'BROAD'},
+                    'negative': True,
+                }} for n in neg_texts]
+                _ads_req('POST', f'customers/{cid}/adGroupCriteria:mutate',
+                         {'operations': neg_ops}, access_token, developer_token)
+
+        # ── 8. Responsive Search Ad ───────────────────────────────────────────
+        final_url  = campaign_data.get('url', '')
+        if not final_url:
+            return campaign_rn, None  # Campaign built, no RSA (URL required)
+
+        raw_headlines = list(campaign_data.get('headlines', []))
+        raw_descs     = list(campaign_data.get('descriptions', []))
+        # Supplement with USPs if not enough headlines
+        for u in (usps or []):
+            if u and u not in raw_headlines:
+                raw_headlines.append(u)
+        # Need at least 3 headlines and 2 descriptions; Derek auto-generates if short
+        if len(raw_headlines) < 3:
+            raw_headlines += [campaign_data['name'], ad_group_name,
+                              campaign_data.get('offer', '') or 'Contact Us Today']
+        if len(raw_descs) < 2:
+            biz = campaign_data.get('biz_name', '') or campaign_data.get('company_name', 'Us')
+            raw_descs.append(f'Expert {ad_group_name} from {biz}. Get in touch today.')
+            raw_descs.append(f'Trusted by businesses across Australia. {campaign_data.get("offer","") or "Book a free consultation"}.')
+
+        # Enforce 30-char headline limit and 90-char description limit
+        headlines_payload = [{'text': h[:30]} for h in raw_headlines if h][:15]
+        descs_payload     = [{'text': d[:90]} for d in raw_descs if d][:4]
+
+        rsa_payload = {
+            'adGroup':  ag_rn,
+            'status':   'ENABLED',
+            'ad': {
+                'finalUrls': [final_url],
+                'responsiveSearchAd': {
+                    'headlines':    headlines_payload,
+                    'descriptions': descs_payload,
+                }
+            }
+        }
+        _ads_req('POST', f'customers/{cid}/adGroupAds:mutate',
+                 {'operations': [{'create': rsa_payload}]}, access_token, developer_token)
+        print(f'  📢 RSA created with {len(headlines_payload)} headlines')
+
+        return campaign_rn, None
+
+    except Exception as e:
+        err_str = str(e)
+        # Try to extract Google error detail from response body
+        try:
+            import re as _re
+            body_match = _re.search(r'\{.*\}', err_str, _re.DOTALL)
+            if body_match:
+                err_json = json.loads(body_match.group())
+                google_err = err_json.get('error', {}).get('message', err_str)
+                err_str = google_err
+        except Exception:
+            pass
+        print(f'  ❌ Google Ads build error: {err_str}')
+        return None, err_str[:300]
+
 
 def _fetch_meta(account_id: str, token: str, days: int) -> dict:
     """Meta Marketing API v19."""
@@ -4779,6 +5012,23 @@ class AgentHandler(BaseHTTPRequestHandler):
         brief                 = body.get('brief', '').strip()
         # Integration status passed from the frontend — comma-separated platform labels
         connected_platforms   = body.get('connectedPlatforms', '').strip()  # e.g. "Klaviyo, Google Ads"
+        # ── Extended brief fields from the new campaign form ──────────────────
+        url          = body.get('url', '').strip()
+        conversion   = body.get('conversion', '').strip()
+        tracking     = body.get('tracking', '').strip()
+        target_cpa   = body.get('targetCpa', '').strip()
+        bid_strategy = body.get('bidStrategy', 'recommend').strip()
+        locations    = body.get('locations', '').strip()
+        loc_intent   = body.get('locIntent', '').strip()
+        schedule     = body.get('schedule', '').strip()
+        services     = body.get('services', '').strip()
+        usps         = [u for u in (body.get('usps') or []) if isinstance(u, str) and u.strip()]
+        offer        = body.get('offer', '').strip()
+        competitors  = body.get('competitors', '').strip()
+        headlines    = [h for h in (body.get('headlines') or []) if isinstance(h, str) and h.strip()]
+        descriptions = [d for d in (body.get('descriptions') or []) if isinstance(d, str) and d.strip()]
+        biz_name     = body.get('bizName', '').strip()
+        phone        = body.get('phone', '').strip()
 
         if not workspace_id or not name:
             self._error(400, 'workspaceId and name required'); return
@@ -4807,6 +5057,14 @@ class AgentHandler(BaseHTTPRequestHandler):
             'sarah_reply':    '',
             'assigned_agent': '',
             'deliverables':   [],
+            # Extended brief fields
+            'url': url, 'conversion': conversion, 'tracking': tracking,
+            'target_cpa': target_cpa, 'bid_strategy': bid_strategy,
+            'locations': locations, 'loc_intent': loc_intent, 'schedule': schedule,
+            'services': services, 'usps': usps, 'offer': offer, 'competitors': competitors,
+            'headlines': headlines, 'descriptions': descriptions,
+            'biz_name': biz_name, 'phone': phone,
+            'ads_build_status': '', 'ads_resource_name': '', 'ads_build_detail': '',
         })
         campaign_id = None
         if SUPABASE_URL and SUPABASE_SERVICE_KEY:
@@ -4844,6 +5102,11 @@ class AgentHandler(BaseHTTPRequestHandler):
         _name = name; _ctype = ctype; _ch = channel; _bud = budget
         _aud  = audience; _br = brief; _co = company_name or workspace_id
         _plat = connected_platforms; _pid = partner_id; _ws = workspace_id
+        # Extended campaign brief fields for Google Ads build
+        _url = url; _conv = conversion; _tracking = tracking
+        _tcpa = target_cpa; _bid = bid_strategy; _locs = locations
+        _svcs = services; _usps = usps; _offer = offer; _comps = competitors
+        _heads = headlines; _descs = descriptions; _biz = biz_name; _phone = phone
 
         def _bg_process():
             sarah_reply      = ''
@@ -4997,6 +5260,78 @@ class AgentHandler(BaseHTTPRequestHandler):
 
             all_deliverables = [d for d in [deliverable_entry, design_entry] if d]
 
+            # ── Google Ads live campaign build (Derek campaigns only) ─────────
+            ads_build_status  = ''
+            ads_resource_name = ''
+            ads_build_detail  = ''
+
+            is_google_ads_campaign = 'google ads' in _ch.lower()
+            if is_google_ads_campaign and GOOGLE_ADS_DEVELOPER_TOKEN:
+                try:
+                    # Mark as queued in Supabase so the card shows ⏳ immediately
+                    if _cid and SUPABASE_URL and SUPABASE_SERVICE_KEY:
+                        import urllib.parse as _up_q
+                        _supabase_req('PATCH', f'campaigns?id=eq.{_up_q.quote(str(_cid))}',
+                            {'brief': json.dumps({
+                                'brief': _br, 'channel': _ch, 'budget': _bud,
+                                'partner_id': _pid, 'company_name': _co,
+                                'sarah_reply': sarah_reply, 'assigned_agent': assigned_agent,
+                                'deliverables': all_deliverables,
+                                'url': _url, 'services': _svcs, 'usps': _usps,
+                                'locations': _locs, 'offer': _offer, 'competitors': _comps,
+                                'headlines': _heads, 'descriptions': _descs,
+                                'biz_name': _biz, 'phone': _phone,
+                                'target_cpa': _tcpa, 'bid_strategy': _bid,
+                                'ads_build_status': 'queued',
+                                'ads_resource_name': '', 'ads_build_detail': '',
+                            })}, service_role=True)
+
+                    # Get the Google Ads customer ID and OAuth token for this workspace
+                    ads_account_id, _ = _get_credential(_ws, 'google_ads')
+                    ads_token = google_get_access_token(_ws) if _ws else None
+
+                    if not ads_account_id:
+                        ads_build_status  = 'error'
+                        ads_build_detail  = 'Google Ads Customer ID not connected — go to Settings → Integrations to add it.'
+                    elif not ads_token:
+                        ads_build_status  = 'error'
+                        ads_build_detail  = 'Google OAuth token missing or expired — reconnect Google in Settings → Integrations.'
+                    else:
+                        campaign_data = {
+                            'name':         _name,
+                            'budget':       _bud,
+                            'url':          _url,
+                            'bid_strategy': _bid,
+                            'target_cpa':   _tcpa,
+                            'locations':    _locs,
+                            'services':     _svcs,
+                            'usps':         _usps,
+                            'headlines':    _heads,
+                            'descriptions': _descs,
+                            'biz_name':     _biz,
+                            'offer':        _offer,
+                            'competitors':  _comps,
+                            'company_name': _co,
+                        }
+                        rn, err = _create_google_ads_campaign_live(
+                            _ws, campaign_data, ads_token, ads_account_id, GOOGLE_ADS_DEVELOPER_TOKEN
+                        )
+                        if rn:
+                            ads_build_status  = 'live'
+                            ads_resource_name = rn
+                            ads_build_detail  = f'Campaign created PAUSED — review in Google Ads then enable when ready.'
+                            print(f'  ✅ Google Ads campaign live: {rn}')
+                        else:
+                            ads_build_status  = 'error'
+                            ads_build_detail  = err or 'Unknown Google Ads API error'
+                except Exception as e:
+                    ads_build_status = 'error'
+                    ads_build_detail = str(e)[:200]
+                    print(f'  ❌ Google Ads build exception: {e}')
+            elif is_google_ads_campaign and not GOOGLE_ADS_DEVELOPER_TOKEN:
+                ads_build_status = 'error'
+                ads_build_detail = 'GOOGLE_ADS_DEVELOPER_TOKEN not set — add to Railway environment variables.'
+
             new_brief_blob = json.dumps({
                 'brief':          _br,
                 'channel':        _ch,
@@ -5006,6 +5341,15 @@ class AgentHandler(BaseHTTPRequestHandler):
                 'sarah_reply':    sarah_reply,
                 'assigned_agent': assigned_agent,
                 'deliverables':   all_deliverables,
+                # Extended fields
+                'url': _url, 'services': _svcs, 'usps': _usps, 'locations': _locs,
+                'offer': _offer, 'competitors': _comps, 'headlines': _heads,
+                'descriptions': _descs, 'biz_name': _biz, 'phone': _phone,
+                'target_cpa': _tcpa, 'bid_strategy': _bid,
+                # Ads build result
+                'ads_build_status':  ads_build_status,
+                'ads_resource_name': ads_resource_name,
+                'ads_build_detail':  ads_build_detail,
             })
 
             # — PATCH Supabase with results —
@@ -5070,6 +5414,10 @@ class AgentHandler(BaseHTTPRequestHandler):
                     'client_reply':   blob.get('client_reply') or c.get('client_reply', ''),
                     'assigned_agent': blob.get('assigned_agent', ''),
                     'deliverables':   blob.get('deliverables', []),
+                    # Google Ads build status (stored in brief blob)
+                    'ads_build_status':  blob.get('ads_build_status', ''),
+                    'ads_resource_name': blob.get('ads_resource_name', ''),
+                    'ads_build_detail':  blob.get('ads_build_detail', ''),
                 })
             self._json(200, {'campaigns': out})
         except Exception as e:
