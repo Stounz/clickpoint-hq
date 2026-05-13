@@ -1178,7 +1178,17 @@
         <!-- Inline new campaign form -->
         <div id="wsNewCampaignForm" style="display:none;background:#fff;border:2px solid #1C3A2E;border-radius:16px;padding:28px;margin-bottom:20px;">
           <div style="font-size:17px;font-weight:800;color:#1C3A2E;margin-bottom:4px;">🚀 Request New Campaign</div>
-          <div style="font-size:13px;color:#888;margin-bottom:24px;">Fill in the details below — the more you share, the faster Derek can build and launch your campaign.</div>
+          <div style="font-size:13px;color:#888;margin-bottom:16px;">Fill in the details below — the more you share, the faster your specialist can build and launch.</div>
+
+          <!-- Assigned specialist banner — updates on channel change -->
+          <div id="wsCmpSpecialistBanner" style="display:none;background:#F4F3EE;border-radius:12px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
+            <div id="wsCmpSpecialistAvatar" style="width:40px;height:40px;border-radius:50%;background:#1C3A2E;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0;">DW</div>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#1a2332;" id="wsCmpSpecialistName">Derek Wu — Paid Search Specialist</div>
+              <div style="font-size:12px;color:#6b7a8d;" id="wsCmpSpecialistRole">Will build and publish this campaign to Google Ads</div>
+            </div>
+            <div style="margin-left:auto;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(28,58,46,0.1);color:#1C3A2E;" id="wsCmpSpecialistPlatform">Google Ads</div>
+          </div>
 
           <!-- ── Section 1: Campaign Basics ── -->
           <div class="ws-cmp-section">
@@ -1410,8 +1420,9 @@
 
           <!-- ── Section 6: Goals & Brief ── -->
           <div class="ws-cmp-section">
-            <div class="ws-cmp-section-label">6 · Goals &amp; Brief</div>
-            <textarea id="wsCmpBrief" rows="4" placeholder="What do you want to achieve? E.g. 50 leads/month at under $40 CPA, targeting small business owners in Sydney who need help with Google Ads. We've run ads before but wasted budget — want a fresh structured account." style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;resize:vertical;"></textarea>
+            <div class="ws-cmp-section-label" id="wsCmpBriefLabel">6 · Goals &amp; Brief</div>
+            <div style="font-size:12px;color:#888;margin-bottom:10px;" id="wsCmpBriefHint">What do you want to achieve? Include targets, timelines, past results, and anything else your specialist should know.</div>
+            <textarea id="wsCmpBrief" rows="4" placeholder="E.g. 50 leads/month at under $40 CPA. We've run Google Ads before but wasted budget on broad match — want a tightly structured Search campaign targeting Sydney SMB owners looking for AI marketing help. Derek should rebuild the account from scratch." style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;resize:vertical;"></textarea>
           </div>
 
           <div id="wsCmpResult" style="display:none;background:#F0F8F4;border:1px solid #D4E8DA;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;"></div>
@@ -3198,11 +3209,17 @@ function wsNewCampaignOpen() {
     const el = document.getElementById(id);
     if (el) el.selectedIndex = 0;
   });
-  // Hide conditional sections
+  // Hide conditional sections and specialist banner
   ['wsCmpSecGoogleCopy','wsCmpSecMetaCopy'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
+  const banner = document.getElementById('wsCmpSpecialistBanner');
+  if (banner) banner.style.display = 'none';
+  const briefLbl = document.getElementById('wsCmpBriefLabel');
+  if (briefLbl) briefLbl.innerHTML = '6 · Goals &amp; Brief';
+  const briefHint = document.getElementById('wsCmpBriefHint');
+  if (briefHint) briefHint.textContent = 'What do you want to achieve? Include targets, timelines, past results, and anything else your specialist should know.';
   // Reset char counters
   ['wsCmpH1c','wsCmpH2c','wsCmpH3c','wsCmpD1c','wsCmpD2c'].forEach(id => {
     const el = document.getElementById(id);
@@ -3222,9 +3239,52 @@ function wsCmpChannelChange(val) {
   const googleSec = document.getElementById('wsCmpSecGoogleCopy');
   const metaSec   = document.getElementById('wsCmpSecMetaCopy');
   const isGoogle  = val === 'Google Ads' || val === 'Google Display' || val === 'YouTube Ads';
-  const isMeta    = val === 'Meta Ads (Facebook / Instagram)' || val === 'TikTok Ads' || val === 'LinkedIn Ads';
-  if (googleSec) googleSec.style.display = isGoogle ? '' : 'none';
-  if (metaSec)   metaSec.style.display   = isMeta   ? '' : 'none';
+  const isMeta    = val === 'Meta Ads (Facebook / Instagram)' || val === 'TikTok Ads';
+  const isLinkedIn = val === 'LinkedIn Ads';
+  const isEmail   = val === 'Email';
+  const isSEO     = val === 'SEO / Organic' || val === 'Social / Organic';
+  if (googleSec) googleSec.style.display = isGoogle   ? '' : 'none';
+  if (metaSec)   metaSec.style.display   = (isMeta || isLinkedIn) ? '' : 'none';
+
+  // Specialist banner
+  const banner   = document.getElementById('wsCmpSpecialistBanner');
+  const avatar   = document.getElementById('wsCmpSpecialistAvatar');
+  const nameEl   = document.getElementById('wsCmpSpecialistName');
+  const roleEl   = document.getElementById('wsCmpSpecialistRole');
+  const platEl   = document.getElementById('wsCmpSpecialistPlatform');
+  const briefLbl = document.getElementById('wsCmpBriefLabel');
+  const briefHint= document.getElementById('wsCmpBriefHint');
+
+  const specialists = {
+    google:   { initials:'DW', name:'Derek Wu — Paid Search Specialist',    role:'Will build and publish this campaign to Google Ads',          plat:'Google Ads',  color:'#1C3A2E', brief:'6 · Goals for Derek', hint:'What results do you want Derek to achieve? Include targets, timeline, and anything about past campaigns that didn\'t work.' },
+    meta:     { initials:'CC', name:'Cleo Carter — Paid Social Specialist', role:'Will build and publish this campaign to Meta Ads',            plat:'Meta Ads',    color:'#1877F2', brief:'6 · Goals for Cleo',  hint:'What should Cleo focus on? Include audience insights, creative direction, and conversion targets.' },
+    linkedin: { initials:'CC', name:'Cleo Carter — Paid Social Specialist', role:'Will build and publish this campaign to LinkedIn Ads',        plat:'LinkedIn Ads',color:'#0A66C2', brief:'6 · Goals for Cleo',  hint:'What should Cleo focus on? Include job titles to target, offer, and lead quality expectations.' },
+    email:    { initials:'JL', name:'Jess Lane — Content & Email',          role:'Will plan and send this email campaign',                      plat:'Email',       color:'#D4622A', brief:'6 · Goals for Jess',  hint:'What should this email campaign achieve? Include list size, send frequency, and any segmentation needs.' },
+    seo:      { initials:'RN', name:'Raj Nair — SEO & Analytics',           role:'Will plan and execute this SEO campaign',                     plat:'SEO',         color:'#5856D6', brief:'6 · Goals for Raj',   hint:'What organic growth goals should Raj target? Include target keywords, competitor gaps, or pages to improve.' },
+  };
+
+  let spec = null;
+  if (isGoogle)   spec = specialists.google;
+  else if (isMeta) spec = specialists.meta;
+  else if (isLinkedIn) spec = specialists.linkedin;
+  else if (isEmail) spec = specialists.email;
+  else if (isSEO)  spec = specialists.seo;
+
+  if (banner) {
+    if (spec && val) {
+      banner.style.display = 'flex';
+      if (avatar)  { avatar.textContent = spec.initials; avatar.style.background = spec.color; }
+      if (nameEl)  nameEl.textContent  = spec.name;
+      if (roleEl)  roleEl.textContent  = spec.role;
+      if (platEl)  { platEl.textContent = spec.plat; platEl.style.background = spec.color + '18'; platEl.style.color = spec.color; }
+      if (briefLbl)  briefLbl.innerHTML  = spec.brief;
+      if (briefHint) briefHint.textContent = spec.hint;
+    } else {
+      banner.style.display = 'none';
+      if (briefLbl)  briefLbl.innerHTML  = '6 · Goals &amp; Brief';
+      if (briefHint) briefHint.textContent = 'What do you want to achieve? Include targets, timelines, past results, and anything else your specialist should know.';
+    }
+  }
 }
 
 function wsCmpCharCount(el, counterId, max) {
