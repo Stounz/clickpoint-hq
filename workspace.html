@@ -1368,7 +1368,7 @@
           <div class="ws-settings-title" style="margin-bottom:4px;">🔗 Connected Accounts</div>
           <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5;">
             Each client has their own ad accounts — connect yours below so the ClickPoint team can access and manage them directly.
-            You only need to share your Account ID. No passwords or API keys — your agency uses their own credentials to access it.
+            Share your Account ID below — ClickPoint will then request access directly within the platform. No passwords or API keys needed.
           </div>
           <div id="wsIntegrationsList">
             <div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">Loading…</div>
@@ -4764,7 +4764,7 @@ function wsConnectIntegration(platformId) {
       <div class="ws-integration-modal" onclick="event.stopPropagation()">
         <div class="ws-integration-modal-title">${p.icon} Connect ${p.label}</div>
         <div class="ws-integration-modal-sub">
-          Your agency uses their own credentials to access your account — you only need to share your Account ID.
+          Share your Account ID and ClickPoint will request access directly within the platform. No passwords or API keys needed.
           No passwords or API keys required.
         </div>
         <label class="ws-int-modal-label">${p.idLabel || 'Account ID'}</label>
