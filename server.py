@@ -124,7 +124,8 @@ CANVA_REDIRECT_URI         = 'https://web-production-c959ce.up.railway.app/api/c
 GOOGLE_CLIENT_ID           = _ENV.get('GOOGLE_CLIENT_ID', '')
 GOOGLE_CLIENT_SECRET       = _ENV.get('GOOGLE_CLIENT_SECRET', '')
 GOOGLE_REDIRECT_URI        = _ENV.get('PLATFORM_URL', 'https://platform.clickpointconsulting.com.au') + '/api/google/callback'
-GOOGLE_ADS_DEVELOPER_TOKEN = _ENV.get('GOOGLE_ADS_DEVELOPER_TOKEN', '')
+GOOGLE_ADS_DEVELOPER_TOKEN    = _ENV.get('GOOGLE_ADS_DEVELOPER_TOKEN', '')
+GOOGLE_ADS_LOGIN_CUSTOMER_ID  = _ENV.get('GOOGLE_ADS_LOGIN_CUSTOMER_ID', '').replace('-', '')
 META_APP_ID                = _ENV.get('META_APP_ID', '')
 META_APP_SECRET            = _ENV.get('META_APP_SECRET', '')
 LINKEDIN_CLIENT_ID         = _ENV.get('LINKEDIN_CLIENT_ID', '')
@@ -769,25 +770,29 @@ def _resolve_geo_targets(locations_str: str) -> list:
                 found.append(gid)
     return [f'geoTargetConstants/{g}' for g in found] if found else ['geoTargetConstants/2036']
 
-def _ads_req(method: str, path: str, payload: dict, access_token: str, developer_token: str) -> dict:
+def _ads_req(method: str, path: str, payload: dict, access_token: str, developer_token: str, login_customer_id: str = '') -> dict:
     """Make a Google Ads REST API v17 request."""
     import urllib.request as _ur
     url  = f'https://googleads.googleapis.com/v17/{path.lstrip("/")}'
     data = json.dumps(payload).encode() if payload else None
-    req  = _ur.Request(url, data=data, method=method, headers={
-        'Authorization':  f'Bearer {access_token}',
-        'Content-Type':   'application/json',
+    hdrs = {
+        'Authorization':   f'Bearer {access_token}',
+        'Content-Type':    'application/json',
         'developer-token': developer_token,
-    })
+    }
+    if login_customer_id:
+        hdrs['login-customer-id'] = login_customer_id.replace('-', '')
+    req = _ur.Request(url, data=data, method=method, headers=hdrs)
     with _ur.urlopen(req, timeout=30) as resp:
         return json.loads(resp.read())
 
 def _create_google_ads_campaign_live(
-    workspace_id:     str,
-    campaign_data:    dict,
-    access_token:     str,
-    customer_id:      str,
-    developer_token:  str,
+    workspace_id:       str,
+    campaign_data:      dict,
+    access_token:       str,
+    customer_id:        str,
+    developer_token:    str,
+    login_customer_id:  str = '',
 ) -> tuple:
     """Create a complete Google Ads Search campaign via REST API v17.
 
@@ -803,14 +808,19 @@ def _create_google_ads_campaign_live(
     if not access_token or not customer_id or not developer_token:
         return None, 'Missing access_token, customer_id, or developer_token'
 
-    cid = customer_id.replace('-', '').strip()
+    cid  = customer_id.replace('-', '').strip()
+    lcid = login_customer_id.replace('-', '').strip() if login_customer_id else ''
+
+    # Convenience wrapper so every call includes MCC login header
+    def _req(method, path, payload):
+        return _ads_req(method, path, payload, access_token, developer_token, lcid)
 
     try:
         # ── 1. Campaign Budget ────────────────────────────────────────────────
         monthly = float(campaign_data.get('budget') or 30)
         daily_micros = int((monthly / 30.44) * 1_000_000)
 
-        bud_resp = _ads_req('POST', f'customers/{cid}/campaignBudgets:mutate', {
+        bud_resp = _req('POST', f'customers/{cid}/campaignBudgets:mutate', {
             'operations': [{'create': {
                 'name':           f"Budget for {campaign_data['name']}",
                 'amountMicros':   str(daily_micros),
@@ -849,9 +859,9 @@ def _create_google_ads_campaign_live(
             },
         }
         cmp_create.update(bidding)
-        cmp_resp = _ads_req('POST', f'customers/{cid}/campaigns:mutate', {
+        cmp_resp = _req('POST', f'customers/{cid}/campaigns:mutate', {
             'operations': [{'create': cmp_create}]
-        }, access_token, developer_token)
+        })
         campaign_rn = cmp_resp['results'][0]['resourceName']
         print(f'  📋 Google Ads campaign created: {campaign_rn}')
 
@@ -860,15 +870,14 @@ def _create_google_ads_campaign_live(
                                'location': {'geoTargetConstant': g}}}
                    for g in geo_targets]
         if geo_ops:
-            _ads_req('POST', f'customers/{cid}/campaignCriteria:mutate',
-                     {'operations': geo_ops}, access_token, developer_token)
+            _req('POST', f'customers/{cid}/campaignCriteria:mutate', {'operations': geo_ops})
 
         # ── 5. Ad Group ───────────────────────────────────────────────────────
         services_raw  = campaign_data.get('services', '') or campaign_data['name']
         service_lines = [l.strip() for l in services_raw.splitlines() if l.strip()]
         ad_group_name = service_lines[0] if service_lines else campaign_data['name']
 
-        ag_resp = _ads_req('POST', f'customers/{cid}/adGroups:mutate', {
+        ag_resp = _req('POST', f'customers/{cid}/adGroups:mutate', {
             'operations': [{'create': {
                 'name':           ad_group_name,
                 'campaign':       campaign_rn,
@@ -876,18 +885,16 @@ def _create_google_ads_campaign_live(
                 'type':           'SEARCH_STANDARD',
                 'cpcBidMicros':   '2000000',   # $2 default CPC
             }}]
-        }, access_token, developer_token)
+        })
         ag_rn = ag_resp['results'][0]['resourceName']
         print(f'  📁 Google Ads ad group created: {ag_rn}')
 
         # ── 6. Keywords ───────────────────────────────────────────────────────
-        # Use provided services + USPs as phrase-match keywords
         usps     = campaign_data.get('usps', [])
         kw_texts = list({s.lower() for s in service_lines if s})
         for u in (usps or []):
             if u and len(u) <= 80:
                 kw_texts.append(u.lower())
-        # Dedupe and cap at 20
         kw_texts = list(dict.fromkeys(kw_texts))[:20]
         if kw_texts:
             kw_ops = [{'create': {
@@ -895,8 +902,7 @@ def _create_google_ads_campaign_live(
                 'status':   'ENABLED',
                 'keyword':  {'text': kw, 'matchType': 'PHRASE'},
             }} for kw in kw_texts]
-            _ads_req('POST', f'customers/{cid}/adGroupCriteria:mutate',
-                     {'operations': kw_ops}, access_token, developer_token)
+            _req('POST', f'customers/{cid}/adGroupCriteria:mutate', {'operations': kw_ops})
             print(f'  🔑 {len(kw_ops)} keywords added')
 
         # ── 7. Negative keywords (competitors) ───────────────────────────────
@@ -910,21 +916,18 @@ def _create_google_ads_campaign_live(
                     'keyword':  {'text': n, 'matchType': 'BROAD'},
                     'negative': True,
                 }} for n in neg_texts]
-                _ads_req('POST', f'customers/{cid}/adGroupCriteria:mutate',
-                         {'operations': neg_ops}, access_token, developer_token)
+                _req('POST', f'customers/{cid}/adGroupCriteria:mutate', {'operations': neg_ops})
 
         # ── 8. Responsive Search Ad ───────────────────────────────────────────
-        final_url  = campaign_data.get('url', '')
+        final_url = campaign_data.get('url', '')
         if not final_url:
-            return campaign_rn, None  # Campaign built, no RSA (URL required)
+            return campaign_rn, None  # Campaign built without RSA — URL required
 
         raw_headlines = list(campaign_data.get('headlines', []))
         raw_descs     = list(campaign_data.get('descriptions', []))
-        # Supplement with USPs if not enough headlines
         for u in (usps or []):
             if u and u not in raw_headlines:
                 raw_headlines.append(u)
-        # Need at least 3 headlines and 2 descriptions; Derek auto-generates if short
         if len(raw_headlines) < 3:
             raw_headlines += [campaign_data['name'], ad_group_name,
                               campaign_data.get('offer', '') or 'Contact Us Today']
@@ -933,23 +936,22 @@ def _create_google_ads_campaign_live(
             raw_descs.append(f'Expert {ad_group_name} from {biz}. Get in touch today.')
             raw_descs.append(f'Trusted by businesses across Australia. {campaign_data.get("offer","") or "Book a free consultation"}.')
 
-        # Enforce 30-char headline limit and 90-char description limit
         headlines_payload = [{'text': h[:30]} for h in raw_headlines if h][:15]
         descs_payload     = [{'text': d[:90]} for d in raw_descs if d][:4]
 
-        rsa_payload = {
-            'adGroup':  ag_rn,
-            'status':   'ENABLED',
-            'ad': {
-                'finalUrls': [final_url],
-                'responsiveSearchAd': {
-                    'headlines':    headlines_payload,
-                    'descriptions': descs_payload,
+        _req('POST', f'customers/{cid}/adGroupAds:mutate', {
+            'operations': [{'create': {
+                'adGroup': ag_rn,
+                'status':  'ENABLED',
+                'ad': {
+                    'finalUrls': [final_url],
+                    'responsiveSearchAd': {
+                        'headlines':    headlines_payload,
+                        'descriptions': descs_payload,
+                    }
                 }
-            }
-        }
-        _ads_req('POST', f'customers/{cid}/adGroupAds:mutate',
-                 {'operations': [{'create': rsa_payload}]}, access_token, developer_token)
+            }}]
+        })
         print(f'  📢 RSA created with {len(headlines_payload)} headlines')
 
         return campaign_rn, None
@@ -5314,7 +5316,8 @@ class AgentHandler(BaseHTTPRequestHandler):
                             'company_name': _co,
                         }
                         rn, err = _create_google_ads_campaign_live(
-                            _ws, campaign_data, ads_token, ads_account_id, GOOGLE_ADS_DEVELOPER_TOKEN
+                            _ws, campaign_data, ads_token, ads_account_id,
+                            GOOGLE_ADS_DEVELOPER_TOKEN, GOOGLE_ADS_LOGIN_CUSTOMER_ID
                         )
                         if rn:
                             ads_build_status  = 'live'
