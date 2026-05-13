@@ -66,6 +66,12 @@
   .login-creds-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#999; }
   .login-creds-val { font-size:13px; font-weight:700; color:var(--text); }
 
+  /* ── Campaign Brief Form ── */
+  .ws-cmp-section { margin-bottom:22px; }
+  .ws-cmp-section-label { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; color:var(--teal); background:rgba(28,58,46,0.06); padding:5px 10px; border-radius:6px; display:inline-block; margin-bottom:14px; }
+  .ws-cmp-lbl { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#555; display:block; margin-bottom:6px; }
+  .ws-cmp-char { position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:10px; color:#bbb; pointer-events:none; }
+
   /* ── App shell ── */
   #appShell { display:none; min-height:100vh; }
 
@@ -1171,69 +1177,246 @@
 
         <!-- Inline new campaign form -->
         <div id="wsNewCampaignForm" style="display:none;background:#fff;border:2px solid #1C3A2E;border-radius:16px;padding:28px;margin-bottom:20px;">
-          <div style="font-size:17px;font-weight:800;color:#1C3A2E;margin-bottom:6px;">🚀 Request New Campaign</div>
-          <div style="font-size:13px;color:#888;margin-bottom:22px;">Fill in the details and your CMO will review and confirm within 24 hours.</div>
+          <div style="font-size:17px;font-weight:800;color:#1C3A2E;margin-bottom:4px;">🚀 Request New Campaign</div>
+          <div style="font-size:13px;color:#888;margin-bottom:24px;">Fill in the details below — the more you share, the faster Derek can build and launch your campaign.</div>
 
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-            <div>
-              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Campaign Name *</label>
-              <input id="wsCmpName" type="text" placeholder="e.g. Summer Sale Push" required style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
-            </div>
-            <div>
-              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Campaign Type *</label>
-              <select id="wsCmpType" required style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
-                <option value="">Select type…</option>
-                <option>Lead Generation</option>
-                <option>Brand Awareness</option>
-                <option>Retargeting</option>
-                <option>Sales / Conversion</option>
-                <option>SEO / Content</option>
-                <option>Email Marketing</option>
-                <option>Event Promotion</option>
-              </select>
-            </div>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-            <div>
-              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Primary Channel *</label>
-              <select id="wsCmpChannel" required style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
-                <option value="">Select channel…</option>
-                <option>Google Ads</option>
-                <option>Meta Ads (Facebook / Instagram)</option>
-                <option>LinkedIn Ads</option>
-                <option>Google Display</option>
-                <option>YouTube Ads</option>
-                <option>TikTok Ads</option>
-                <option>SEO / Organic</option>
-                <option>Social / Organic</option>
-                <option>Organic Social Media</option>
-                <option>Email</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Monthly Ad Spend Budget</label>
-              <div style="position:relative;">
-                <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;color:#888;font-weight:600;">$</span>
-                <input id="wsCmpBudget" type="number" min="0" placeholder="e.g. 2000" style="width:100%;padding:11px 14px 11px 26px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" oninput="wsUpdateBudgetTotal()" />
+          <!-- ── Section 1: Campaign Basics ── -->
+          <div class="ws-cmp-section">
+            <div class="ws-cmp-section-label">1 · Campaign Basics</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+              <div>
+                <label class="ws-cmp-lbl">Campaign Name *</label>
+                <input id="wsCmpName" type="text" placeholder="e.g. Sydney_Search_LeadGen_Q3" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
               </div>
-              <div style="font-size:10px;color:#aaa;margin-top:4px;">Your ad spend only — separate from your ClickPoint platform fee.</div>
+              <div>
+                <label class="ws-cmp-lbl">Campaign Type *</label>
+                <select id="wsCmpType" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
+                  <option value="">Select type…</option>
+                  <option>Lead Generation</option>
+                  <option>Brand Awareness</option>
+                  <option>Retargeting</option>
+                  <option>Sales / Conversion</option>
+                  <option>SEO / Content</option>
+                  <option>Email Marketing</option>
+                  <option>Event Promotion</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div>
+                <label class="ws-cmp-lbl">Primary Channel *</label>
+                <select id="wsCmpChannel" onchange="wsCmpChannelChange(this.value)" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
+                  <option value="">Select channel…</option>
+                  <option>Google Ads</option>
+                  <option>Meta Ads (Facebook / Instagram)</option>
+                  <option>LinkedIn Ads</option>
+                  <option>Google Display</option>
+                  <option>YouTube Ads</option>
+                  <option>TikTok Ads</option>
+                  <option>SEO / Organic</option>
+                  <option>Social / Organic</option>
+                  <option>Email</option>
+                </select>
+              </div>
+              <div>
+                <label class="ws-cmp-lbl">Monthly Ad Spend Budget (AUD)</label>
+                <div style="position:relative;">
+                  <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;color:#888;font-weight:600;">$</span>
+                  <input id="wsCmpBudget" type="number" min="0" placeholder="e.g. 3000" style="width:100%;padding:10px 13px 10px 26px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+                </div>
+                <div style="font-size:10px;color:#aaa;margin-top:3px;">Ad spend only — separate from ClickPoint platform fee.</div>
+              </div>
             </div>
           </div>
 
-          <div style="margin-bottom:16px;">
-            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Target Audience</label>
-            <input id="wsCmpAudience" type="text" placeholder="e.g. Australian homeowners aged 35–55, interested in home improvement" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+          <!-- ── Section 2: Landing Page & Tracking ── -->
+          <div class="ws-cmp-section" id="wsCmpSecTracking">
+            <div class="ws-cmp-section-label">2 · Landing Page &amp; Conversion Tracking</div>
+            <div style="margin-bottom:14px;">
+              <label class="ws-cmp-lbl">Destination / Landing Page URL *</label>
+              <input id="wsCmpUrl" type="url" placeholder="https://yourwebsite.com.au/landing-page" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+              <div style="font-size:10px;color:#aaa;margin-top:3px;">The page people land on after clicking your ad.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+              <div>
+                <label class="ws-cmp-lbl">Primary Conversion Goal *</label>
+                <select id="wsCmpConversion" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
+                  <option value="">Select goal…</option>
+                  <option>Form / Enquiry Submit</option>
+                  <option>Phone Call</option>
+                  <option>Online Purchase / Sale</option>
+                  <option>Booking / Appointment</option>
+                  <option>Download / Lead Magnet</option>
+                  <option>Email Sign-up</option>
+                  <option>Live Chat Started</option>
+                </select>
+              </div>
+              <div>
+                <label class="ws-cmp-lbl">Conversion Tracking Status</label>
+                <select id="wsCmpTracking" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
+                  <option value="unsure">Not sure — please check</option>
+                  <option value="working">✅ Verified and working</option>
+                  <option value="needs_setup">❌ Needs to be set up</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div>
+                <label class="ws-cmp-lbl">Target Cost Per Lead / CPA <span style="font-weight:400;color:#aaa;">(optional)</span></label>
+                <div style="position:relative;">
+                  <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;color:#888;font-weight:600;">$</span>
+                  <input id="wsCmpTargetCpa" type="number" min="0" placeholder="e.g. 45" style="width:100%;padding:10px 13px 10px 26px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+                </div>
+              </div>
+              <div>
+                <label class="ws-cmp-lbl">Bid Strategy Preference</label>
+                <select id="wsCmpBidStrategy" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
+                  <option value="recommend">Let agency recommend</option>
+                  <option value="max_conversions">Maximise Conversions</option>
+                  <option value="target_cpa">Target CPA</option>
+                  <option value="max_clicks">Maximise Clicks (learning phase)</option>
+                  <option value="manual_cpc">Manual CPC</option>
+                </select>
+              </div>
+            </div>
           </div>
 
-          <div style="margin-bottom:22px;">
-            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#555;display:block;margin-bottom:6px;">Goals & Brief <span style="font-weight:400;color:#aaa;">(what do you want to achieve?)</span></label>
-            <textarea id="wsCmpBrief" rows="3" placeholder="e.g. We want to drive leads for our new product launch in May. Target is 50 leads in the first month at under $40 cost per lead…" style="width:100%;padding:11px 14px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;resize:vertical;"></textarea>
+          <!-- ── Section 3: Targeting ── -->
+          <div class="ws-cmp-section" id="wsCmpSecTargeting">
+            <div class="ws-cmp-section-label">3 · Targeting</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+              <div>
+                <label class="ws-cmp-lbl">Target Locations *</label>
+                <input id="wsCmpLocations" type="text" placeholder="e.g. Sydney Metro, NSW, 2000–2200" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+                <div style="font-size:10px;color:#aaa;margin-top:3px;">City, state, postcode or radius from your location.</div>
+              </div>
+              <div>
+                <label class="ws-cmp-lbl">Location Targeting Intent</label>
+                <select id="wsCmpLocIntent" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
+                  <option value="in_location">People physically IN the location</option>
+                  <option value="both">People in OR searching for the location</option>
+                  <option value="interested">People interested in the location</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div>
+                <label class="ws-cmp-lbl">Target Audience <span style="font-weight:400;color:#aaa;">(demographics / interests)</span></label>
+                <input id="wsCmpAudience" type="text" placeholder="e.g. SMB owners 35–55, interested in AI tools" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+              </div>
+              <div>
+                <label class="ws-cmp-lbl">Ad Schedule</label>
+                <select id="wsCmpSchedule" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
+                  <option value="24_7">24/7 (recommended)</option>
+                  <option value="business_hours">Business hours only (Mon–Fri 8am–6pm)</option>
+                  <option value="weekdays">Weekdays only</option>
+                  <option value="custom">Custom — specify in brief</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Section 4: Messaging & USPs ── -->
+          <div class="ws-cmp-section" id="wsCmpSecMessaging">
+            <div class="ws-cmp-section-label">4 · Messaging &amp; Unique Selling Points</div>
+            <div style="margin-bottom:14px;">
+              <label class="ws-cmp-lbl">Services / Products to Advertise <span style="font-weight:400;color:#aaa;">(one per line — each becomes an ad group)</span></label>
+              <textarea id="wsCmpServices" rows="3" placeholder="AI Marketing Audit&#10;SEO Audit&#10;Google Ads Management" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;resize:vertical;"></textarea>
+            </div>
+            <div style="margin-bottom:14px;">
+              <label class="ws-cmp-lbl">Unique Selling Points <span style="font-weight:400;color:#aaa;">(these become your ad headlines — be specific)</span></label>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <input id="wsCmpUsp1" type="text" maxlength="30" placeholder="USP 1 — e.g. AI-Powered Campaigns" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" oninput="wsCmpCharCount(this,'wsCmpUsp1Count',30)" />
+                <input id="wsCmpUsp2" type="text" maxlength="30" placeholder="USP 2 — e.g. No Lock-In Contracts" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" oninput="wsCmpCharCount(this,'wsCmpUsp2Count',30)" />
+                <input id="wsCmpUsp3" type="text" maxlength="30" placeholder="USP 3 — e.g. Results in 30 Days" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" oninput="wsCmpCharCount(this,'wsCmpUsp3Count',30)" />
+              </div>
+              <div style="font-size:10px;color:#aaa;margin-top:3px;">Max 30 characters each (Google Ads headline limit).</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div>
+                <label class="ws-cmp-lbl">Current Offer / Promotion <span style="font-weight:400;color:#aaa;">(optional)</span></label>
+                <input id="wsCmpOffer" type="text" placeholder="e.g. Free audit — June only" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+              </div>
+              <div>
+                <label class="ws-cmp-lbl">Main Competitors <span style="font-weight:400;color:#aaa;">(for negative keywords)</span></label>
+                <input id="wsCmpCompetitors" type="text" placeholder="e.g. Agency X, Company Y" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Section 5: Google Ads Ad Copy (conditional) ── -->
+          <div class="ws-cmp-section" id="wsCmpSecGoogleCopy" style="display:none;">
+            <div class="ws-cmp-section-label">5 · Google Ads — Headlines &amp; Descriptions</div>
+            <div style="font-size:12px;color:#888;margin-bottom:12px;">These feed directly into your Responsive Search Ads. Derek will write variations but your inputs make the ads authentic.</div>
+            <div style="margin-bottom:12px;">
+              <label class="ws-cmp-lbl">Ad Headlines <span style="font-weight:400;color:#aaa;">(30 chars max each — Google mixes these)</span></label>
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <div style="position:relative;"><input id="wsCmpH1" type="text" maxlength="30" placeholder="Headline 1 — e.g. AI Marketing Audits Sydney" style="width:100%;padding:10px 42px 10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" oninput="wsCmpCharCount(this,'wsCmpH1c',30)" /><span id="wsCmpH1c" class="ws-cmp-char">0/30</span></div>
+                <div style="position:relative;"><input id="wsCmpH2" type="text" maxlength="30" placeholder="Headline 2 — e.g. Free Audit — Book Today" style="width:100%;padding:10px 42px 10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" oninput="wsCmpCharCount(this,'wsCmpH2c',30)" /><span id="wsCmpH2c" class="ws-cmp-char">0/30</span></div>
+                <div style="position:relative;"><input id="wsCmpH3" type="text" maxlength="30" placeholder="Headline 3 — e.g. No Lock-In Contracts" style="width:100%;padding:10px 42px 10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" oninput="wsCmpCharCount(this,'wsCmpH3c',30)" /><span id="wsCmpH3c" class="ws-cmp-char">0/30</span></div>
+              </div>
+            </div>
+            <div style="margin-bottom:12px;">
+              <label class="ws-cmp-lbl">Ad Descriptions <span style="font-weight:400;color:#aaa;">(90 chars max each)</span></label>
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <div style="position:relative;"><textarea id="wsCmpD1" maxlength="90" rows="2" placeholder="Description 1 — e.g. Our AI audit reveals exactly where your ad spend is wasted. Get a free 30-min review." style="width:100%;padding:10px 42px 10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;resize:none;" oninput="wsCmpCharCount(this,'wsCmpD1c',90)"></textarea><span id="wsCmpD1c" class="ws-cmp-char" style="top:10px;">0/90</span></div>
+                <div style="position:relative;"><textarea id="wsCmpD2" maxlength="90" rows="2" placeholder="Description 2 — e.g. Sydney businesses trust ClickPoint for Google Ads that actually convert. Book now." style="width:100%;padding:10px 42px 10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;resize:none;" oninput="wsCmpCharCount(this,'wsCmpD2c',90)"></textarea><span id="wsCmpD2c" class="ws-cmp-char" style="top:10px;">0/90</span></div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div>
+                <label class="ws-cmp-lbl">Business Name <span style="font-weight:400;color:#aaa;">(as shown in ads)</span></label>
+                <input id="wsCmpBizName" type="text" maxlength="25" placeholder="e.g. ClickPoint Marketing" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+              </div>
+              <div>
+                <label class="ws-cmp-lbl">Phone Number for Call Extension</label>
+                <input id="wsCmpPhone" type="tel" placeholder="e.g. 02 9000 0000" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Section 5b: Meta Ads Creative (conditional) ── -->
+          <div class="ws-cmp-section" id="wsCmpSecMetaCopy" style="display:none;">
+            <div class="ws-cmp-section-label">5 · Meta Ads — Creative &amp; Audience</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px;">
+              <div>
+                <label class="ws-cmp-lbl">Meta Pixel ID <span style="font-weight:400;color:#aaa;">(optional if unsure)</span></label>
+                <input id="wsCmpPixelId" type="text" placeholder="e.g. 1234567890123456" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+              </div>
+              <div>
+                <label class="ws-cmp-lbl">Creative Assets</label>
+                <select id="wsCmpCreative" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
+                  <option value="agency">Agency to create (Zara will design)</option>
+                  <option value="provide">I'll provide images/video</option>
+                  <option value="existing">Use existing brand assets</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-bottom:12px;">
+              <label class="ws-cmp-lbl">Ad Primary Text <span style="font-weight:400;color:#aaa;">(125 chars ideal)</span></label>
+              <textarea id="wsCmpMetaText" rows="2" maxlength="500" placeholder="e.g. Tired of wasting ad budget with no results? Our AI-powered audit shows exactly where your money's going — and how to fix it." style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;resize:none;"></textarea>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div>
+                <label class="ws-cmp-lbl">Ad Headline <span style="font-weight:400;color:#aaa;">(40 chars max)</span></label>
+                <input id="wsCmpMetaHeadline" type="text" maxlength="40" placeholder="e.g. Free AI Marketing Audit" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+              </div>
+              <div>
+                <label class="ws-cmp-lbl">Audience Interests / Job Titles</label>
+                <input id="wsCmpMetaAudience" type="text" placeholder="e.g. Small business owners, Marketing managers" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Section 6: Goals & Brief ── -->
+          <div class="ws-cmp-section">
+            <div class="ws-cmp-section-label">6 · Goals &amp; Brief</div>
+            <textarea id="wsCmpBrief" rows="4" placeholder="What do you want to achieve? E.g. 50 leads/month at under $40 CPA, targeting small business owners in Sydney who need help with Google Ads. We've run ads before but wasted budget — want a fresh structured account." style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;resize:vertical;"></textarea>
           </div>
 
           <div id="wsCmpResult" style="display:none;background:#F0F8F4;border:1px solid #D4E8DA;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;"></div>
 
-          <div style="display:flex;gap:10px;">
+          <div style="display:flex;gap:10px;margin-top:6px;">
             <button id="wsCmpSubmitBtn" onclick="wsNewCampaignSubmit()" style="flex:1;padding:13px;background:#1C3A2E;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">🚀 Submit Campaign Request</button>
             <button onclick="wsNewCampaignClose()" style="padding:13px 20px;background:#F4F3EE;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;color:#555;">Cancel</button>
           </div>
@@ -2995,18 +3178,36 @@ async function wsLoadCampaignsFromServer() {
 function wsNewCampaignOpen() {
   if (!wsPlanAllows('campaigns_create')) {
     wsSetView('settings');
-    setTimeout(() => {
-      wsShowUpgrade();
-    }, 100);
+    setTimeout(() => { wsShowUpgrade(); }, 100);
     return;
   }
   const form = document.getElementById('wsNewCampaignForm');
   form.style.display = 'block';
   document.getElementById('wsCmpResult').style.display = 'none';
-  ['wsCmpName','wsCmpType','wsCmpChannel','wsCmpBudget','wsCmpAudience','wsCmpBrief'].forEach(id => {
-    document.getElementById(id).value = '';
+  // Reset all fields
+  ['wsCmpName','wsCmpType','wsCmpChannel','wsCmpBudget','wsCmpUrl','wsCmpConversion',
+   'wsCmpTargetCpa','wsCmpLocations','wsCmpAudience','wsCmpServices',
+   'wsCmpUsp1','wsCmpUsp2','wsCmpUsp3','wsCmpOffer','wsCmpCompetitors',
+   'wsCmpH1','wsCmpH2','wsCmpH3','wsCmpD1','wsCmpD2','wsCmpBizName','wsCmpPhone',
+   'wsCmpPixelId','wsCmpMetaText','wsCmpMetaHeadline','wsCmpMetaAudience','wsCmpBrief'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
   });
-  // Reset submit button back to original state
+  // Reset selects to first option
+  ['wsCmpTracking','wsCmpBidStrategy','wsCmpLocIntent','wsCmpSchedule','wsCmpCreative'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.selectedIndex = 0;
+  });
+  // Hide conditional sections
+  ['wsCmpSecGoogleCopy','wsCmpSecMetaCopy'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  // Reset char counters
+  ['wsCmpH1c','wsCmpH2c','wsCmpH3c','wsCmpD1c','wsCmpD2c'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '0/' + (id.includes('D') ? '90' : '30');
+  });
   const submitBtn = document.getElementById('wsCmpSubmitBtn');
   if (submitBtn) {
     submitBtn.textContent = '🚀 Submit Campaign Request';
@@ -3017,19 +3218,63 @@ function wsNewCampaignOpen() {
   form.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
+function wsCmpChannelChange(val) {
+  const googleSec = document.getElementById('wsCmpSecGoogleCopy');
+  const metaSec   = document.getElementById('wsCmpSecMetaCopy');
+  const isGoogle  = val === 'Google Ads' || val === 'Google Display' || val === 'YouTube Ads';
+  const isMeta    = val === 'Meta Ads (Facebook / Instagram)' || val === 'TikTok Ads' || val === 'LinkedIn Ads';
+  if (googleSec) googleSec.style.display = isGoogle ? '' : 'none';
+  if (metaSec)   metaSec.style.display   = isMeta   ? '' : 'none';
+}
+
+function wsCmpCharCount(el, counterId, max) {
+  const counter = document.getElementById(counterId);
+  if (counter) {
+    const len = el.value.length;
+    counter.textContent = len + '/' + max;
+    counter.style.color = len >= max ? '#FF453A' : len >= max * 0.8 ? '#FF9F0A' : '#bbb';
+  }
+}
+
 function wsNewCampaignClose() {
   document.getElementById('wsNewCampaignForm').style.display = 'none';
 }
 
 async function wsNewCampaignSubmit() {
-  const name     = document.getElementById('wsCmpName').value.trim();
-  const type     = document.getElementById('wsCmpType').value;
-  const channel  = document.getElementById('wsCmpChannel').value;
-  const budget   = document.getElementById('wsCmpBudget').value.trim();
-  const audience = document.getElementById('wsCmpAudience').value.trim();
-  const brief    = document.getElementById('wsCmpBrief').value.trim();
-  const result   = document.getElementById('wsCmpResult');
+  const _v = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  const name        = _v('wsCmpName');
+  const type        = _v('wsCmpType');
+  const channel     = _v('wsCmpChannel');
+  const budget      = _v('wsCmpBudget');
+  const audience    = _v('wsCmpAudience');
+  const brief       = _v('wsCmpBrief');
+  // New fields
+  const url         = _v('wsCmpUrl');
+  const conversion  = _v('wsCmpConversion');
+  const tracking    = _v('wsCmpTracking');
+  const targetCpa   = _v('wsCmpTargetCpa');
+  const bidStrategy = _v('wsCmpBidStrategy');
+  const locations   = _v('wsCmpLocations');
+  const locIntent   = _v('wsCmpLocIntent');
+  const schedule    = _v('wsCmpSchedule');
+  const services    = _v('wsCmpServices');
+  const usp1        = _v('wsCmpUsp1');
+  const usp2        = _v('wsCmpUsp2');
+  const usp3        = _v('wsCmpUsp3');
+  const offer       = _v('wsCmpOffer');
+  const competitors = _v('wsCmpCompetitors');
+  // Google Ads copy
+  const h1 = _v('wsCmpH1'); const h2 = _v('wsCmpH2'); const h3 = _v('wsCmpH3');
+  const d1 = _v('wsCmpD1'); const d2 = _v('wsCmpD2');
+  const bizName = _v('wsCmpBizName'); const phone = _v('wsCmpPhone');
+  // Meta copy
+  const pixelId      = _v('wsCmpPixelId');
+  const metaText     = _v('wsCmpMetaText');
+  const metaHeadline = _v('wsCmpMetaHeadline');
+  const metaAudience = _v('wsCmpMetaAudience');
+  const creative     = _v('wsCmpCreative');
 
+  const result    = document.getElementById('wsCmpResult');
   const submitBtn = document.getElementById('wsCmpSubmitBtn');
 
   if (!name || !type || !channel) {
@@ -3066,6 +3311,16 @@ async function wsNewCampaignSubmit() {
         companyName: wsSession.companyName,
         name, type, channel, budget, audience, brief,
         connectedPlatforms: _connPlatforms,
+        // Extended brief fields
+        url, conversion, tracking, targetCpa, bidStrategy,
+        locations, locIntent, schedule,
+        services, usps: [usp1, usp2, usp3].filter(Boolean), offer, competitors,
+        // Ad copy
+        headlines: [h1, h2, h3].filter(Boolean),
+        descriptions: [d1, d2].filter(Boolean),
+        bizName, phone,
+        // Meta
+        pixelId, metaText, metaHeadline, metaAudience, creative,
       }),
     });
     const data = await resp.json();
@@ -3134,6 +3389,12 @@ async function wsNewCampaignSubmit() {
     // Offline / server error — save locally as fallback
     wsPendingCampaigns.push({
       name, type, channel, budget, audience, brief,
+      url, conversion, tracking, targetCpa, bidStrategy,
+      locations, locIntent, schedule,
+      services, usps: [usp1, usp2, usp3].filter(Boolean), offer, competitors,
+      headlines: [h1, h2, h3].filter(Boolean),
+      descriptions: [d1, d2].filter(Boolean),
+      bizName, phone, pixelId, metaText, metaHeadline, metaAudience, creative,
       status: 'pending',
       requestedAt: new Date().toISOString(),
       workspaceId: wsSession.workspaceId,
