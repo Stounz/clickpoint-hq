@@ -357,6 +357,10 @@
   .ws-md-hr { border:none; border-top:1.5px solid var(--border); margin:14px 0; }
   .ws-md-ul,.ws-md-ol { margin:6px 0 10px 18px; padding:0; }
   .ws-md-ul li,.ws-md-ol li { margin:3px 0; color:#444; }
+  .ws-md-tasklist { list-style:none; margin-left:4px; }
+  .ws-md-task-item { display:flex; align-items:flex-start; gap:4px; margin:6px 0; padding:6px 10px; border-radius:8px; transition:background 0.12s; }
+  .ws-md-task-item:hover { background:rgba(28,58,46,0.04); }
+  .ws-md-task-item input:checked + label { text-decoration:line-through; color:var(--muted); }
   .ws-md-code { background:#F0EFE9; border-radius:4px; padding:1px 5px; font-size:12px; font-family:monospace; color:#C47A00; }
   .ws-md-table-wrap { overflow-x:auto; margin:10px 0; }
   .ws-md-table { width:100%; border-collapse:collapse; font-size:12px; }
@@ -2973,9 +2977,12 @@ async function wsLoadCampaignsFromServer() {
         requestedAt:  c.created_at,
         workspaceId:  c.workspace_id,
         companyName:  c.company_name,
-        sarah_reply:  c.sarah_reply,
-        client_reply: c.client_reply || '',
-        deliverables: c.deliverables || [],
+        sarah_reply:      c.sarah_reply,
+        client_reply:     c.client_reply || '',
+        deliverables:     c.deliverables || [],
+        ads_build_status: c.ads_build_status || null,  // null | 'queued' | 'live' | 'error'
+        ads_build_detail: c.ads_build_detail || '',
+        ads_resource_name:c.ads_resource_name || '',
       }));
       // Auto-merge any agent deliverables into the Library
       wsMergeDeliverablesToLibrary(data.campaigns);
@@ -3175,8 +3182,12 @@ function wsLoadCampaigns() {
         <div class="ws-campaign-name">${c.name}</div>
         <div class="ws-campaign-meta">${c.channel} · ${c.type}</div>
       </div>
-      <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
         ${statusBadge(c.status, c.sarah_reply)}
+        ${c.channel === 'Google Ads' && c.ads_build_status === 'live'   ? '<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(48,209,88,0.1);color:#1a7a3a;">✅ Live in Ads</span>' : ''}
+        ${c.channel === 'Google Ads' && c.ads_build_status === 'queued' ? '<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(255,159,10,0.12);color:#996000;">⏳ Building…</span>' : ''}
+        ${c.channel === 'Google Ads' && c.ads_build_status === 'error'  ? '<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(255,69,58,0.1);color:#c0392b;" title="${(c.ads_build_detail||'').replace(/"/g,\'\')}">⚠️ Build Failed</span>' : ''}
+        ${c.channel === 'Google Ads' && !c.ads_build_status             ? '<span style="font-size:10px;padding:3px 8px;border-radius:20px;background:#F4F3EE;color:var(--muted);">Ads: Not built</span>' : ''}
         <button onclick="event.stopPropagation();wsOpenEscalationModal('${(c.name||'').replace(/'/g,"\\'")}');" title="Raise an issue" style="padding:4px 8px;border-radius:7px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);font-family:inherit;white-space:nowrap;">🚨 Issue</button>
         <div style="font-size:11px;color:#aaa;">→</div>
       </div>
@@ -3620,15 +3631,18 @@ async function wsAiSend() {
   document.getElementById(typingId).remove();
   const msgId = 'wsMsg_' + Date.now();
   msgs.innerHTML += `
-    <div class="ws-msg" id="${msgId}">
+    <div class="ws-msg" id="${msgId}" data-msg-id="${msgId}">
       <div class="ws-msg-avatar" style="background:#D4622A;font-size:11px;font-weight:900;">SL</div>
-      <div style="flex:1;">
+      <div style="flex:1;" class="ws-msg-content">
         <div class="ws-msg-name">Sarah Lin <span style="font-weight:400;color:#aaa;font-size:11px;">· CMO</span></div>
         <div class="ws-msg-bubble">${reply}</div>
         <button class="ws-save-btn" onclick="wsSaveToLibrary('Strategy','Sarah Lin — CMO','${reply.replace(/'/g,"\\'").replace(/\n/g,' ')}','${msgId}',this)">💾 Save to Library</button>
       </div>
     </div>
   `;
+  // Restore any previously saved checkbox states for this message
+  const newMsg = document.getElementById(msgId);
+  if (newMsg) wsMdRestoreTaskStates(newMsg);
   msgs.scrollTop = msgs.scrollHeight;
 
   // Log the conversation activity
@@ -5379,6 +5393,26 @@ function wsMd(text) {
       out.push(tableHtml); continue;
     }
 
+    // ── Checkbox list (GFM task list: - [ ] / - [x]) ─────────────────────────
+    if (/^[-*] \[[ xX]\] /.test(line)) {
+      const items = [];
+      while (i < lines.length && /^[-*] \[[ xX]\] /.test(lines[i].trim())) {
+        const l = lines[i].trim();
+        const checked = /^[-*] \[[xX]\] /.test(l);
+        const label   = inlineFmt(l.replace(/^[-*] \[[ xX]\] /, ''));
+        const uid     = 'wscb_' + Math.random().toString(36).slice(2);
+        items.push(
+          `<li class="ws-md-task-item">` +
+          `<input type="checkbox" id="${uid}" class="ws-md-task-cb" ${checked ? 'checked' : ''}` +
+          ` onchange="wsMdToggleTask(this)" style="accent-color:var(--teal);cursor:pointer;margin-right:7px;width:15px;height:15px;flex-shrink:0;">` +
+          `<label for="${uid}" style="cursor:pointer;${checked ? 'text-decoration:line-through;color:var(--muted);' : ''}">${label}</label>` +
+          `</li>`
+        );
+        i++;
+      }
+      out.push(`<ul class="ws-md-ul ws-md-tasklist">${items.join('')}</ul>`); continue;
+    }
+
     // ── Bullet list block ─────────────────────────────────────────────────────
     if (/^[-*] /.test(line)) {
       const items = [];
@@ -5404,6 +5438,41 @@ function wsMd(text) {
   }
 
   return out.join('');
+}
+
+// ── Interactive checklist toggle (persists per-message in localStorage) ───────
+function wsMdToggleTask(cb) {
+  const label = cb.nextElementSibling;
+  if (label) {
+    label.style.textDecoration = cb.checked ? 'line-through' : '';
+    label.style.color = cb.checked ? 'var(--muted)' : '';
+  }
+  // Persist all checkbox states for this message block
+  const block = cb.closest('.ws-msg-content, .ws-md-tasklist')?.closest('[data-msg-id]');
+  if (!block) return;
+  const msgId = block.dataset.msgId;
+  const allCbs = block.querySelectorAll('.ws-md-task-cb');
+  const state = {};
+  allCbs.forEach((c, i) => { state[i] = c.checked; });
+  try { localStorage.setItem(`wsTaskState_${msgId}`, JSON.stringify(state)); } catch(e) {}
+}
+
+function wsMdRestoreTaskStates(container) {
+  const block = container.closest('[data-msg-id]');
+  if (!block) return;
+  const msgId = block.dataset.msgId;
+  const saved = JSON.parse(localStorage.getItem(`wsTaskState_${msgId}`) || '{}');
+  const allCbs = block.querySelectorAll('.ws-md-task-cb');
+  allCbs.forEach((cb, i) => {
+    if (saved[i] !== undefined) {
+      cb.checked = saved[i];
+      const label = cb.nextElementSibling;
+      if (label) {
+        label.style.textDecoration = saved[i] ? 'line-through' : '';
+        label.style.color = saved[i] ? 'var(--muted)' : '';
+      }
+    }
+  });
 }
 
 // ── Campaign Detail Drawer ────────────────────────────────────────────────────
@@ -5459,6 +5528,39 @@ async function wsOpenCampaign(idx) {
   }
 
   document.getElementById('wsCmpDrawerBrief').textContent = c.brief || 'No brief provided.';
+
+  // ── Ads build status section ───────────────────────────────────────────────
+  let adsBuildHtml = '';
+  if (c.channel === 'Google Ads') {
+    const buildMap = {
+      live:   { icon:'✅', label:'Live in Google Ads', color:'#1a7a3a', bg:'rgba(48,209,88,0.08)' },
+      queued: { icon:'⏳', label:'Building in Google Ads…', color:'#996000', bg:'rgba(255,159,10,0.10)' },
+      error:  { icon:'⚠️', label:'Build Failed', color:'#c0392b', bg:'rgba(255,69,58,0.08)' },
+    };
+    const b = buildMap[c.ads_build_status] || { icon:'🔲', label:'Not yet built in Google Ads', color:'var(--muted)', bg:'#F4F3EE' };
+    adsBuildHtml = `
+      <div class="ws-cmp-drawer-section" style="margin-top:4px;">
+        <div class="ws-cmp-drawer-label">Google Ads Build Status</div>
+        <div style="background:${b.bg};border-radius:10px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;">
+          <div style="font-size:18px;flex-shrink:0;margin-top:1px;">${b.icon}</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:${b.color};">${b.label}</div>
+            ${c.ads_resource_name ? `<div style="font-size:11px;color:var(--muted);margin-top:3px;font-family:monospace;">${c.ads_resource_name}</div>` : ''}
+            ${c.ads_build_detail  ? `<div style="font-size:12px;color:${b.color};margin-top:4px;">${c.ads_build_detail}</div>` : ''}
+            ${!c.ads_build_status ? `<div style="font-size:12px;color:var(--muted);margin-top:3px;">Connect Google Ads in Integrations and ask Sarah to launch this campaign to build it automatically.</div>` : ''}
+          </div>
+        </div>
+      </div>`;
+  }
+  // Insert after grid or before updates
+  const gridEl = document.getElementById('wsCmpDrawerGrid');
+  let adsBuildEl = document.getElementById('wsCmpAdsBuild');
+  if (!adsBuildEl) {
+    adsBuildEl = document.createElement('div');
+    adsBuildEl.id = 'wsCmpAdsBuild';
+    gridEl.parentNode.insertBefore(adsBuildEl, gridEl.nextSibling);
+  }
+  adsBuildEl.innerHTML = adsBuildHtml;
 
   // ── Open drawer immediately, then load updates ──────────────────────────────
   document.getElementById('wsCmpDrawerOverlay').classList.add('open');
