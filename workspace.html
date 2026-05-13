@@ -4817,11 +4817,11 @@ function wsConnectIntegration(platformId) {
         const resp     = await fetch(`${WS_API}/api/canva/auth?workspace_id=${encodeURIComponent(wid)}`);
         const authData = await resp.json();
         const authUrl  = authData.auth_url;
-        if (!authUrl) throw new Error('No auth URL');
+        if (!authUrl) throw new Error(authData.error || 'No auth URL returned');
         // Simple redirect — Canva OAuth callback will redirect back to the workspace
         window.location.href = authUrl;
       } catch(err) {
-        _wsToast('❌ Could not start Canva connection. Please try again.', 'error');
+        _wsToast('❌ Canva: ' + err.message, 'error');
       }
     })();
     return;
