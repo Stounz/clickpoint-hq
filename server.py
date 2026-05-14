@@ -5424,10 +5424,12 @@ class AgentHandler(BaseHTTPRequestHandler):
                     'created_at':     c.get('created_at', ''),
                     'workspace_id':   c.get('client', ''),
                     'company_name':   blob.get('company_name', ''),
-                    'sarah_reply':    blob.get('sarah_reply', ''),
-                    'client_reply':   blob.get('client_reply') or c.get('client_reply', ''),
-                    'assigned_agent': blob.get('assigned_agent', ''),
-                    'deliverables':   blob.get('deliverables', []),
+                    'sarah_reply':      blob.get('sarah_reply', ''),
+                    'client_reply':     blob.get('client_reply') or c.get('client_reply', ''),
+                    'sarah_followup':   blob.get('sarah_followup', ''),
+                    'sarah_followup_at':blob.get('sarah_followup_at', ''),
+                    'assigned_agent':   blob.get('assigned_agent', ''),
+                    'deliverables':     blob.get('deliverables', []),
                     # Google Ads build status (stored in brief blob)
                     'ads_build_status':  blob.get('ads_build_status', ''),
                     'ads_resource_name': blob.get('ads_resource_name', ''),
@@ -5466,22 +5468,45 @@ class AgentHandler(BaseHTTPRequestHandler):
             except Exception:
                 pass
             updates = []
-            sarah_reply = blob.get('sarah_reply', '')
+            sarah_reply    = blob.get('sarah_reply', '')
+            client_reply   = blob.get('client_reply', '')
+            sarah_followup = blob.get('sarah_followup', '')
+            followup_at    = blob.get('sarah_followup_at', '')
+
             if sarah_reply:
                 updates.append({
                     'author':     'Sarah Lin · CMO',
                     'text':       sarah_reply,
                     'created_at': rows[0].get('created_at', ''),
+                    'role':       'agency',
                 })
-            # Future: append additional agent updates from blob.get('updates', [])
+            if client_reply:
+                updates.append({
+                    'author':     'You',
+                    'text':       client_reply,
+                    'created_at': blob.get('client_replied_at', ''),
+                    'role':       'client',
+                })
+            if sarah_followup:
+                updates.append({
+                    'author':     'Sarah Lin · CMO',
+                    'text':       sarah_followup,
+                    'created_at': followup_at,
+                    'role':       'agency',
+                })
+            # Additional agent updates
             for u in blob.get('updates', []):
                 updates.append(u)
-            self._json(200, {'updates': updates})
+            self._json(200, {
+                'updates':        updates,
+                'sarah_followup': sarah_followup,
+                'client_reply':   client_reply,
+            })
         except Exception as e:
             self._error(500, str(e))
 
     def _handle_campaign_reply(self):
-        """Store client's reply to Sarah's CMO assessment on a campaign."""
+        """Store client's reply and trigger Sarah's follow-up response in background."""
         try:
             body = self._read_body()
         except Exception:
@@ -5501,7 +5526,7 @@ class AgentHandler(BaseHTTPRequestHandler):
             import datetime as _dt
             now_iso = _dt.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 
-            # 1. Fetch the existing campaign row to update the brief JSON blob too
+            # 1. Fetch the existing campaign row
             rows = _supabase_req(
                 'GET',
                 f'campaigns?id=eq.{urllib.parse.quote(str(campaign_id))}&select=brief&limit=1',
@@ -5515,28 +5540,99 @@ class AgentHandler(BaseHTTPRequestHandler):
 
             blob['client_reply']      = reply_text
             blob['client_replied_at'] = now_iso
+            # Clear any previous followup so UI shows "typing…" while Sarah composes
+            blob.pop('sarah_followup', None)
+            blob.pop('sarah_followup_at', None)
 
-            # 2a. Always update the brief JSON blob (primary storage — column guaranteed to exist)
+            # 2a. Update brief blob immediately
             _supabase_req(
                 'PATCH',
                 f'campaigns?id=eq.{urllib.parse.quote(str(campaign_id))}',
                 payload={'brief': json.dumps(blob)},
             )
 
-            # 2b. Try to also write to dedicated columns (schema migration may not have run yet)
+            # 2b. Try dedicated columns (schema may not have them yet)
             try:
                 _supabase_req(
                     'PATCH',
                     f'campaigns?id=eq.{urllib.parse.quote(str(campaign_id))}',
-                    payload={
-                        'client_reply':      reply_text,
-                        'client_replied_at': now_iso,
-                    },
+                    payload={'client_reply': reply_text, 'client_replied_at': now_iso},
                 )
             except Exception:
-                pass  # Columns don't exist yet — brief blob is the source of truth
+                pass
 
             self._json(200, {'ok': True, 'replied_at': now_iso})
+
+            # 3. Background: Sarah reads the client reply and responds
+            _cid         = campaign_id
+            _reply       = reply_text
+            _blob_snap   = dict(blob)
+
+            def _sarah_followup_bg():
+                if not API_KEY:
+                    return
+                try:
+                    sarah_orig   = _blob_snap.get('sarah_reply', '')
+                    company      = _blob_snap.get('company_name', 'the client')
+                    channel      = _blob_snap.get('channel', '')
+                    budget       = _blob_snap.get('budget', '')
+                    orig_brief   = _blob_snap.get('brief', '')
+                    assigned     = _blob_snap.get('assigned_agent', 'the specialist')
+                    cmp_name     = _blob_snap.get('name', orig_brief[:40])
+
+                    followup_prompt = (
+                        f"You are Sarah Lin, CMO at the agency. You previously sent a campaign "
+                        f"assessment to {company} and they have now replied.\n\n"
+                        f"Campaign: {cmp_name}\n"
+                        f"Channel: {channel}\n"
+                        f"Budget: {'$'+budget+'/mo' if budget else 'TBD'}\n"
+                        f"Original brief: {orig_brief}\n\n"
+                        f"Your original assessment:\n{sarah_orig}\n\n"
+                        f"Client's reply:\n{_reply}\n\n"
+                        f"Respond as Sarah. Be warm and direct. "
+                        f"Specifically acknowledge what they said. "
+                        f"If they've requested any changes, confirm exactly what you're updating and tell them it will be passed to {assigned} immediately. "
+                        f"If they've asked questions, answer them clearly. "
+                        f"Close with a clear next step so they know what happens from here. "
+                        f"Keep it under 150 words — punchy, not fluffy."
+                    )
+                    followup = call_anthropic(
+                        API_KEY, AGENT_PROMPTS.get('sarah', ''),
+                        [{'role': 'user', 'content': followup_prompt}],
+                        max_tokens=400,
+                    )
+                    if not followup:
+                        return
+
+                    import datetime as _dt2
+                    fu_at = _dt2.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+
+                    # Fetch fresh blob (it may have been updated since we last read)
+                    fresh_rows = _supabase_req(
+                        'GET',
+                        f'campaigns?id=eq.{urllib.parse.quote(str(_cid))}&select=brief&limit=1',
+                    )
+                    fresh_blob = {}
+                    if fresh_rows:
+                        try:
+                            fresh_blob = json.loads(fresh_rows[0].get('brief', '{}'))
+                        except Exception:
+                            pass
+
+                    fresh_blob['sarah_followup']    = followup
+                    fresh_blob['sarah_followup_at'] = fu_at
+
+                    _supabase_req(
+                        'PATCH',
+                        f'campaigns?id=eq.{urllib.parse.quote(str(_cid))}',
+                        payload={'brief': json.dumps(fresh_blob)},
+                    )
+                    print(f'  💬 Sarah followup saved for campaign #{_cid}')
+                except Exception as e:
+                    print(f'  ⚠️  Sarah followup bg error: {e}')
+
+            threading.Thread(target=_sarah_followup_bg, daemon=True).start()
+
         except Exception as e:
             print(f'[campaign/reply] error: {e}')
             self._error(500, str(e))
