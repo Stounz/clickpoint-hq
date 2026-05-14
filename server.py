@@ -609,12 +609,17 @@ def _get_credential(client: str, platform: str):
             return None, None
         iid        = rows[0]['id']
         account_id = rows[0].get('account_id', '')
-        creds = _supabase_req('GET',
-            f'integration_credentials?integration_id=eq.{iid}&select=encrypted_token')
-        if not creds:
+        # Integration credentials are stored separately (may not exist for OAuth-only rows like google_ads)
+        try:
+            creds = _supabase_req('GET',
+                f'integration_credentials?integration_id=eq.{iid}&select=encrypted_token')
+            if not creds:
+                return account_id, None
+            token = decrypt_token(creds[0]['encrypted_token'])
+            return account_id, token
+        except Exception:
+            # Table may not exist or no credential row — that's fine, account_id is still valid
             return account_id, None
-        token = decrypt_token(creds[0]['encrypted_token'])
-        return account_id, token
     except Exception as e:
         print(f'  Credential lookup error: {e}')
         return None, None
