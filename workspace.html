@@ -5940,6 +5940,9 @@ async function wsOpenCampaign(idx) {
       error:  { icon:'⚠️', label:'Build Failed', color:'#c0392b', bg:'rgba(255,69,58,0.08)' },
     };
     const b = buildMap[c.ads_build_status] || { icon:'🔲', label:'Not yet built in Google Ads', color:'var(--muted)', bg:'#F4F3EE' };
+    const retryBtn = (c.ads_build_status === 'error' || !c.ads_build_status) && c.id
+      ? `<button onclick="wsRetryAdsBuild('${c.id}', ${idx})" style="margin-top:10px;padding:8px 16px;background:var(--teal);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🔄 Retry Build</button>`
+      : '';
     adsBuildHtml = `
       <div class="ws-cmp-drawer-section" style="margin-top:4px;">
         <div class="ws-cmp-drawer-label">Google Ads Build Status</div>
@@ -5949,7 +5952,8 @@ async function wsOpenCampaign(idx) {
             <div style="font-size:13px;font-weight:700;color:${b.color};">${b.label}</div>
             ${c.ads_resource_name ? `<div style="font-size:11px;color:var(--muted);margin-top:3px;font-family:monospace;">${c.ads_resource_name}</div>` : ''}
             ${c.ads_build_detail  ? `<div style="font-size:12px;color:${b.color};margin-top:4px;">${c.ads_build_detail}</div>` : ''}
-            ${!c.ads_build_status ? `<div style="font-size:12px;color:var(--muted);margin-top:3px;">Connect Google Ads in Integrations and ask Sarah to launch this campaign to build it automatically.</div>` : ''}
+            ${!c.ads_build_status ? `<div style="font-size:12px;color:var(--muted);margin-top:3px;">Connect Google Ads in Settings → Integrations first, then retry.</div>` : ''}
+            ${retryBtn}
           </div>
         </div>
       </div>`;
@@ -6145,6 +6149,49 @@ async function wsSendCampaignReply(campaignId, idx) {
 function wsCloseCampaignDrawer() {
   document.getElementById('wsCmpDrawerOverlay').classList.remove('open');
   document.getElementById('wsCmpDrawer').classList.remove('open');
+}
+
+async function wsRetryAdsBuild(campaignId, idx) {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '⏳ Rebuilding…';
+
+  try {
+    const resp = await fetch(`${WS_API}/api/campaign/retry-build`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ campaignId }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Server error');
+
+    // Update local object to show queued state
+    if (wsPendingCampaigns[idx]) {
+      wsPendingCampaigns[idx].ads_build_status = 'queued';
+      wsPendingCampaigns[idx].ads_build_detail = 'Build queued — check back in 30 seconds.';
+    }
+
+    // Re-render the build status section
+    const adsBuildEl = document.getElementById('wsCmpAdsBuild');
+    if (adsBuildEl) {
+      adsBuildEl.innerHTML = `
+        <div class="ws-cmp-drawer-section" style="margin-top:4px;">
+          <div class="ws-cmp-drawer-label">Google Ads Build Status</div>
+          <div style="background:rgba(255,159,10,0.10);border-radius:10px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;">
+            <div style="font-size:18px;flex-shrink:0;margin-top:1px;">⏳</div>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#996000;">Building in Google Ads…</div>
+              <div style="font-size:12px;color:#996000;margin-top:4px;">Campaign is being created — this takes about 15–30 seconds. Close and reopen this drawer to see the result.</div>
+            </div>
+          </div>
+        </div>`;
+    }
+    _wsToast('🔄 Google Ads build queued — check back in 30 seconds.');
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '🔄 Retry Build';
+    _wsToast('❌ Retry failed: ' + e.message, 'error');
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
