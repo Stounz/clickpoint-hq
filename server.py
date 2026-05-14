@@ -2581,6 +2581,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_campaign_request()
         elif self.path == '/api/campaign/reply':
             self._handle_campaign_reply()
+        elif self.path == '/api/campaign/retry-build':
+            self._handle_campaign_retry_build()
         elif self.path == '/api/escalation':
             self._handle_escalation_create()
         elif self.path.startswith('/api/escalation/'):
@@ -5684,6 +5686,116 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         except Exception as e:
             print(f'[campaign/reply] error: {e}')
+            self._error(500, str(e))
+
+    def _handle_campaign_retry_build(self):
+        """Re-trigger Google Ads campaign build for a campaign that previously failed."""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Bad request'); return
+
+        campaign_id = body.get('campaignId', '').strip()
+        if not campaign_id:
+            self._error(400, 'campaignId required'); return
+        if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+            self._json(200, {'ok': True, 'offline': True}); return
+
+        try:
+            rows = _supabase_req(
+                'GET',
+                f'campaigns?id=eq.{urllib.parse.quote(str(campaign_id))}&select=brief,client,name&limit=1',
+            )
+            if not rows:
+                self._error(404, 'Campaign not found'); return
+
+            row  = rows[0]
+            blob = {}
+            try:
+                blob = json.loads(row.get('brief', '{}'))
+            except Exception:
+                pass
+
+            workspace_id = row.get('client', '')
+            campaign_name = row.get('name', blob.get('name', 'Campaign'))
+
+            # Mark as queued immediately
+            blob['ads_build_status']  = 'queued'
+            blob['ads_build_detail']  = 'Retry queued…'
+            blob['ads_resource_name'] = ''
+            _supabase_req('PATCH',
+                f'campaigns?id=eq.{urllib.parse.quote(str(campaign_id))}',
+                {'brief': json.dumps(blob)},
+            )
+
+            self._json(200, {'ok': True, 'status': 'queued'})
+
+            # Background: actually run the build
+            _cid = campaign_id
+            _ws  = workspace_id
+            _blob_snap = dict(blob)
+            _name = campaign_name
+
+            def _retry_bg():
+                try:
+                    ads_account_id, _ = _get_credential(_ws, 'google_ads')
+                    ads_token         = google_get_access_token(_ws) if _ws else None
+
+                    fresh = _supabase_req('GET',
+                        f'campaigns?id=eq.{urllib.parse.quote(str(_cid))}&select=brief&limit=1')
+                    fresh_blob = {}
+                    if fresh:
+                        try: fresh_blob = json.loads(fresh[0].get('brief', '{}'))
+                        except Exception: pass
+
+                    if not ads_account_id:
+                        fresh_blob['ads_build_status'] = 'error'
+                        fresh_blob['ads_build_detail'] = 'Google Ads Customer ID not connected — go to Settings → Integrations to add it.'
+                    elif not ads_token:
+                        fresh_blob['ads_build_status'] = 'error'
+                        fresh_blob['ads_build_detail'] = 'Google OAuth token missing or expired — reconnect Google in Settings → Integrations.'
+                    else:
+                        campaign_data = {
+                            'name':         _name,
+                            'budget':       fresh_blob.get('budget', ''),
+                            'url':          fresh_blob.get('url', ''),
+                            'bid_strategy': fresh_blob.get('bid_strategy', ''),
+                            'target_cpa':   fresh_blob.get('target_cpa', ''),
+                            'locations':    fresh_blob.get('locations', ''),
+                            'services':     fresh_blob.get('services', ''),
+                            'usps':         fresh_blob.get('usps', ''),
+                            'headlines':    fresh_blob.get('headlines', ''),
+                            'descriptions': fresh_blob.get('descriptions', ''),
+                            'biz_name':     fresh_blob.get('biz_name', ''),
+                            'offer':        fresh_blob.get('offer', ''),
+                            'competitors':  fresh_blob.get('competitors', ''),
+                            'company_name': fresh_blob.get('company_name', ''),
+                        }
+                        rn, err = _create_google_ads_campaign_live(
+                            _ws, campaign_data, ads_token, ads_account_id,
+                            GOOGLE_ADS_DEVELOPER_TOKEN, GOOGLE_ADS_LOGIN_CUSTOMER_ID,
+                        )
+                        if rn:
+                            fresh_blob['ads_build_status']  = 'live'
+                            fresh_blob['ads_resource_name'] = rn
+                            fresh_blob['ads_build_detail']  = 'Campaign created PAUSED — review in Google Ads then enable when ready.'
+                            print(f'  ✅ Retry build succeeded: {rn}')
+                        else:
+                            fresh_blob['ads_build_status'] = 'error'
+                            fresh_blob['ads_build_detail'] = err or 'Unknown Google Ads API error'
+                            print(f'  ❌ Retry build failed: {err}')
+
+                    _supabase_req('PATCH',
+                        f'campaigns?id=eq.{urllib.parse.quote(str(_cid))}',
+                        {'brief': json.dumps(fresh_blob)},
+                    )
+                except Exception as e:
+                    print(f'  ⚠️  retry-build bg error: {e}')
+
+            threading.Thread(target=_retry_bg, daemon=True).start()
+
+        except Exception as e:
+            print(f'[campaign/retry-build] error: {e}')
             self._error(500, str(e))
 
     # ── Brand Hub ─────────────────────────────────────────────────────────────
