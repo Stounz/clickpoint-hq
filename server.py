@@ -3036,17 +3036,27 @@ class AgentHandler(BaseHTTPRequestHandler):
                 existing = _supabase_req('GET',
                     f'client_integrations?client=eq.{enc_client}&platform=eq.google_ads&select=id')
                 if existing:
-                    rows = _supabase_req('PATCH',
-                        f'client_integrations?id=eq.{existing[0]["id"]}',
-                        {'account_id': account_id, 'status': 'connected',
-                         'last_synced': datetime.datetime.utcnow().isoformat()})
+                    # Only patch columns guaranteed to exist in the schema
+                    patch = {'account_id': account_id, 'status': 'connected'}
+                    try:
+                        patch['last_synced'] = datetime.datetime.utcnow().isoformat()
+                    except Exception:
+                        pass
+                    try:
+                        _supabase_req('PATCH',
+                            f'client_integrations?id=eq.{existing[0]["id"]}', patch)
+                    except Exception:
+                        # last_synced column may not exist — retry without it
+                        _supabase_req('PATCH',
+                            f'client_integrations?id=eq.{existing[0]["id"]}',
+                            {'account_id': account_id, 'status': 'connected'})
                     integration_id = existing[0]['id']
                 else:
                     rows = _supabase_req('POST', 'client_integrations', {
-                        'client':    client,
-                        'platform':  'google_ads',
+                        'client':     client,
+                        'platform':   'google_ads',
                         'account_id': account_id,
-                        'status':    'connected',
+                        'status':     'connected',
                     })
                     integration_id = rows[0]['id']
                 print(f'  ✅ Google Ads Customer ID saved for {client}: {account_id}')
