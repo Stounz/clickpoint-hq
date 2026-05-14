@@ -2404,12 +2404,25 @@ class AgentHandler(BaseHTTPRequestHandler):
             qs = _up_diag.parse_qs(_up_diag.urlparse(self.path).query)
             ws = (qs.get('ws') or [''])[0].strip()
             result = {'ws': ws}
+            # 1. Raw DB rows — bypass _get_credential to see exactly what's stored
+            try:
+                enc_ws = urllib.parse.quote(ws)
+                raw_rows = _supabase_req('GET',
+                    f'client_integrations?client=eq.{enc_ws}&select=id,client,platform,account_id,status')
+                result['raw_rows'] = raw_rows
+                # Also try without status filter to see all rows
+                google_rows = [r for r in (raw_rows or []) if r.get('platform') in ('google_ads','google_oauth')]
+                result['google_rows'] = google_rows
+            except Exception as e:
+                result['raw_rows_error'] = str(e)
+            # 2. _get_credential result
             try:
                 acc_id, acc_tok = _get_credential(ws, 'google_ads')
                 result['google_ads_account_id'] = acc_id
                 result['google_ads_has_token']  = bool(acc_tok)
             except Exception as e:
                 result['google_ads_error'] = str(e)
+            # 3. OAuth token
             try:
                 oauth_tok = google_get_access_token(ws)
                 result['oauth_token_ok'] = bool(oauth_tok)
