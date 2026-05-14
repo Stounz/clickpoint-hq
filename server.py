@@ -2415,7 +2415,19 @@ class AgentHandler(BaseHTTPRequestHandler):
                 result['google_rows'] = google_rows
             except Exception as e:
                 result['raw_rows_error'] = str(e)
-            # 2. _get_credential result
+            # 2. Replicate exact _get_credential query so we can catch errors
+            try:
+                enc_ws2 = urllib.parse.quote(ws)
+                cred_query = (
+                    f'client_integrations?client=eq.{enc_ws2}&platform=eq.google_ads'
+                    f'&select=id,account_id&status=eq.connected'
+                )
+                result['cred_query'] = cred_query
+                cred_rows = _supabase_req('GET', cred_query)
+                result['cred_rows'] = cred_rows
+            except Exception as e:
+                result['cred_query_error'] = str(e)
+            # 3. _get_credential result
             try:
                 acc_id, acc_tok = _get_credential(ws, 'google_ads')
                 result['google_ads_account_id'] = acc_id
