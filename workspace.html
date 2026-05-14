@@ -5221,7 +5221,7 @@ function wsConnectIntegration(platformId) {
       // Show a quick Customer ID modal before opening OAuth
       wsCloseIntModal();
       const bd = document.createElement('div');
-      bd.className = 'ws-integration-backdrop';
+      bd.className = 'ws-integration-modal-backdrop';
       bd.id = 'wsGoogleAdsIdModal';
       bd.innerHTML = `
         <div class="ws-integration-modal" onclick="event.stopPropagation()" style="max-width:400px;">
