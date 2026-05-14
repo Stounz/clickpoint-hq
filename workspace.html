@@ -5263,7 +5263,7 @@ function wsConnectIntegration(platformId) {
           if (customerIdVal) {
             const cid = customerIdVal.replace(/[^0-9]/g, '');  // strip dashes
             try {
-              await fetch(`${WS_API}/api/integrations/connect`, {
+              const saveResp = await fetch(`${WS_API}/api/integrations/connect`, {
                 method:  'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body:    JSON.stringify({
@@ -5273,7 +5273,15 @@ function wsConnectIntegration(platformId) {
                   token:     'google_oauth',   // placeholder — real token under google_oauth
                 }),
               });
-            } catch(e2) { console.warn('google_ads row save failed:', e2); }
+              if (!saveResp.ok) {
+                const errData = await saveResp.json().catch(() => ({}));
+                console.error('google_ads Customer ID save failed:', saveResp.status, errData);
+                _wsToast('⚠️ Google connected but Customer ID save failed — try reconnecting.', 'error');
+              }
+            } catch(e2) {
+              console.error('google_ads row save error:', e2);
+              _wsToast('⚠️ Google connected but Customer ID could not be saved.', 'error');
+            }
           }
 
           _wsToast('✅ Google connected! Ads, Analytics & Search Console are now live.');
