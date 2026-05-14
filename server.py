@@ -5729,13 +5729,14 @@ class AgentHandler(BaseHTTPRequestHandler):
             workspace_id = row.get('client', '')
             campaign_name = row.get('name', blob.get('name', 'Campaign'))
 
-            # Mark as queued immediately
+            # Mark as queued immediately (service_role bypasses RLS)
             blob['ads_build_status']  = 'queued'
             blob['ads_build_detail']  = 'Retry queued…'
             blob['ads_resource_name'] = ''
             _supabase_req('PATCH',
                 f'campaigns?id=eq.{urllib.parse.quote(str(campaign_id))}',
                 {'brief': json.dumps(blob)},
+                service_role=True,
             )
 
             self._json(200, {'ok': True, 'status': 'queued'})
@@ -5743,7 +5744,6 @@ class AgentHandler(BaseHTTPRequestHandler):
             # Background: actually run the build
             _cid = campaign_id
             _ws  = workspace_id
-            _blob_snap = dict(blob)
             _name = campaign_name
 
             def _retry_bg():
@@ -5751,8 +5751,11 @@ class AgentHandler(BaseHTTPRequestHandler):
                     ads_account_id, _ = _get_credential(_ws, 'google_ads')
                     ads_token         = google_get_access_token(_ws) if _ws else None
 
+                    print(f'  🔄 Retry build: ws={_ws!r} account={ads_account_id!r} token_ok={bool(ads_token)}')
+
                     fresh = _supabase_req('GET',
-                        f'campaigns?id=eq.{urllib.parse.quote(str(_cid))}&select=brief&limit=1')
+                        f'campaigns?id=eq.{urllib.parse.quote(str(_cid))}&select=brief&limit=1',
+                        service_role=True)
                     fresh_blob = {}
                     if fresh:
                         try: fresh_blob = json.loads(fresh[0].get('brief', '{}'))
@@ -5798,6 +5801,7 @@ class AgentHandler(BaseHTTPRequestHandler):
                     _supabase_req('PATCH',
                         f'campaigns?id=eq.{urllib.parse.quote(str(_cid))}',
                         {'brief': json.dumps(fresh_blob)},
+                        service_role=True,
                     )
                 except Exception as e:
                     print(f'  ⚠️  retry-build bg error: {e}')
