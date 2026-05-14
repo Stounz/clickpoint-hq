@@ -187,6 +187,9 @@
   .ws-cmp-typing-dots span:nth-child(2) { animation-delay:0.2s; }
   .ws-cmp-typing-dots span:nth-child(3) { animation-delay:0.4s; }
   @keyframes wsCmpDot { 0%,80%,100%{opacity:0.2;transform:scale(0.85)} 40%{opacity:1;transform:scale(1.1)} }
+  /* Ads build pill pulse dot */
+  .ws-ads-pulse { width:7px; height:7px; border-radius:50%; background:#f5a623; display:inline-block; animation:wsAdsPulse 1.2s ease-in-out infinite; flex-shrink:0; }
+  @keyframes wsAdsPulse { 0%,100%{opacity:0.3;transform:scale(0.8)} 50%{opacity:1;transform:scale(1.15)} }
   .ws-campaign-icon { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; background:#F5F4EF; }
   .ws-campaign-name { font-size:13px; font-weight:600; color:var(--text); }
   .ws-campaign-meta { font-size:11px; color:var(--muted); margin-top:1px; }
@@ -3493,6 +3496,80 @@ async function wsNewCampaignSubmit() {
   }
 }
 
+// ── Ads build pill + live polling ──────────────────────────────────────────
+// Tracks when each campaign entered 'queued' state so we can show elapsed time
+const _wsAdsBuildStart = {};   // campaignId → Date.now() when queued
+let   _wsAdsPollTimer  = null; // single interval for all queued campaigns
+
+function wsAdsPill(c, idx) {
+  if (!c.ads_build_status) return '<span style="font-size:10px;padding:3px 8px;border-radius:20px;background:#F4F3EE;color:var(--muted);">Ads: Not built</span>';
+  if (c.ads_build_status === 'live')   return '<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(48,209,88,0.1);color:#1a7a3a;">✅ Live in Ads</span>';
+  if (c.ads_build_status === 'error')  return `<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(255,69,58,0.1);color:#c0392b;" title="${(c.ads_build_detail||'').replace(/"/g,'')}">⚠️ Build Failed</span>`;
+  if (c.ads_build_status === 'queued') {
+    if (!_wsAdsBuildStart[c.id]) _wsAdsBuildStart[c.id] = Date.now();
+    wsStartAdsPoll();
+    return `<span class="ws-ads-building-pill" id="wsAdsPill_${c.id}" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(255,159,10,0.13);color:#996000;display:inline-flex;align-items:center;gap:5px;"><span class="ws-ads-pulse"></span><span id="wsAdsPillText_${c.id}">Building… ~30s</span></span>`;
+  }
+  return '';
+}
+
+function wsStartAdsPoll() {
+  if (_wsAdsPollTimer) return; // already running
+  _wsAdsPollTimer = setInterval(async () => {
+    const queued = wsPendingCampaigns.filter(c => c.channel === 'Google Ads' && c.ads_build_status === 'queued');
+    if (!queued.length) { clearInterval(_wsAdsPollTimer); _wsAdsPollTimer = null; return; }
+
+    // Update elapsed time labels
+    queued.forEach(c => {
+      const el = document.getElementById('wsAdsPillText_' + c.id);
+      if (!el) return;
+      const sec = Math.round((Date.now() - (_wsAdsBuildStart[c.id] || Date.now())) / 1000);
+      const est = Math.max(0, 45 - sec);
+      el.textContent = sec < 45 ? `Building… ~${est}s` : `Building… ${sec}s`;
+    });
+
+    // Poll server for status updates
+    try {
+      const wid = wsSession?.workspaceId;
+      if (!wid) return;
+      const resp = await fetch(`${WS_API}/api/campaigns?workspaceId=${encodeURIComponent(wid)}`);
+      if (!resp.ok) return;
+      const data = await resp.json();
+      let anyChange = false;
+      (data.campaigns || []).forEach(srv => {
+        const idx = wsPendingCampaigns.findIndex(c => c.id == srv.id);
+        if (idx === -1) return;
+        const local = wsPendingCampaigns[idx];
+        if (local.ads_build_status === 'queued' && srv.ads_build_status !== 'queued') {
+          // Status changed — update local and re-render
+          wsPendingCampaigns[idx] = { ...local,
+            ads_build_status:  srv.ads_build_status,
+            ads_build_detail:  srv.ads_build_detail  || '',
+            ads_resource_name: srv.ads_resource_name || '',
+          };
+          delete _wsAdsBuildStart[srv.id];
+          anyChange = true;
+
+          // Update pill in-place without full re-render
+          const pillEl = document.getElementById('wsAdsPill_' + srv.id);
+          if (pillEl) {
+            if (srv.ads_build_status === 'live') {
+              pillEl.outerHTML = '<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(48,209,88,0.1);color:#1a7a3a;">✅ Complete — Live in Ads</span>';
+              _wsToast('✅ Google Ads campaign is now live!');
+            } else if (srv.ads_build_status === 'error') {
+              pillEl.outerHTML = `<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(255,69,58,0.1);color:#c0392b;" title="${(srv.ads_build_detail||'').replace(/"/g,'')}">⚠️ Build Failed</span>`;
+              _wsToast('⚠️ Google Ads build failed — open the campaign for details.', 'error');
+            }
+          }
+        }
+      });
+      if (queued.every(c => wsPendingCampaigns.find(p => p.id == c.id)?.ads_build_status !== 'queued')) {
+        clearInterval(_wsAdsPollTimer); _wsAdsPollTimer = null;
+      }
+    } catch(e) { /* continue polling */ }
+  }, 3000);
+}
+
 function wsLoadCampaigns() {
   const channelIcons = {
     'Google Ads':'🔍','Meta Ads (Facebook / Instagram)':'📘','LinkedIn Ads':'💼',
@@ -3524,10 +3601,7 @@ function wsLoadCampaigns() {
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
         ${statusBadge(c.status, c.sarah_reply)}
-        ${c.channel === 'Google Ads' && c.ads_build_status === 'live'   ? '<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(48,209,88,0.1);color:#1a7a3a;">✅ Live in Ads</span>' : ''}
-        ${c.channel === 'Google Ads' && c.ads_build_status === 'queued' ? '<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(255,159,10,0.12);color:#996000;">⏳ Building…</span>' : ''}
-        ${c.channel === 'Google Ads' && c.ads_build_status === 'error'  ? `<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(255,69,58,0.1);color:#c0392b;" title="${(c.ads_build_detail||'').replace(/"/g,'')}">⚠️ Build Failed</span>` : ''}
-        ${c.channel === 'Google Ads' && !c.ads_build_status             ? '<span style="font-size:10px;padding:3px 8px;border-radius:20px;background:#F4F3EE;color:var(--muted);">Ads: Not built</span>' : ''}
+        ${c.channel === 'Google Ads' ? wsAdsPill(c, idx) : ''}
         <button onclick="event.stopPropagation();wsOpenEscalationModal('${(c.name||'').replace(/'/g,"\\'")}');" title="Raise an issue" style="padding:4px 8px;border-radius:7px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);font-family:inherit;white-space:nowrap;">🚨 Issue</button>
         <div style="font-size:11px;color:#aaa;">→</div>
       </div>
