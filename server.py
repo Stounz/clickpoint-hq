@@ -2398,6 +2398,28 @@ class AgentHandler(BaseHTTPRequestHandler):
                 'endpoints': ['/health', '/api/agent', '/api/chain',
                               '/api/integrations/connect', '/api/integrations/disconnect'],
             }).encode())
+        elif self.path.startswith('/api/ads-diag'):
+            # Temporary diagnostic — checks credential chain for a workspace
+            import urllib.parse as _up_diag
+            qs = _up_diag.parse_qs(_up_diag.urlparse(self.path).query)
+            ws = (qs.get('ws') or [''])[0].strip()
+            result = {'ws': ws}
+            try:
+                acc_id, acc_tok = _get_credential(ws, 'google_ads')
+                result['google_ads_account_id'] = acc_id
+                result['google_ads_has_token']  = bool(acc_tok)
+            except Exception as e:
+                result['google_ads_error'] = str(e)
+            try:
+                oauth_tok = google_get_access_token(ws)
+                result['oauth_token_ok'] = bool(oauth_tok)
+                result['oauth_token_len'] = len(oauth_tok) if oauth_tok else 0
+            except Exception as e:
+                result['oauth_error'] = str(e)
+            result['developer_token_set']    = bool(GOOGLE_ADS_DEVELOPER_TOKEN)
+            result['login_customer_id_set']  = bool(GOOGLE_ADS_LOGIN_CUSTOMER_ID)
+            result['login_customer_id']      = GOOGLE_ADS_LOGIN_CUSTOMER_ID
+            self._json(200, result)
         elif self.path == '/api/env-check':
             # Diagnostic — admin-only, shows WHICH vars are set (booleans only, no values)
             if not self._is_admin():
