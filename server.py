@@ -1985,11 +1985,17 @@ _GOOGLE_SCOPES = ' '.join([
 ])
 
 def google_auth_url(workspace_id: str = '') -> str:
-    """Return Google OAuth authorization URL. Stores state → workspace_id in memory."""
+    """Return Google OAuth authorization URL.
+    workspace_id is encoded INTO the state token so it survives server restarts.
+    """
     if not GOOGLE_CLIENT_ID:
         return ''
-    state = _gsec.token_urlsafe(24)
-    _google_state_store[state] = workspace_id or ''
+    import base64 as _b64
+    nonce = _gsec.token_urlsafe(16)
+    # Encode workspace_id into state so we don't rely solely on in-memory dict
+    raw_state   = f'{nonce}:{workspace_id or ""}'
+    state       = _b64.urlsafe_b64encode(raw_state.encode()).decode().rstrip('=')
+    _google_state_store[state] = workspace_id or ''   # keep in-memory as primary cache
     params = urllib.parse.urlencode({
         'client_id':     GOOGLE_CLIENT_ID,
         'redirect_uri':  GOOGLE_REDIRECT_URI,
@@ -2003,7 +2009,20 @@ def google_auth_url(workspace_id: str = '') -> str:
 
 def google_exchange_code(code: str, state: str) -> tuple[dict, str]:
     """Exchange auth code for tokens. Returns (tokens_dict, workspace_id)."""
+    # Primary: in-memory store (fastest, works if same process)
     workspace_id = _google_state_store.pop(state, '')
+    # Fallback: decode workspace_id from state token (survives server restarts)
+    if not workspace_id:
+        try:
+            import base64 as _b64
+            padding  = 4 - len(state) % 4
+            decoded  = _b64.urlsafe_b64decode(state + '=' * (padding % 4)).decode()
+            parts    = decoded.split(':', 1)
+            if len(parts) == 2:
+                workspace_id = parts[1]
+                print(f'  ℹ️  google_exchange_code: decoded workspace_id from state token: {workspace_id!r}')
+        except Exception as _se:
+            print(f'  ⚠️  google_exchange_code: could not decode state: {_se}')
     body = urllib.parse.urlencode({
         'code':          code,
         'client_id':     GOOGLE_CLIENT_ID,
@@ -2984,7 +3003,12 @@ class AgentHandler(BaseHTTPRequestHandler):
 
     def _handle_integrations_connect(self):
         """Encrypt credential → save metadata to client_integrations
-           → save encrypted token to integration_credentials (service role)."""
+           → save encrypted token to integration_credentials (service role).
+
+        Special case: when platform='google_ads' and token='google_oauth',
+        we save only the account_id (Customer ID) without re-encrypting the
+        placeholder string — the actual token is already stored under google_oauth.
+        """
         try:
             body = self._read_body()
         except Exception:
@@ -3000,7 +3024,32 @@ class AgentHandler(BaseHTTPRequestHandler):
         if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
             self._error(500, 'SUPABASE_URL / SUPABASE_SERVICE_KEY not set in .env'); return
 
+        # Google Ads via OAuth: token is a placeholder — upsert the account_id row
+        is_google_oauth_ref = (platform == 'google_ads' and raw_token == 'google_oauth')
+
         try:
+            if is_google_oauth_ref:
+                # Upsert: update existing row if one exists, otherwise insert
+                enc_client = urllib.parse.quote(client)
+                existing = _supabase_req('GET',
+                    f'client_integrations?client=eq.{enc_client}&platform=eq.google_ads&select=id')
+                if existing:
+                    rows = _supabase_req('PATCH',
+                        f'client_integrations?id=eq.{existing[0]["id"]}',
+                        {'account_id': account_id, 'status': 'connected',
+                         'last_synced': datetime.datetime.utcnow().isoformat()})
+                    integration_id = existing[0]['id']
+                else:
+                    rows = _supabase_req('POST', 'client_integrations', {
+                        'client':    client,
+                        'platform':  'google_ads',
+                        'account_id': account_id,
+                        'status':    'connected',
+                    })
+                    integration_id = rows[0]['id']
+                print(f'  ✅ Google Ads Customer ID saved for {client}: {account_id}')
+                self._json(200, {'success': True, 'id': integration_id, 'encrypted': False, 'masked': account_id})
+                return
             # 1) Public metadata row — visible to frontend (no credentials)
             encrypted = encrypt_token(raw_token)
             rows = _supabase_req('POST', 'client_integrations', {

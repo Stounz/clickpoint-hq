@@ -5163,35 +5163,97 @@ function wsConnectIntegration(platformId) {
     document.body.appendChild(backdrop);
     setTimeout(() => document.getElementById('wsIntApiKey')?.focus(), 60);
 
-  // ── GOOGLE OAUTH — one-click popup flow ─────────────────────────────────
+  // ── GOOGLE OAUTH — popup flow with Customer ID capture for google_ads ──
   } else if (p.conn === 'google_oauth') {
-    (async () => {
+    // For Google Ads specifically, we need to capture the Customer ID AND do OAuth.
+    // Other Google platforms (Analytics, Search Console) just need OAuth.
+    const needsCustomerId = platformId === 'google_ads';
+
+    const _runGoogleOAuth = async (customerIdVal) => {
       const wid = wsSession && wsSession.workspaceId ? wsSession.workspaceId : '';
       try {
         const resp     = await fetch(`${WS_API}/api/google/auth?workspace_id=${encodeURIComponent(wid)}`);
         const authData = await resp.json();
         const authUrl  = authData.auth_url;
         if (!authUrl) throw new Error(authData.error || 'Google OAuth not configured yet');
-        // Open in popup so user stays on workspace page
+
+        // Open OAuth popup
         const popup = window.open(authUrl, 'googleOAuth', 'width=500,height=650,toolbar=0,menubar=0');
-        // Listen for success message from callback page
-        const onMsg = (e) => {
-          if (e.data && e.data.type === 'google_oauth_success') {
-            window.removeEventListener('message', onMsg);
-            popup && popup.close();
-            _wsToast('✅ Google connected! Ads, Analytics & Search Console are now live.');
-            _wsFetchIntegrationStatus();
+
+        const onMsg = async (e) => {
+          if (!e.data || e.data.type !== 'google_oauth_success') return;
+          window.removeEventListener('message', onMsg);
+          popup && popup.close();
+
+          // If a Customer ID was provided, save it as a google_ads integration row
+          if (customerIdVal) {
+            const cid = customerIdVal.replace(/[^0-9]/g, '');  // strip dashes
+            try {
+              await fetch(`${WS_API}/api/integrations/connect`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({
+                  client:    wid,
+                  platform:  'google_ads',
+                  accountId: cid,
+                  token:     'google_oauth',   // placeholder — real token under google_oauth
+                }),
+              });
+            } catch(e2) { console.warn('google_ads row save failed:', e2); }
           }
+
+          _wsToast('✅ Google connected! Ads, Analytics & Search Console are now live.');
+          await _wsFetchIntegrationStatus();
+          wsLoadIntegrations();  // refresh the visible list too
         };
         window.addEventListener('message', onMsg);
-        // Fallback: if popup is blocked, redirect
+
+        // Fallback if popup blocked
         if (!popup || popup.closed || typeof popup.closed === 'undefined') {
           window.location.href = authUrl;
         }
       } catch(err) {
         _wsToast('❌ Google: ' + err.message, 'error');
       }
-    })();
+    };
+
+    if (needsCustomerId) {
+      // Show a quick Customer ID modal before opening OAuth
+      wsCloseIntModal();
+      const bd = document.createElement('div');
+      bd.className = 'ws-integration-backdrop';
+      bd.id = 'wsGoogleAdsIdModal';
+      bd.innerHTML = `
+        <div class="ws-integration-modal" onclick="event.stopPropagation()" style="max-width:400px;">
+          <div class="ws-integration-modal-title">🟦 Connect Google Ads</div>
+          <div class="ws-integration-modal-sub" style="margin-bottom:16px;">
+            Enter your Google Ads <strong>Customer ID</strong> (found in the top-right of your Google Ads account, format: 123-456-7890).
+            Then we'll open Google to authorise access.
+          </div>
+          <label class="ws-int-modal-label">Customer ID</label>
+          <input id="wsGoogleAdsCustomerId" class="login-input" placeholder="e.g. 659-774-3478" style="margin-bottom:20px;" autocomplete="off">
+          <div style="display:flex;gap:10px;">
+            <button onclick="document.getElementById('wsGoogleAdsIdModal').remove()" style="flex:1;padding:12px;background:#F4F3EE;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
+            <button id="wsGoogleAdsConnectBtn" onclick="window._wsDoGoogleAdsConnect()" style="flex:2;padding:12px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Connect Google →</button>
+          </div>
+        </div>`;
+      document.body.appendChild(bd);
+      bd.addEventListener('click', e => { if (e.target === bd) bd.remove(); });
+      setTimeout(() => document.getElementById('wsGoogleAdsCustomerId')?.focus(), 60);
+
+      // Wire up the connect action
+      window._wsDoGoogleAdsConnect = () => {
+        const cid = (document.getElementById('wsGoogleAdsCustomerId')?.value || '').trim();
+        document.getElementById('wsGoogleAdsIdModal')?.remove();
+        _runGoogleOAuth(cid);
+      };
+      // Allow Enter key
+      document.getElementById('wsGoogleAdsCustomerId')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') window._wsDoGoogleAdsConnect();
+      });
+    } else {
+      _runGoogleOAuth('');
+    }
     return;
 
   // ── CANVA OAUTH — one-click popup flow ──────────────────────────────────
