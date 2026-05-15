@@ -831,7 +831,7 @@ def _create_google_ads_campaign_live(
                 'amountMicros':   str(daily_micros),
                 'deliveryMethod': 'STANDARD',
             }}]
-        }, access_token, developer_token)
+        })
         budget_rn = bud_resp['results'][0]['resourceName']
         print(f'  💰 Google Ads budget created: {budget_rn}')
 
