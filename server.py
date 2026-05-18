@@ -2513,6 +2513,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_canva_auth()
         elif self.path.startswith('/api/canva/callback'):
             self._handle_canva_callback()
+        elif self.path.startswith('/api/workspace/tracking-status'):
+            self._handle_workspace_tracking_status_get()
         elif self.path.startswith('/api/brand-hub'):
             self._handle_brand_hub_get()
         elif self.path.startswith('/api/crm/contacts'):
@@ -2629,6 +2631,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_hq_message_post()
         elif self.path == '/api/workspace/resend-code':
             self._handle_workspace_resend_code()
+        elif self.path == '/api/workspace/tracking-status':
+            self._handle_workspace_tracking_status_post()
         elif self.path == '/api/campaign/request':
             self._handle_campaign_request()
         elif self.path == '/api/campaign/reply':
@@ -5890,6 +5894,61 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._error(400, 'data must be an object'); return
         ok = _save_brand_hub(workspace_id, data)
         self._json(200, {'ok': ok})
+
+    def _handle_workspace_tracking_status_get(self):
+        """GET /api/workspace/tracking-status?workspaceId=X"""
+        import urllib.parse as _up_ts
+        params = _up_ts.parse_qs(_up_ts.urlparse(self.path).query)
+        wid = params.get('workspaceId', [''])[0].strip()
+        if not wid:
+            self._error(400, 'workspaceId required'); return
+        key = f'conv_tracking_{wid}'
+        status = 'unsure'
+        try:
+            import urllib.parse as _up_ts2
+            req = urllib.request.Request(
+                f'{SUPABASE_URL}/rest/v1/platform_settings?key=eq.{_up_ts2.quote(key)}',
+                headers={'apikey': SUPABASE_SERVICE_KEY, 'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}'}
+            )
+            with urllib.request.urlopen(req, timeout=10) as r:
+                rows = json.loads(r.read())
+            if rows:
+                status = rows[0]['value']
+        except Exception as e:
+            print(f'  ⚠️  tracking-status GET error: {e}')
+        self._json(200, {'status': status})
+
+    def _handle_workspace_tracking_status_post(self):
+        """POST /api/workspace/tracking-status — save conversion tracking status."""
+        try:
+            body = self._read_body()
+        except Exception:
+            self._error(400, 'Invalid JSON'); return
+        wid = body.get('workspaceId', '').strip()
+        status = body.get('status', 'unsure').strip()
+        if not wid:
+            self._error(400, 'workspaceId required'); return
+        if status not in ('unsure', 'working', 'needs_setup'):
+            self._error(400, 'Invalid status'); return
+        key = f'conv_tracking_{wid}'
+        try:
+            hdrs = {
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                'Content-Type': 'application/json',
+                'Prefer': 'resolution=merge-duplicates,return=representation',
+            }
+            req = urllib.request.Request(
+                f'{SUPABASE_URL}/rest/v1/platform_settings',
+                data=json.dumps({'key': key, 'value': status}).encode(),
+                headers=hdrs, method='POST',
+            )
+            with urllib.request.urlopen(req, timeout=10):
+                pass
+        except Exception as e:
+            print(f'  ⚠️  tracking-status POST error: {e}')
+            self._json(500, {'ok': False}); return
+        self._json(200, {'ok': True})
 
     def _handle_google_auth(self):
         """GET /api/google/auth?workspace_id=X — return Google OAuth URL."""
