@@ -5945,7 +5945,7 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         # Strip HTML tags and collapse whitespace
         text = _re_bhp.sub(r'<[^>]+>', ' ', raw_html)
-        text = _re_bhp.sub(r'\s+', ' ', text).strip()[:8000]
+        text = _re_bhp.sub(r'\s+', ' ', text).strip()[:12000]
 
         prompt = f"""You are a brand analyst. Based on the website text below, extract brand information and return ONLY a valid JSON object. Include every key you can confidently determine — omit keys you cannot. Use these exact key names:
 
@@ -6004,7 +6004,7 @@ Return ONLY the JSON object, no explanation, no markdown fences."""
                 API_KEY,
                 'You extract structured brand data from websites. Return only valid JSON.',
                 [{'role': 'user', 'content': prompt}],
-                max_tokens=1200,
+                max_tokens=4000,
             )
             # Strip any markdown fences if model adds them anyway
             cleaned = _re_bhp.sub(r'^```[a-z]*\n?|\n?```$', '', ai_resp.strip(), flags=_re_bhp.MULTILINE).strip()
