@@ -2527,6 +2527,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_canva_callback()
         elif self.path.startswith('/api/workspace/tracking-status'):
             self._handle_workspace_tracking_status_get()
+        elif self.path == '/api/brand-hub/prefill':
+            self._handle_brand_hub_prefill_get()
         elif self.path.startswith('/api/brand-hub'):
             self._handle_brand_hub_get()
         elif self.path.startswith('/api/crm/contacts'):
@@ -5918,6 +5920,56 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._error(400, 'data must be an object'); return
         ok = _save_brand_hub(workspace_id, data)
         self._json(200, {'ok': ok})
+
+    def _handle_brand_hub_prefill_get(self):
+        """GET /api/brand-hub/prefill?url=... — scrape URL and return Brand Hub fields via AI."""
+        import urllib.parse as _up_bhp
+        import re as _re_bhp
+        params = _up_bhp.parse_qs(_up_bhp.urlparse(self.path).query)
+        url = params.get('url', [''])[0].strip()
+        if not url:
+            self._error(400, 'url required'); return
+        if not url.startswith('http'):
+            url = 'https://' + url
+
+        # Fetch website HTML
+        try:
+            req = urllib.request.Request(url, headers={
+                'User-Agent': 'Mozilla/5.0 (compatible; ClickPoint/1.0; brand-discovery)',
+                'Accept': 'text/html,application/xhtml+xml',
+            })
+            with urllib.request.urlopen(req, timeout=15) as r:
+                raw_html = r.read(200_000).decode('utf-8', errors='ignore')
+        except Exception as e:
+            self._error(502, f'Could not fetch URL: {e}'); return
+
+        # Strip HTML tags and collapse whitespace
+        text = _re_bhp.sub(r'<[^>]+>', ' ', raw_html)
+        text = _re_bhp.sub(r'\s+', ' ', text).strip()[:8000]
+
+        prompt = f"""You are a brand analyst. Based on the website text below, extract brand information and return ONLY a valid JSON object with these exact keys (omit any key you cannot confidently determine):
+
+bBrandName, bTagline, bIndustry, bWebsite, bMission, bServices (one service/product per line separated by \\n), bUsp1, bUsp2, bUsp3 (max 30 chars each — key differentiators), bAudience (who they serve), bGeo (where they operate), bCompetitors (comma-separated if mentioned), bValueProp (1-2 sentence value proposition), bTone (one of: Professional & authoritative | Friendly & conversational | Bold & direct | Empathetic & human | Technical & precise | Playful & creative | Luxury & aspirational | Urgent & action-oriented), bStory (brief origin/purpose).
+
+Website URL: {url}
+
+Website text:
+{text}
+
+Return ONLY the JSON object, no explanation, no markdown fences."""
+
+        try:
+            ai_resp = _req('user', prompt, system='You extract structured brand data from websites. Return only valid JSON.', max_tokens=1200)
+            # Strip any markdown fences if model adds them anyway
+            cleaned = _re_bhp.sub(r'^```[a-z]*\n?|\n?```$', '', ai_resp.strip(), flags=_re_bhp.MULTILINE).strip()
+            data = json.loads(cleaned)
+            # Ensure bWebsite is set
+            if not data.get('bWebsite'):
+                data['bWebsite'] = url
+            self._json(200, {'ok': True, 'data': data})
+        except Exception as e:
+            print(f'  ⚠️  brand-hub prefill AI error: {e}')
+            self._error(500, f'AI extraction failed: {e}')
 
     def _handle_workspace_tracking_status_get(self):
         """GET /api/workspace/tracking-status?workspaceId=X"""
