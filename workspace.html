@@ -70,6 +70,8 @@
   .ws-cmp-section { margin-bottom:22px; }
   .ws-cmp-section-label { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; color:var(--teal); background:rgba(28,58,46,0.06); padding:5px 10px; border-radius:6px; display:inline-block; margin-bottom:14px; }
   .ws-cmp-lbl { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#555; display:block; margin-bottom:6px; }
+  .ws-cmp-bh-badge { padding:10px 13px; border:1.5px solid #E2E1DB; border-radius:9px; font-size:13px; background:#F9F9F7; color:var(--text); line-height:1.5; }
+  .ws-cmp-bh-badge.empty { color:var(--muted); font-style:italic; }
   .ws-cmp-char { position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:10px; color:#bbb; pointer-events:none; }
 
   /* ── App shell ── */
@@ -1280,12 +1282,10 @@
                 </select>
               </div>
               <div>
-                <label class="ws-cmp-lbl">Conversion Tracking Status</label>
-                <select id="wsCmpTracking" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
-                  <option value="unsure">Not sure — please check</option>
-                  <option value="working">✅ Verified and working</option>
-                  <option value="needs_setup">❌ Needs to be set up</option>
-                </select>
+                <label class="ws-cmp-lbl">Conversion Tracking</label>
+                <div id="wsCmpTrackingBadge" style="padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:13px;background:#F9F9F7;color:var(--muted);">
+                  Loading…
+                </div>
               </div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
@@ -1314,10 +1314,15 @@
             <div class="ws-cmp-section-label">3 · Targeting</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
               <div>
-                <label class="ws-cmp-lbl">Target Locations *</label>
-                <input id="wsCmpLocations" type="text" placeholder="e.g. Sydney Metro, NSW, 2000–2200" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
-                <div style="font-size:10px;color:#aaa;margin-top:3px;">City, state, postcode or radius from your location.</div>
+                <label class="ws-cmp-lbl">Target Locations</label>
+                <div id="wsCmpLocBadge" class="ws-cmp-bh-badge">—</div>
               </div>
+              <div>
+                <label class="ws-cmp-lbl">Target Audience</label>
+                <div id="wsCmpAudBadge" class="ws-cmp-bh-badge">—</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
               <div>
                 <label class="ws-cmp-lbl">Location Targeting Intent</label>
                 <select id="wsCmpLocIntent" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
@@ -1325,12 +1330,6 @@
                   <option value="both">People in OR searching for the location</option>
                   <option value="interested">People interested in the location</option>
                 </select>
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-              <div>
-                <label class="ws-cmp-lbl">Target Audience <span style="font-weight:400;color:#aaa;">(demographics / interests)</span></label>
-                <input id="wsCmpAudience" type="text" placeholder="e.g. SMB owners 35–55, interested in AI tools" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
               </div>
               <div>
                 <label class="ws-cmp-lbl">Ad Schedule</label>
@@ -1346,19 +1345,16 @@
 
           <!-- ── Section 4: Messaging & USPs ── -->
           <div class="ws-cmp-section" id="wsCmpSecMessaging">
-            <div class="ws-cmp-section-label">4 · Messaging &amp; Unique Selling Points</div>
-            <div style="margin-bottom:14px;">
-              <label class="ws-cmp-lbl">Services / Products to Advertise <span style="font-weight:400;color:#aaa;">(one per line — each becomes an ad group)</span></label>
-              <textarea id="wsCmpServices" rows="3" placeholder="AI Marketing Audit&#10;SEO Audit&#10;Google Ads Management" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;resize:vertical;"></textarea>
-            </div>
-            <div style="margin-bottom:14px;">
-              <label class="ws-cmp-lbl">Unique Selling Points <span style="font-weight:400;color:#aaa;">(these become your ad headlines — be specific)</span></label>
-              <div style="display:flex;flex-direction:column;gap:8px;">
-                <input id="wsCmpUsp1" type="text" maxlength="30" placeholder="USP 1 — e.g. AI-Powered Campaigns" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" oninput="wsCmpCharCount(this,'wsCmpUsp1Count',30)" />
-                <input id="wsCmpUsp2" type="text" maxlength="30" placeholder="USP 2 — e.g. No Lock-In Contracts" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" oninput="wsCmpCharCount(this,'wsCmpUsp2Count',30)" />
-                <input id="wsCmpUsp3" type="text" maxlength="30" placeholder="USP 3 — e.g. Results in 30 Days" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" oninput="wsCmpCharCount(this,'wsCmpUsp3Count',30)" />
+            <div class="ws-cmp-section-label">4 · Messaging &amp; Offer</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+              <div>
+                <label class="ws-cmp-lbl">Services / Products to Advertise</label>
+                <div id="wsCmpServicesBadge" class="ws-cmp-bh-badge" style="min-height:70px;white-space:pre-wrap;">—</div>
               </div>
-              <div style="font-size:10px;color:#aaa;margin-top:3px;">Max 30 characters each (Google Ads headline limit).</div>
+              <div>
+                <label class="ws-cmp-lbl">Unique Selling Points</label>
+                <div id="wsCmpUspBadge" class="ws-cmp-bh-badge" style="min-height:70px;">—</div>
+              </div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
               <div>
@@ -1366,8 +1362,8 @@
                 <input id="wsCmpOffer" type="text" placeholder="e.g. Free audit — June only" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
               </div>
               <div>
-                <label class="ws-cmp-lbl">Main Competitors <span style="font-weight:400;color:#aaa;">(for negative keywords)</span></label>
-                <input id="wsCmpCompetitors" type="text" placeholder="e.g. Agency X, Company Y" style="width:100%;padding:10px 13px;border:1.5px solid #E2E1DB;border-radius:9px;font-size:14px;font-family:inherit;outline:none;" />
+                <label class="ws-cmp-lbl">Main Competitors</label>
+                <div id="wsCmpCompetitorsBadge" class="ws-cmp-bh-badge">—</div>
               </div>
             </div>
           </div>
@@ -1591,6 +1587,21 @@
           <div id="wsIntegrationsList">
             <div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">Loading…</div>
           </div>
+
+          <!-- Conversion Tracking Status -->
+          <div style="border-top:1px solid var(--border);margin-top:20px;padding-top:18px;">
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">🎯 Conversion Tracking</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5;">Set this once so your agency knows tracking is in place. Required before any campaign can go live.</div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <select id="wsTrackingStatusSelect" style="padding:9px 13px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-family:inherit;outline:none;background:#fff;flex:1;min-width:200px;">
+                <option value="unsure">Not sure — please check</option>
+                <option value="working">✅ Verified and working</option>
+                <option value="needs_setup">❌ Needs to be set up</option>
+              </select>
+              <button onclick="wsSaveTrackingStatus()" style="padding:9px 20px;background:var(--teal);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">Save</button>
+              <span id="wsTrackingStatusMsg" style="font-size:12px;color:var(--muted);display:none;"></span>
+            </div>
+          </div>
         </div>
 
         <!-- Billing Card -->
@@ -1785,6 +1796,11 @@
                   <input class="ws-brand-input" id="bLogoReverse" placeholder="https://… (white / light version)" />
                 </div>
               </div>
+              <div class="ws-bh-section-title" style="margin-top:8px;">Services &amp; Offerings</div>
+              <div class="ws-bh-field">
+                <label class="ws-brand-label">Services / Products to Advertise <span style="font-weight:400;color:var(--muted);">— one per line, each becomes an ad group</span></label>
+                <textarea class="ws-brand-textarea" id="bServices" rows="4" placeholder="e.g.&#10;AI Marketing Audit&#10;SEO Audit&#10;Google Ads Management"></textarea>
+              </div>
             </div>
           </div>
 
@@ -1956,6 +1972,13 @@
                   <input class="ws-brand-input" id="bPillar3Desc" placeholder="What this pillar means" />
                 </div>
               </div>
+              <div class="ws-bh-section-title" style="margin-top:8px;">Ad Unique Selling Points</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">These headline-level USPs are pulled into every campaign brief. Max 30 characters each (Google Ads limit).</div>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+                <div style="position:relative;"><input class="ws-brand-input" id="bUsp1" maxlength="30" placeholder="USP 1 — e.g. AI-Powered Campaigns" style="margin-bottom:0;padding-right:44px;" oninput="wsBhUspCount(this,'bUsp1c')" /><span id="bUsp1c" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--muted);">0/30</span></div>
+                <div style="position:relative;"><input class="ws-brand-input" id="bUsp2" maxlength="30" placeholder="USP 2 — e.g. No Lock-In Contracts" style="margin-bottom:0;padding-right:44px;" oninput="wsBhUspCount(this,'bUsp2c')" /><span id="bUsp2c" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--muted);">0/30</span></div>
+                <div style="position:relative;"><input class="ws-brand-input" id="bUsp3" maxlength="30" placeholder="USP 3 — e.g. Results in 30 Days" style="margin-bottom:0;padding-right:44px;" oninput="wsBhUspCount(this,'bUsp3c')" /><span id="bUsp3c" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--muted);">0/30</span></div>
+              </div>
               <div class="ws-bh-section-title" style="margin-top:8px;">Language</div>
               <div class="ws-bh-grid">
                 <div class="ws-bh-field">
@@ -2018,6 +2041,11 @@
               <div class="ws-bh-field" style="margin-bottom:14px;">
                 <label class="ws-brand-label">Key Pain Points</label>
                 <textarea class="ws-brand-textarea" id="bPainPoints" placeholder="What frustrations, problems or challenges does your audience face that you solve?"></textarea>
+              </div>
+              <div class="ws-bh-section-title">Competitive Landscape</div>
+              <div class="ws-bh-field" style="margin-bottom:0;">
+                <label class="ws-brand-label">Main Competitors <span style="font-weight:400;color:var(--muted);">— used for negative keywords in ad campaigns</span></label>
+                <input class="ws-brand-input" id="bCompetitors" placeholder="e.g. Agency X, Company Y, Brand Z" style="margin-bottom:0;" />
               </div>
             </div>
           </div>
@@ -3219,15 +3247,18 @@ function wsNewCampaignOpen() {
   document.getElementById('wsCmpResult').style.display = 'none';
   // Reset all fields
   ['wsCmpName','wsCmpType','wsCmpChannel','wsCmpBudget','wsCmpUrl','wsCmpConversion',
-   'wsCmpTargetCpa','wsCmpLocations','wsCmpAudience','wsCmpServices',
-   'wsCmpUsp1','wsCmpUsp2','wsCmpUsp3','wsCmpOffer','wsCmpCompetitors',
+   'wsCmpTargetCpa','wsCmpOffer',
    'wsCmpH1','wsCmpH2','wsCmpH3','wsCmpD1','wsCmpD2','wsCmpBizName','wsCmpPhone',
    'wsCmpPixelId','wsCmpMetaText','wsCmpMetaHeadline','wsCmpMetaAudience','wsCmpBrief'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  // Refresh tracking badge with current workspace status
+  _wsUpdateTrackingBadge(window._wsTrackingStatus || 'unsure');
+  // Populate Brand Hub read-only badges
+  wsRefreshCampaignBrandHubBadges();
   // Reset selects to first option
-  ['wsCmpTracking','wsCmpBidStrategy','wsCmpLocIntent','wsCmpSchedule','wsCmpCreative'].forEach(id => {
+  ['wsCmpBidStrategy','wsCmpLocIntent','wsCmpSchedule','wsCmpCreative'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.selectedIndex = 0;
   });
@@ -3328,23 +3359,25 @@ async function wsNewCampaignSubmit() {
   const type        = _v('wsCmpType');
   const channel     = _v('wsCmpChannel');
   const budget      = _v('wsCmpBudget');
-  const audience    = _v('wsCmpAudience');
   const brief       = _v('wsCmpBrief');
-  // New fields
+  // Campaign-specific fields
   const url         = _v('wsCmpUrl');
   const conversion  = _v('wsCmpConversion');
-  const tracking    = _v('wsCmpTracking');
+  const tracking    = window._wsTrackingStatus || 'unsure';
   const targetCpa   = _v('wsCmpTargetCpa');
   const bidStrategy = _v('wsCmpBidStrategy');
-  const locations   = _v('wsCmpLocations');
   const locIntent   = _v('wsCmpLocIntent');
   const schedule    = _v('wsCmpSchedule');
-  const services    = _v('wsCmpServices');
-  const usp1        = _v('wsCmpUsp1');
-  const usp2        = _v('wsCmpUsp2');
-  const usp3        = _v('wsCmpUsp3');
   const offer       = _v('wsCmpOffer');
-  const competitors = _v('wsCmpCompetitors');
+  // Brand Hub values (set once, reused across all campaigns)
+  const _bh         = JSON.parse(localStorage.getItem(wsBrandKey()) || '{}');
+  const audience    = _bh.bAudience   || '';
+  const locations   = _bh.bGeo        || '';
+  const services    = _bh.bServices   || '';
+  const usp1        = _bh.bUsp1       || '';
+  const usp2        = _bh.bUsp2       || '';
+  const usp3        = _bh.bUsp3       || '';
+  const competitors = _bh.bCompetitors || '';
   // Google Ads copy
   const h1 = _v('wsCmpH1'); const h2 = _v('wsCmpH2'); const h3 = _v('wsCmpH3');
   const d1 = _v('wsCmpD1'); const d2 = _v('wsCmpD2');
@@ -4634,7 +4667,8 @@ const WS_BH_FIELDS = [
   'bPillar1Title','bPillar1Desc','bPillar2Title','bPillar2Desc','bPillar3Title','bPillar3Desc',
   'bWordsUse','bWordsAvoid',
   'bBizType','bGeo','bAudience','bAudSecondary',
-  'bPersonaName','bPersonaDemog','bPersonaDesc','bPainPoints',
+  'bPersonaName','bPersonaDemog','bPersonaDesc','bPainPoints','bCompetitors',
+  'bServices','bUsp1','bUsp2','bUsp3',
   'bHeadlineStyle','bBodyStyle','bSocialNotes',
   'bCPillar1','bCPillar2','bCPillar3',
   'bDo1','bDo2','bDo3','bDont1','bDont2','bDont3',
@@ -4926,6 +4960,7 @@ function wsLoadBilling() {
 
   // Load connected accounts section
   wsLoadIntegrations();
+  wsLoadTrackingStatus();
 }
 
 function wsCalcTotalBudget() {
@@ -5098,6 +5133,102 @@ async function wsLoadIntegrations() {
         Add another ${catMeta.label.toLowerCase()} tool
       </button>`;
   }).join('');
+}
+
+function wsRefreshCampaignBrandHubBadges() {
+  const bh = JSON.parse(localStorage.getItem(wsBrandKey()) || '{}');
+  const emptyHtml = '<span style="color:var(--muted);font-style:italic;">Not set — <a href="#" onclick="wsSetView(\'brand\');return false;" style="color:var(--teal);text-decoration:underline;">add in Brand Hub</a></span>';
+
+  function _setBadge(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (value && value.trim()) {
+      el.classList.remove('empty');
+      el.innerHTML = value.trim().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    } else {
+      el.classList.add('empty');
+      el.innerHTML = emptyHtml;
+    }
+  }
+
+  _setBadge('wsCmpLocBadge',       bh.bGeo || '');
+  _setBadge('wsCmpAudBadge',       bh.bAudience || '');
+  _setBadge('wsCmpServicesBadge',  bh.bServices || '');
+  _setBadge('wsCmpCompetitorsBadge', bh.bCompetitors || '');
+
+  const uspEl = document.getElementById('wsCmpUspBadge');
+  if (uspEl) {
+    const usps = [bh.bUsp1, bh.bUsp2, bh.bUsp3].filter(Boolean);
+    if (usps.length) {
+      uspEl.classList.remove('empty');
+      uspEl.innerHTML = usps.map(u => `<div style="margin-bottom:3px;">• ${u.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`).join('');
+    } else {
+      uspEl.classList.add('empty');
+      uspEl.innerHTML = emptyHtml;
+    }
+  }
+}
+
+function wsBhUspCount(input, countId) {
+  const el = document.getElementById(countId);
+  if (el) el.textContent = input.value.length + '/30';
+}
+
+async function wsLoadTrackingStatus() {
+  if (!wsSession || !wsSession.workspaceId) return;
+  try {
+    const r = await fetch(`${WS_API}/api/workspace/tracking-status?workspaceId=${encodeURIComponent(wsSession.workspaceId)}`);
+    const d = await r.json();
+    const status = d.status || 'unsure';
+    window._wsTrackingStatus = status;
+
+    // Update settings select
+    const sel = document.getElementById('wsTrackingStatusSelect');
+    if (sel) sel.value = status;
+
+    // Update campaign form badge
+    _wsUpdateTrackingBadge(status);
+  } catch(e) {
+    console.warn('tracking-status load:', e);
+  }
+}
+
+function _wsUpdateTrackingBadge(status) {
+  const badge = document.getElementById('wsCmpTrackingBadge');
+  if (!badge) return;
+  const configs = {
+    working:     { icon: '✅', label: 'Verified and working', color: '#1a7a4a', bg: '#F0FAF4', border: '#B7DFC9' },
+    needs_setup: { icon: '❌', label: 'Needs to be set up',   color: '#c0392b', bg: '#FFF3F3', border: '#F5C6C6' },
+    unsure:      { icon: '⚠️', label: 'Not confirmed',        color: '#8a6400', bg: '#FFFBF0', border: '#F0DFA0' },
+  };
+  const cfg = configs[status] || configs.unsure;
+  badge.style.background = cfg.bg;
+  badge.style.borderColor = cfg.border;
+  badge.style.color = cfg.color;
+  badge.innerHTML = `${cfg.icon} ${cfg.label} &nbsp;<a href="#" onclick="wsSetView('settings');return false;" style="font-size:11px;color:var(--teal);text-decoration:underline;">Edit in Settings</a>`;
+}
+
+async function wsSaveTrackingStatus() {
+  if (!wsSession || !wsSession.workspaceId) return;
+  const sel = document.getElementById('wsTrackingStatusSelect');
+  const msg = document.getElementById('wsTrackingStatusMsg');
+  if (!sel) return;
+  const status = sel.value;
+  try {
+    const r = await fetch(`${WS_API}/api/workspace/tracking-status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ workspaceId: wsSession.workspaceId, status }),
+    });
+    const d = await r.json();
+    if (d.ok) {
+      window._wsTrackingStatus = status;
+      _wsUpdateTrackingBadge(status);
+      if (msg) { msg.style.display = 'inline'; msg.style.color = '#1a7a4a'; msg.textContent = '✅ Saved'; setTimeout(() => { msg.style.display = 'none'; }, 2500); }
+    }
+  } catch(e) {
+    if (msg) { msg.style.display = 'inline'; msg.style.color = '#c0392b'; msg.textContent = '❌ Save failed'; setTimeout(() => { msg.style.display = 'none'; }, 3000); }
+  }
 }
 
 /** Converts 'other_email_convertkit' → 'Convertkit' */
