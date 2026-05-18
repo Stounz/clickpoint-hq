@@ -1730,6 +1730,19 @@
         </div>
 
         <div style="max-width:860px;margin-top:20px;">
+          <!-- AI Pre-fill bar -->
+          <div id="bhPrefillBar" style="background:linear-gradient(135deg,#1C3A2E 0%,#2a5240 100%);border-radius:14px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:200px;">
+              <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:2px;">✨ Pre-fill with AI</div>
+              <div style="font-size:12px;color:rgba(255,255,255,0.65);">Enter your website URL and we'll extract your brand details automatically.</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex:2;min-width:260px;">
+              <input id="bhPrefillUrl" type="url" placeholder="https://yourbusiness.com.au" style="flex:1;padding:10px 14px;border:none;border-radius:9px;font-size:13px;font-family:inherit;outline:none;background:rgba(255,255,255,0.12);color:#fff;" onkeydown="if(event.key==='Enter')wsBhPrefill()" />
+              <button id="bhPrefillBtn" onclick="wsBhPrefill()" style="padding:10px 18px;background:#D4622A;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">Pre-fill →</button>
+            </div>
+            <div id="bhPrefillStatus" style="font-size:12px;color:rgba(255,255,255,0.8);width:100%;display:none;padding-top:4px;"></div>
+          </div>
+
           <!-- Tab nav -->
           <div class="ws-bh-tabs">
             <div class="ws-bh-tab active" onclick="wsBhTab('identity',this)">Identity</div>
@@ -4738,6 +4751,63 @@ function wsApplyBrandHubData(saved) {
     document.querySelectorAll('.ws-bh-trait').forEach(el => {
       el.classList.toggle('selected', saved.bTraits.includes(el.dataset.trait));
     });
+  }
+}
+
+async function wsBhPrefill() {
+  const urlEl  = document.getElementById('bhPrefillUrl');
+  const btn    = document.getElementById('bhPrefillBtn');
+  const status = document.getElementById('bhPrefillStatus');
+  const url    = (urlEl ? urlEl.value.trim() : '') || (document.getElementById('bWebsite') ? document.getElementById('bWebsite').value.trim() : '');
+  if (!url) { urlEl && (urlEl.style.borderColor = 'rgba(255,100,100,0.8)'); return; }
+
+  btn.disabled = true; btn.textContent = '⏳ Analysing…';
+  status.style.display = 'block'; status.textContent = 'Fetching your website and extracting brand details…';
+
+  try {
+    const resp = await fetch(`${WS_API}/api/brand-hub/prefill?url=${encodeURIComponent(url)}`);
+    const result = await resp.json();
+    if (!resp.ok || !result.data) throw new Error(result.error || 'No data returned');
+
+    const d = result.data;
+    const filled = [];
+    const fieldMap = {
+      bBrandName:'bBrandName', bTagline:'bTagline', bIndustry:'bIndustry', bWebsite:'bWebsite',
+      bMission:'bMission', bStory:'bStory', bServices:'bServices',
+      bUsp1:'bUsp1', bUsp2:'bUsp2', bUsp3:'bUsp3',
+      bAudience:'bAudience', bGeo:'bGeo', bCompetitors:'bCompetitors',
+      bValueProp:'bValueProp', bTone:'bTone',
+    };
+    Object.entries(fieldMap).forEach(([key, elId]) => {
+      if (d[key]) {
+        const el = document.getElementById(elId);
+        if (el) { el.value = d[key]; filled.push(key); }
+      }
+    });
+    // Sync tone select if present
+    if (d.bTone) {
+      const sel = document.getElementById('bTone');
+      if (sel) { Array.from(sel.options).forEach(o => { if (o.value === d.bTone || o.text === d.bTone) sel.value = o.value; }); }
+    }
+    // Update USP char counters
+    ['bUsp1','bUsp2','bUsp3'].forEach((id,i) => {
+      const el = document.getElementById(id);
+      const ct = document.getElementById(id + 'c');
+      if (el && ct) ct.textContent = el.value.length + '/30';
+    });
+
+    status.textContent = `✅ ${filled.length} fields pre-filled — review below and click Save Guidelines when ready.`;
+    status.style.color = '#7fffb2';
+    btn.textContent = 'Re-run';
+    btn.disabled = false;
+
+    // Switch to Identity tab so user sees the results
+    wsBhTab('identity', document.querySelector('.ws-bh-tab'));
+  } catch(e) {
+    status.textContent = `❌ ${e.message}`;
+    status.style.color = 'rgba(255,150,150,1)';
+    btn.textContent = 'Try again';
+    btn.disabled = false;
   }
 }
 
