@@ -1611,7 +1611,7 @@ _canva_token_cache = {}
 _canva_pkce_store  = {}
 
 def _canva_basic_auth():
-    creds = f'{CANVA_CLIENT_ID}:{CANVA_CLIENT_SECRET}'
+    creds = f'{_canva_client_id()}:{_canva_client_secret()}'
     return _canva_b64.b64encode(creds.encode()).decode()
 
 def _canva_pkce_pair():
@@ -1949,13 +1949,21 @@ def canva_generate_and_export(brief_text: str, brand_name: str, workspace_id: st
         print(f'  ⚠️  Canva generate_and_export error: {e}')
         return []
 
+def _canva_client_id() -> str:
+    """Return Canva client ID — re-reads os.getenv at call time to handle late Railway injection."""
+    return os.getenv('CANVA_CLIENT_ID', '') or CANVA_CLIENT_ID
+
+def _canva_client_secret() -> str:
+    """Return Canva client secret — re-reads os.getenv at call time."""
+    return os.getenv('CANVA_CLIENT_SECRET', '') or CANVA_CLIENT_SECRET
+
 def canva_auth_url(workspace_id: str = '') -> str:
     """Return the Canva OAuth authorization URL (PKCE + state) for a workspace.
 
     The state encodes the verifier + workspace_id as base64 JSON so it survives
     server restarts — no in-memory store needed.
     """
-    if not CANVA_CLIENT_ID:
+    if not _canva_client_id():
         return ''
     import secrets as _sec
     verifier, challenge = _canva_pkce_pair()
@@ -1965,7 +1973,7 @@ def canva_auth_url(workspace_id: str = '') -> str:
     state = _canva_b64.urlsafe_b64encode(state_payload.encode()).rstrip(b'=').decode()
     scopes = 'design:content:read design:content:write design:meta:read asset:read asset:write brandtemplate:meta:read brandtemplate:content:read profile:read'
     params = _canva_up.urlencode({
-        'client_id':             CANVA_CLIENT_ID,
+        'client_id':             _canva_client_id(),
         'redirect_uri':          CANVA_REDIRECT_URI,
         'response_type':         'code',
         'scope':                 scopes,
@@ -4965,8 +4973,20 @@ class AgentHandler(BaseHTTPRequestHandler):
                 'GET',
                 f'client_integrations?select=id,client,platform,account_id,status,last_synced'
                 f'&order=created_at.desc{filter_clause}',
-            )
-            self._json(200, {'integrations': rows or []})
+            ) or []
+            # Canva tokens live in platform_settings, not client_integrations — inject a synthetic row
+            if workspace_id and not any(r.get('platform') == 'canva' for r in rows):
+                canva_tokens = _canva_load_tokens(workspace_id)
+                if canva_tokens.get('access_token'):
+                    rows.append({
+                        'id': f'canva_{workspace_id}',
+                        'client': workspace_id,
+                        'platform': 'canva',
+                        'account_id': canva_tokens.get('user_id', ''),
+                        'status': 'connected',
+                        'last_synced': None,
+                    })
+            self._json(200, {'integrations': rows})
         except Exception as e:
             # Table may not exist yet — return empty list so UI degrades gracefully
             print(f'  integrations_list: {e}')
@@ -5368,7 +5388,7 @@ class AgentHandler(BaseHTTPRequestHandler):
 
             # — Auto-generate Canva design (brand template → blank canvas edit URL) —
             canva_urls = []
-            if design_deliverable_text and CANVA_CLIENT_ID and CANVA_CLIENT_SECRET:
+            if design_deliverable_text and _canva_client_id() and _canva_client_secret():
                 try:
                     brand = _co or _name or 'Brand'
                     canva_urls = canva_generate_and_export(
