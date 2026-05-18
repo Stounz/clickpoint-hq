@@ -3999,9 +3999,54 @@ CRITICAL ONBOARDING RULE (no platforms connected):
 - Do NOT pretend you have data you don't have. Don't make up metrics or campaign status.
 - If the client says "you do it" or "can the agency/team set it up": confirm warmly that you'll flag it to the ${agencyLabel} team and they'll be in touch.` : '';
 
+  // Brand Hub data
+  const bh = JSON.parse(localStorage.getItem(wsBrandKey()) || '{}');
+  const bhFields = {
+    industry:    bh.bIndustry    || '',
+    website:     bh.bWebsite     || '',
+    services:    bh.bServices    || '',
+    usp1:        bh.bUsp1        || '',
+    usp2:        bh.bUsp2        || '',
+    usp3:        bh.bUsp3        || '',
+    audience:    bh.bAudience    || '',
+    locations:   bh.bGeo         || '',
+    competitors: bh.bCompetitors || '',
+    valueProp:   bh.bValueProp   || '',
+    tone:        bh.bTone        || '',
+    mission:     bh.bMission     || '',
+  };
+  const bhPopulated = Object.values(bhFields).filter(Boolean);
+  const bhKeyCount  = bhPopulated.length;
+
+  let brandHubSection = '';
+  if (bhKeyCount >= 3) {
+    const lines = [];
+    if (bhFields.industry)    lines.push(`Industry: ${bhFields.industry}`);
+    if (bhFields.website)     lines.push(`Website: ${bhFields.website}`);
+    if (bhFields.services)    lines.push(`Services/Products: ${bhFields.services.replace(/\n/g, ', ')}`);
+    if (bhFields.usp1 || bhFields.usp2 || bhFields.usp3)
+      lines.push(`USPs: ${[bhFields.usp1, bhFields.usp2, bhFields.usp3].filter(Boolean).join(' | ')}`);
+    if (bhFields.audience)    lines.push(`Target Audience: ${bhFields.audience}`);
+    if (bhFields.locations)   lines.push(`Target Locations: ${bhFields.locations}`);
+    if (bhFields.competitors) lines.push(`Competitors: ${bhFields.competitors}`);
+    if (bhFields.valueProp)   lines.push(`Value Proposition: ${bhFields.valueProp}`);
+    if (bhFields.tone)        lines.push(`Brand Tone: ${bhFields.tone}`);
+    if (bhFields.mission)     lines.push(`Mission: ${bhFields.mission}`);
+    brandHubSection = `
+BRAND HUB (use this — do not ask the client for information already here):
+${lines.join('\n')}
+
+BRAND HUB RULE: You already know the above about this client. Use it directly when generating content, writing posts, planning campaigns, or making recommendations. Do NOT ask the client to tell you their services, audience, locations, USPs, or competitors — you already have them.`;
+  } else {
+    brandHubSection = `
+BRAND HUB: Incomplete (${bhKeyCount} of 12 fields filled).
+BRAND HUB RULE: The client has not fully set up their Brand Hub. When they ask you to create content or plan campaigns, do your best with what you know, then add a single closing line: "By the way — completing your **Brand Hub** (left menu) means I can skip these questions entirely next time and get straight to the work."  Only say this once per conversation, not on every message.`;
+  }
+
   return `IMPORTANT — CLIENT-FACING MODE.
 
 You are Sarah Lin, CMO at ${agencyLabel}. You are speaking directly with ${s.companyName} — a paying client. Not internal team chat.
+${brandHubSection}
 
 CONNECTED PLATFORMS: ${integrationSummary}
 ${noIntegrationRules}
