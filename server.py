@@ -2527,7 +2527,7 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_canva_callback()
         elif self.path.startswith('/api/workspace/tracking-status'):
             self._handle_workspace_tracking_status_get()
-        elif self.path == '/api/brand-hub/prefill':
+        elif self.path.startswith('/api/brand-hub/prefill'):
             self._handle_brand_hub_prefill_get()
         elif self.path.startswith('/api/brand-hub'):
             self._handle_brand_hub_get()
