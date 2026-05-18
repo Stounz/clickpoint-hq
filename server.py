@@ -5959,7 +5959,12 @@ Website text:
 Return ONLY the JSON object, no explanation, no markdown fences."""
 
         try:
-            ai_resp = _req('user', prompt, system='You extract structured brand data from websites. Return only valid JSON.', max_tokens=1200)
+            ai_resp = call_anthropic(
+                API_KEY,
+                'You extract structured brand data from websites. Return only valid JSON.',
+                [{'role': 'user', 'content': prompt}],
+                max_tokens=1200,
+            )
             # Strip any markdown fences if model adds them anyway
             cleaned = _re_bhp.sub(r'^```[a-z]*\n?|\n?```$', '', ai_resp.strip(), flags=_re_bhp.MULTILINE).strip()
             data = json.loads(cleaned)
