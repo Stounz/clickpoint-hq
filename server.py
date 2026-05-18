@@ -5947,9 +5947,50 @@ class AgentHandler(BaseHTTPRequestHandler):
         text = _re_bhp.sub(r'<[^>]+>', ' ', raw_html)
         text = _re_bhp.sub(r'\s+', ' ', text).strip()[:8000]
 
-        prompt = f"""You are a brand analyst. Based on the website text below, extract brand information and return ONLY a valid JSON object with these exact keys (omit any key you cannot confidently determine):
+        prompt = f"""You are a brand analyst. Based on the website text below, extract brand information and return ONLY a valid JSON object. Include every key you can confidently determine — omit keys you cannot. Use these exact key names:
 
-bBrandName, bTagline, bIndustry, bWebsite, bMission, bServices (one service/product per line separated by \\n), bUsp1, bUsp2, bUsp3 (max 30 chars each — key differentiators), bAudience (who they serve), bGeo (where they operate), bCompetitors (comma-separated if mentioned), bValueProp (1-2 sentence value proposition), bTone (one of: Professional & authoritative | Friendly & conversational | Bold & direct | Empathetic & human | Technical & precise | Playful & creative | Luxury & aspirational | Urgent & action-oriented), bStory (brief origin/purpose).
+IDENTITY:
+- bBrandName: brand/company name
+- bTagline: tagline or slogan
+- bIndustry: industry (e.g. Digital Marketing, SaaS, Healthcare)
+- bWebsite: the URL
+- bMission: mission statement or why they exist
+- bStory: origin story or brand background
+- bVal1, bVal2, bVal3: up to 3 core brand values (single words or short phrases)
+
+SERVICES:
+- bServices: services or products, one per line (\\n separated)
+- bUsp1, bUsp2, bUsp3: top 3 unique selling points, max 30 chars each
+
+VOICE & MESSAGING:
+- bTone: exactly one of: Professional & authoritative | Friendly & conversational | Bold & direct | Empathetic & human | Technical & precise | Playful & creative | Luxury & aspirational | Urgent & action-oriented
+- bFormality: exactly one of: Very formal | Formal | Neutral | Casual | Very casual / colloquial
+- bValueProp: 1-2 sentence value proposition
+- bPillar1Title, bPillar1Desc: first messaging pillar name and description
+- bPillar2Title, bPillar2Desc: second messaging pillar name and description
+- bPillar3Title, bPillar3Desc: third messaging pillar name and description
+- bWordsUse: comma-separated words/phrases that match the brand voice
+- bWordsAvoid: comma-separated words/phrases that feel off-brand
+- bHeadlineStyle: describe the headline writing style (length, punctuation, verb usage)
+- bBodyStyle: describe body copy style (sentence length, register, any patterns)
+- bSocialNotes: notes on social media tone or content style
+
+AUDIENCE:
+- bBizType: exactly one of: B2C (direct to consumer) | B2B (business to business) | Both B2C and B2B | D2C (direct to consumer, e-commerce) | Marketplace / Platform
+- bGeo: geographic focus (city, state, country, or global)
+- bAudience: primary audience description (demographics, job titles, interests)
+- bAudSecondary: secondary audience if applicable
+- bPersonaName: buyer persona name and role (e.g. "Sarah — Head of Marketing")
+- bPersonaDemog: age range and background of persona
+- bPersonaDesc: what this persona cares about day-to-day
+- bPainPoints: key pain points or frustrations the brand solves
+- bCompetitors: comma-separated competitor names if mentioned
+
+GUIDELINES:
+- bCPillar1, bCPillar2, bCPillar3: content pillars (themes every piece of content should cover)
+- bDo1, bDo2, bDo3: brand do's (communication behaviours to always follow)
+- bDont1, bDont2, bDont3: brand don'ts (things to never do or say)
+- bComplianceNotes: any legal, regulatory, or disclaimer requirements
 
 Website URL: {url}
 

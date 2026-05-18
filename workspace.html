@@ -4771,26 +4771,37 @@ async function wsBhPrefill() {
 
     const d = result.data;
     const filled = [];
-    const fieldMap = {
-      bBrandName:'bBrandName', bTagline:'bTagline', bIndustry:'bIndustry', bWebsite:'bWebsite',
-      bMission:'bMission', bStory:'bStory', bServices:'bServices',
-      bUsp1:'bUsp1', bUsp2:'bUsp2', bUsp3:'bUsp3',
-      bAudience:'bAudience', bGeo:'bGeo', bCompetitors:'bCompetitors',
-      bValueProp:'bValueProp', bTone:'bTone',
-    };
-    Object.entries(fieldMap).forEach(([key, elId]) => {
+    // Text/textarea fields — set value directly
+    const textFields = [
+      'bBrandName','bTagline','bIndustry','bWebsite','bMission','bStory',
+      'bVal1','bVal2','bVal3',
+      'bServices','bUsp1','bUsp2','bUsp3',
+      'bValueProp',
+      'bPillar1Title','bPillar1Desc','bPillar2Title','bPillar2Desc','bPillar3Title','bPillar3Desc',
+      'bWordsUse','bWordsAvoid',
+      'bGeo','bAudience','bAudSecondary',
+      'bPersonaName','bPersonaDemog','bPersonaDesc','bPainPoints','bCompetitors',
+      'bHeadlineStyle','bBodyStyle','bSocialNotes',
+      'bCPillar1','bCPillar2','bCPillar3',
+      'bDo1','bDo2','bDo3','bDont1','bDont2','bDont3',
+      'bComplianceNotes',
+    ];
+    textFields.forEach(key => {
       if (d[key]) {
-        const el = document.getElementById(elId);
+        const el = document.getElementById(key);
         if (el) { el.value = d[key]; filled.push(key); }
       }
     });
-    // Sync tone select if present
-    if (d.bTone) {
-      const sel = document.getElementById('bTone');
-      if (sel) { Array.from(sel.options).forEach(o => { if (o.value === d.bTone || o.text === d.bTone) sel.value = o.value; }); }
-    }
+    // Select fields — match by option text
+    ['bTone','bFormality','bBizType'].forEach(key => {
+      if (!d[key]) return;
+      const sel = document.getElementById(key);
+      if (!sel) return;
+      const match = Array.from(sel.options).find(o => o.value === d[key] || o.text === d[key]);
+      if (match) { sel.value = match.value; filled.push(key); }
+    });
     // Update USP char counters
-    ['bUsp1','bUsp2','bUsp3'].forEach((id,i) => {
+    ['bUsp1','bUsp2','bUsp3'].forEach(id => {
       const el = document.getElementById(id);
       const ct = document.getElementById(id + 'c');
       if (el && ct) ct.textContent = el.value.length + '/30';
