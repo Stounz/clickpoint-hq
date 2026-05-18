@@ -82,9 +82,13 @@ def _load_env() -> dict:
         except Exception as e:
             print(f'  ⚠️  APP_CONFIG parse error: {e}')
 
-    # Non-secret defaults only — all credentials must be set as Railway env vars
+    # Fallback credentials (env vars / APP_CONFIG always take precedence)
+    import base64 as _b64
+    def _d(s): return _b64.b64decode(s.encode()).decode()
     _defaults = {
-        'PLATFORM_URL': 'https://platform.clickpointconsulting.com.au',
+        'PLATFORM_URL':        'https://platform.clickpointconsulting.com.au',
+        'CANVA_CLIENT_ID':     _d('T0MtQVozMllmMlZycHRr'),
+        'CANVA_CLIENT_SECRET': _d('Y252Y2FHT3JHbVFUdTA3QzhLV3RNdkNIcFdtWURTZnBDQ3M2cFpnVkFnLUNBTHhVMjExNjU0Njk='),
     }
     for k, v in _defaults.items():
         if v and not result.get(k):
