@@ -724,7 +724,7 @@ def _fetch_google_ads(account_id: str, token: str, days: int) -> dict:
         f'WHERE segments.date DURING LAST_{days}_DAYS '
         'AND campaign.status = ENABLED'
     )
-    url  = f'https://googleads.googleapis.com/v17/customers/{clean_id}/googleAds:search'
+    url  = f'https://googleads.googleapis.com/v21/customers/{clean_id}/googleAds:search'
     data = json.dumps({'query': query}).encode()
     req  = urllib.request.Request(url, data=data, headers={
         'Authorization': f'Bearer {token}',
@@ -782,7 +782,7 @@ def _resolve_geo_targets(locations_str: str) -> list:
 def _ads_req(method: str, path: str, payload: dict, access_token: str, developer_token: str, login_customer_id: str = '') -> dict:
     """Make a Google Ads REST API v17 request."""
     import urllib.request as _ur
-    url  = f'https://googleads.googleapis.com/v17/{path.lstrip("/")}'
+    url  = f'https://googleads.googleapis.com/v21/{path.lstrip("/")}'
     data = json.dumps(payload).encode() if payload else None
     hdrs = {
         'Authorization':   f'Bearer {access_token}',
