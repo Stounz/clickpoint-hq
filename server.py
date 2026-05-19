@@ -780,8 +780,9 @@ def _resolve_geo_targets(locations_str: str) -> list:
     return [f'geoTargetConstants/{g}' for g in found] if found else ['geoTargetConstants/2036']
 
 def _ads_req(method: str, path: str, payload: dict, access_token: str, developer_token: str, login_customer_id: str = '') -> dict:
-    """Make a Google Ads REST API v17 request."""
+    """Make a Google Ads REST API v21 request."""
     import urllib.request as _ur
+    import urllib.error  as _ue
     url  = f'https://googleads.googleapis.com/v21/{path.lstrip("/")}'
     data = json.dumps(payload).encode() if payload else None
     hdrs = {
@@ -792,8 +793,21 @@ def _ads_req(method: str, path: str, payload: dict, access_token: str, developer
     if login_customer_id:
         hdrs['login-customer-id'] = login_customer_id.replace('-', '')
     req = _ur.Request(url, data=data, method=method, headers=hdrs)
-    with _ur.urlopen(req, timeout=30) as resp:
-        return json.loads(resp.read())
+    try:
+        with _ur.urlopen(req, timeout=30) as resp:
+            return json.loads(resp.read())
+    except _ue.HTTPError as e:
+        # Read and surface the Google error body so callers can show a useful message
+        try:
+            body = e.read().decode('utf-8', errors='replace')
+            err_json = json.loads(body)
+            google_msg = (err_json.get('error', {}).get('message')
+                          or err_json.get('error', {}).get('details', [{}])[0].get('errors', [{}])[0].get('message')
+                          or body[:400])
+        except Exception:
+            google_msg = f'HTTP {e.code}: {e.reason}'
+        print(f'  ❌ Google Ads API error [{method} {url}]: {google_msg}')
+        raise RuntimeError(google_msg) from e
 
 def _create_google_ads_campaign_live(
     workspace_id:       str,
