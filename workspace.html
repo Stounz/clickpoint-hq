@@ -3550,15 +3550,47 @@ function wsStartAdsPoll() {
           delete _wsAdsBuildStart[srv.id];
           anyChange = true;
 
-          // Update pill in-place without full re-render
+          // Update pill in-place on the list card
           const pillEl = document.getElementById('wsAdsPill_' + srv.id);
           if (pillEl) {
             if (srv.ads_build_status === 'live') {
-              pillEl.outerHTML = '<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(48,209,88,0.1);color:#1a7a3a;">✅ Complete — Live in Ads</span>';
-              _wsToast('✅ Google Ads campaign is now live!');
+              pillEl.outerHTML = '<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(48,209,88,0.1);color:#1a7a3a;">✅ Live in Ads</span>';
             } else if (srv.ads_build_status === 'error') {
               pillEl.outerHTML = `<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(255,69,58,0.1);color:#c0392b;" title="${(srv.ads_build_detail||'').replace(/"/g,'')}">⚠️ Build Failed</span>`;
-              _wsToast('⚠️ Google Ads build failed — open the campaign for details.', 'error');
+            }
+          }
+
+          // Also update the open drawer's build status block if it belongs to this campaign
+          const adsBuildEl = document.getElementById('wsCmpAdsBuild');
+          if (adsBuildEl) {
+            if (srv.ads_build_status === 'live') {
+              adsBuildEl.innerHTML = `
+                <div class="ws-cmp-drawer-section" style="margin-top:4px;">
+                  <div class="ws-cmp-drawer-label">Google Ads Build Status</div>
+                  <div style="background:rgba(48,209,88,0.10);border-radius:10px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;">
+                    <div style="font-size:18px;flex-shrink:0;margin-top:1px;">✅</div>
+                    <div>
+                      <div style="font-size:13px;font-weight:700;color:#1a7a3a;">Live in Google Ads</div>
+                      <div style="font-size:12px;color:#1a7a3a;margin-top:4px;">Campaign created PAUSED — review it in Google Ads then enable when ready.</div>
+                    </div>
+                  </div>
+                </div>`;
+              _wsToast('✅ Google Ads campaign is now live!');
+            } else if (srv.ads_build_status === 'error') {
+              const detail = (srv.ads_build_detail || 'Unknown error').replace(/</g,'&lt;');
+              adsBuildEl.innerHTML = `
+                <div class="ws-cmp-drawer-section" style="margin-top:4px;">
+                  <div class="ws-cmp-drawer-label">Google Ads Build Status</div>
+                  <div style="background:rgba(255,69,58,0.08);border-radius:10px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;">
+                    <div style="font-size:18px;flex-shrink:0;margin-top:1px;">⚠️</div>
+                    <div>
+                      <div style="font-size:13px;font-weight:700;color:#c0392b;">Build Failed</div>
+                      <div style="font-size:12px;color:#c0392b;margin-top:4px;">${detail}</div>
+                      <button onclick="wsRetryAdsBuild('${srv.id}', ${idx})" style="margin-top:10px;padding:8px 16px;background:var(--teal);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🔄 Retry Build</button>
+                    </div>
+                  </div>
+                </div>`;
+              _wsToast('⚠️ Google Ads build failed — see the error in the campaign drawer.', 'error');
             }
           }
         }
@@ -6253,7 +6285,7 @@ async function wsRetryAdsBuild(campaignId, idx) {
       wsPendingCampaigns[idx].ads_build_detail = 'Build queued — check back in 30 seconds.';
     }
 
-    // Re-render the build status section
+    // Re-render the build status section inside the drawer
     const adsBuildEl = document.getElementById('wsCmpAdsBuild');
     if (adsBuildEl) {
       adsBuildEl.innerHTML = `
@@ -6263,11 +6295,17 @@ async function wsRetryAdsBuild(campaignId, idx) {
             <div style="font-size:18px;flex-shrink:0;margin-top:1px;">⏳</div>
             <div>
               <div style="font-size:13px;font-weight:700;color:#996000;">Building in Google Ads…</div>
-              <div style="font-size:12px;color:#996000;margin-top:4px;">Campaign is being created — this takes about 15–30 seconds. Close and reopen this drawer to see the result.</div>
+              <div style="font-size:12px;color:#996000;margin-top:4px;">Campaign is being created — this takes about 15–30 seconds.</div>
             </div>
           </div>
         </div>`;
     }
+
+    // Re-render the campaign list card so it shows "Building" not "Build Failed"
+    wsLoadCampaigns();
+    // Start polling so the list-card pill (now with wsAdsPill_{id}) gets updated live
+    wsStartAdsPoll();
+
     _wsToast('🔄 Google Ads build queued — check back in 30 seconds.');
   } catch(e) {
     btn.disabled = false;
